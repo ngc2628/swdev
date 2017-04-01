@@ -1458,6 +1458,12 @@ function checkBase1(evt) {
     return;
 
   key=String.fromCharCode(key);
+
+  var regexp=new RegExp('[cvx]');
+  var ans=key.match(regexp);
+  if (kevt.getModifierState('Control') && ans)
+    return;
+
   var strnum1=document.getElementById("number1").value;
   var strnum1chk=(strnum1+key);
   var combo1=combobase1;
@@ -1483,6 +1489,12 @@ function checkBase2(evt) {
     return;
 
   key=String.fromCharCode(key);
+
+  var regexp=new RegExp('[cvx]');
+  var ans=key.match(regexp);
+  if (kevt.getModifierState('Control') && ans)
+    return;
+
   var strnum2=document.getElementById("number2").value;
   var strnum2chk=(strnum2+key);
   var combo2=combobase2;
