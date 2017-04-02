@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char in[94]={
+const unsigned char in[94]={
 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72,
 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92,
 93, 94, 95, 96, 97, 98, 99,100,101,102,103,104,105,106,107,108,109,110,111,112,
 113,114,115,116,117,118,119,120,121,122,123,124,125,126
 };
-const char inscram[94]={
+const unsigned char inscram[94]={
 94,101,115, 93,107,116, 77,126, 62,125, 57, 44, 72, 38,118, 68,112,100, 91, 86,
 55,108, 59,121, 82, 39, 87, 96, 88, 67, 52,117,109,113, 83, 90, 33, 47, 50, 80,
 48, 99,105, 65,110, 56, 70, 69, 92, 41, 97,124, 43, 95, 42, 61,119, 35,104, 51,
@@ -20,14 +20,14 @@ const char inscram[94]={
 static const int scramlen=94;
 static const int wordlen=128;
 
-int punchinelloDecrypt(const char *word) {
+int punchinelloDecrypt(const unsigned char *word) {
 
   int ii=0,jj=0,len2=(word ? strlen(word) : 0),len=len2-2,idx1=0,idx2=0;
   if(len2==0 || len<=0 || len2>=wordlen)
     return 1;
 
-  char word2[wordlen];
-  char out[wordlen];
+  unsigned char word2[wordlen];
+  unsigned char out[wordlen];
   memset(word2,0,wordlen);
   memset(out,0,wordlen);
 
@@ -71,14 +71,14 @@ int punchinelloDecrypt(const char *word) {
 
 }
 
-int punchinelloCrypt(const char *word) {
+int punchinelloCrypt(const unsigned char *word) {
 
   int ii=0,jj=0,len=(word ? strlen(word) : 0),idx1=0,idx2=0;
   if(len==0 || len>wordlen-3)
     return 1;
 
-  char word2[wordlen];
-  char out[wordlen];
+  unsigned char word2[wordlen];
+  unsigned char out[wordlen];
   memset(word2,0,wordlen);
   memset(out,0,wordlen);
 
@@ -126,7 +126,7 @@ int main(int argc,char **argv) {
     printf ("usage: pun\n       -c word\n       -d word\n");
     return 1;
   }
-  char inp[129];
+  unsigned char inp[129];
   memset(&inp[0],0,129);
   if (argc<3) {
     char iinp[256];
@@ -134,8 +134,8 @@ int main(int argc,char **argv) {
     fgets(iinp,255,stdin);
     int ii=0,jj=0;
     for (ii=0;ii<(int)strlen(iinp);ii++) {
-      if ((int)iinp[ii]>32 && (int)iinp[ii]<127)
-        inp[jj++]=iinp[ii];
+      if ((unsigned char)iinp[ii]>32)
+        inp[jj++]=(unsigned char)iinp[ii];
     }
   }
   else
