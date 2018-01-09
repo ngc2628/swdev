@@ -1,0 +1,43 @@
+
+#include <osix/xxkey.h>
+#include <osix/xxmouse.h>
+#include <osix/xxpaint.h>
+#include <osix/xxevent.h>
+#include <qt4/qt4util/qt4util.h>
+#include <qt4/qt4util/qt4paint.h>
+#include <qt4/calculator/calculator.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+//#include <pthread.h>
+#include <QtGui/QApplication>
+
+int main(int argc,char **argv) { 
+
+  //QApplication::setDesktopSettingsAware( FALSE );
+  QApplication a(argc,argv); 
+
+  osix::xxtranslateEventExt=qt4util::xxtranslateQevent;
+  osix::xxpredrawExt=qt4util::xxpredrawQt4;
+  osix::xxpostdrawExt=qt4util::xxpostdrawQt4;
+  osix::xxdrawLineExt=qt4util::xxdrawLineQt4;
+  osix::xxdrawRectExt=qt4util::xxdrawRectQt4;
+  osix::xxfillRectExt=qt4util::xxfillRectQt4;
+  osix::xxdrawTextExt=qt4util::xxdrawTextQt4;
+  osix::xxdrawCtrlExt=qt4util::xxdrawCtrlQt4;
+  osix::xxresizeDrawableExt=qt4util::xxresizeDrawableQt4;
+  osix::xxcopyAreaExt=qt4util::xxcopyAreaQt4;
+
+  int ii=0;
+  for (ii=0;ii<argc;ii++)
+    printf ("arg#%d : %s\n",ii,argv[ii]);
+  if (argc>1 && strcmp(argv[1],"-help")==0)
+    printf ("no help\n");
+    
+  qt4calculator::QtCalculator *c=new qt4calculator::QtCalculator(0);
+  c->setFixedSize(c->minimumSize());
+  c->show();
+  return a.exec();
+
+}
+

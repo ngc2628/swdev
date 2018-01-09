@@ -3,13 +3,13 @@ var datetime={};
 
 datetime.structtmtype=['millisecond','second','minute','hour','day','month','year','timezone'];
 datetime.asecondmillis=1000;
-datetime.aminutemillis=60000; 
-datetime.anhourmillis=3600000; 
+datetime.aminutemillis=60000;
+datetime.anhourmillis=3600000;
 datetime.adaymillis=86400000;
 datetime.year2038millis=1653247000; // 2038-01-19T03:14:07
 datetime.decacc={
-  '1980': 315532800000,'1990': 631152000000,'2000': 946684800000,  
-  '2010':1262304000000,'2020':1577836800000,'2030':1893456000000   
+  '1980': 315532800000,'1990': 631152000000,'2000': 946684800000,
+  '2010':1262304000000,'2020':1577836800000,'2030':1893456000000
 };
 
 datetime.hfields={
@@ -30,12 +30,14 @@ datetime.mfields={
   'month':{'prefix':'','postfix':''},
 };
 
+/* ********** */
 datetime.utcmillicnt=function(date) {
   if (typeof date!='date')
     date=new Date();
   return date.valueOf();
 };
 
+/* ********** */
 datetime.isLeapYear=function(yy) {
   var ans=0;
   if (yy>0 && (yy%4)==0 && ((yy%100)!=0 || (yy%400)==0))
@@ -43,6 +45,7 @@ datetime.isLeapYear=function(yy) {
   return ans;
 };
 
+/* ********** */
 datetime.yearcnt=function(yy) {
   if (yy==2038)
     return datetime.year2038millis;
@@ -52,11 +55,12 @@ datetime.yearcnt=function(yy) {
   return ans;
 };
 
+/* ********** */
 datetime.monthdays=function(mm,yy) {
   var ans=0;
   var dcnt=[28,29,30,31];
   if (mm==2)
-    ans=dcnt[datetime.isLeapYear(yy)]; 
+    ans=dcnt[datetime.isLeapYear(yy)];
   else if (mm==1 || mm==3 || mm==5 || mm==7 || mm==8 || mm==10 || mm==12)
     ans=dcnt[3];
   else if (mm==4 || mm==6 || mm==9 || mm==11)
@@ -64,11 +68,13 @@ datetime.monthdays=function(mm,yy) {
   return ans;
 };
 
+/* ********** */
 datetime.monthcnt=function(mm,yy) {
   var ans=datetime.adaymillis*datetime.monthdays(mm,yy);
   return ans;
 };
 
+/* ********** */
 datetime.chkstructtmtype=function(type) {
   var ans='';
   if (typeof type=='string') {
@@ -80,32 +86,34 @@ datetime.chkstructtmtype=function(type) {
   return ans;
 };
 
+/* ********** */
 datetime.chkStructTm=function(structtm) {
-  if (intobj.chknumberrange(structtm.millisecond,0,999)==aux.ansko)
+  if (mkint.chknumberrange(structtm.millisecond,0,999)==mkuni.bad)
     structtm.millisecond=0;
-  if (intobj.chknumberrange(structtm.second,0,59)==aux.ansko)
+  if (mkint.chknumberrange(structtm.second,0,59)==mkuni.bad)
     structtm.second=0;
-  if (intobj.chknumberrange(structtm.minute,0,59)==aux.ansko)
+  if (mkint.chknumberrange(structtm.minute,0,59)==mkuni.bad)
     structtm.minute=0;
-  if (intobj.chknumberrange(structtm.hour,0,23)==aux.ansko)
+  if (mkint.chknumberrange(structtm.hour,0,23)==mkuni.bad)
     structtm.hour=0;
-  if (intobj.chknumberrange(structtm.month,1,12)==aux.ansko)
+  if (mkint.chknumberrange(structtm.month,1,12)==mkuni.bad)
     structtm.month=1;
-  if (intobj.chknumberrange(structtm.year,1970,2038)==aux.ansko) {
+  if (mkint.chknumberrange(structtm.year,1970,2038)==mkuni.bad) {
     var dt=new Date();
     structtm.year=dt.getFullYear();
   }
-  if (intobj.chknumberrange(structtm.day,1,datetime.monthdays(structtm.month,structtm.year))==aux.ansko)
+  if (mkint.chknumberrange(structtm.day,1,datetime.monthdays(structtm.month,structtm.year))==mkuni.bad)
     structtm.day=1;
   return structtm;
 };
 
+/* ********** */
 datetime.add2StructTm=function(structtm,type,val) {
   structtm=datetime.chkStructTm(structtm);
   type=datetime.chkstructtmtype(type);
-  val=intobj.cutfloat(intobj.chknumber(val,0));
+  val=mkfloat.cut2int(mkuni.chknumber(val,0));
   if (type.length==0 || val==0)
-    return structtm; 
+    return structtm;
   var mdays=datetime.monthdays(structtm.month,structtm.year);
   structtm[type]+=val;
   while (structtm.millisecond>999) {
@@ -123,7 +131,7 @@ datetime.add2StructTm=function(structtm,type,val) {
   while (structtm.hour>23) {
     structtm.hour-=24;
     structtm.day+=1;
-  }  
+  }
   while (structtm.day>mdays) {
     structtm.day-=mdays;
     structtm.month+=1;
@@ -140,12 +148,13 @@ datetime.add2StructTm=function(structtm,type,val) {
   return structtm;
 };
 
+/* ********** */
 datetime.subs2StructTm=function(structtm,type,val) {
   structtm=datetime.chkStructTm(structtm);
   type=datetime.chkstructtmtype(type);
-  val=intobj.cutfloat(intobj.chknumber(val,0));
+  val=mkfloat.cut2int(mkuni.chknumber(val,0));
   if (type.length==0 || val==0)
-    return structtm; 
+    return structtm;
   structtm[type]-=val;
   while (structtm.millisecond<0) {
     structtm.millisecond+=1000;
@@ -162,7 +171,7 @@ datetime.subs2StructTm=function(structtm,type,val) {
   while (structtm.hour<0) {
     structtm.hour+=24;
     structtm.day-=1;
-  }  
+  }
   while (structtm.day<1) {
     var mdays=(structtm.month==1 ? 31 : datetime.monthdays(structtm.month,structtm.year));
     structtm.day+=mdays;
@@ -175,17 +184,19 @@ datetime.subs2StructTm=function(structtm,type,val) {
   return structtm;
 };
 
+/* ########## */
 datetime.Datetime=function(utccntoriso8601) {
   this.structtm={
     'year':0,'month':0,'day':0,'hour':0,'minute':0,'second':0,'millisecond':0,'timezone':0
   };
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   if (typeof utccntoriso8601=='string')
     ans=this.fromIso8601(utccntoriso8601);
-  if (ans==aux.ansko)
+  if (ans==mkuni.bad)
     this.fromUtcmillicnt(utccntoriso8601);
 };
 
+/* ********** */
 datetime.Datetime.prototype.toStructTm=function() {
   var ans={
     'year':this.structtm.year,
@@ -196,20 +207,21 @@ datetime.Datetime.prototype.toStructTm=function() {
     'second':this.structtm.second,
     'millisecond':this.structtm.millisecond,
     'timezone':this.structtm.timezone
-  }; 
+  };
   return ans;
 };
 
+/* ********** */
 datetime.Datetime.prototype.fromUtcmillicnt=function(utccnt) {
   this.structtm={
     'year':0,'month':0,'day':0,'hour':0,'minute':0,'second':0,'millisecond':0,'timezone':0
   };
   var nn=datetime.utcmillicnt();
   if (typeof utccnt=='number') {
-    utccnt=intobj.cutfloat(intobj.chknumber(utccnt,nn)); 
+    utccnt=mkfloat.cut2int(mkuni.chknumber(utccnt,nn));
     if (utccnt<=0)
       utccnt=nn;
-  }   
+  }
   else if (typeof utccnt=='string')
     utccnt=parseFloat(utccnt);
   else
@@ -271,33 +283,35 @@ datetime.Datetime.prototype.fromUtcmillicnt=function(utccnt) {
   this.structtm.timezone=0;
 };
 
+/* ********** */
 datetime.Datetime.prototype.fromStructTmValues=function(yy,mm,dd,hh,mmm,ss,msec,tz) {
   this.fromUtcmillicnt();
-  if (intobj.chknumberrange(yy,1970,2038)==aux.ansok)
+  if (mkint.chknumberrange(yy,1970,2038)==mkuni.good)
     this.structtm.year=yy;
-  if (intobj.chknumberrange(mm,1,12)==aux.ansok && 
+  if (mkint.chknumberrange(mm,1,12)==mkuni.good &&
       (this.structtm.year!=2038 || (this.structtm.year==2038 && mm==1)))
-    this.structtm.month=mm;  
+    this.structtm.month=mm;
   var mdays=datetime.monthdays(this.structtm.month,this.structtm.year);
-  if (intobj.chknumberrange(dd,1,mdays)==aux.ansok &&
+  if (mkint.chknumberrange(dd,1,mdays)==mkuni.good &&
       (this.structtm.year!=2038 || (this.structtm.year==2038 && dd<=19)))
     this.structtm.day=dd;
-  if (intobj.chknumberrange(hh,0,23)==aux.ansok &&
+  if (mkint.chknumberrange(hh,0,23)==mkuni.good &&
       (this.structtm.year!=2038 || (this.structtm.year==2038 && hh<=3)))
     this.structtm.hour=hh;
-  if (intobj.chknumberrange(mmm,0,59)==aux.ansok &&
+  if (mkint.chknumberrange(mmm,0,59)==mkuni.good &&
       (this.structtm.year!=2038 || (this.structtm.year==2038 && mmm<=14)))
     this.structtm.minute=mmm;
-  if (intobj.chknumberrange(ss,0,59)==aux.ansok &&
+  if (mkint.chknumberrange(ss,0,59)==mkuni.good &&
       (this.structtm.year!=2038 || (this.structtm.year==2038 && ss<=8)))
     this.structtm.second=ss;
-  if (intobj.chknumberrange(msec,0,999)==aux.ansok &&
+  if (mkint.chknumberrange(msec,0,999)==mkuni.good &&
       (this.structtm.year!=2038 || (this.structtm.year==2038 && msec<=499)))
     this.structtm.millisecond=msec;
-  if (intobj.chknumberrange(tz,-720,720)==aux.ansok)
+  if (mkint.chknumberrange(tz,-720,720)==mkuni.good)
     this.structtm.timezone=tz;
 };
 
+/* ********** */
 datetime.Datetime.prototype.fromStructTm=function(structtm) {
   structtm=datetime.chkStructTm(structtm);
   this.fromStructTmValues(
@@ -306,9 +320,10 @@ datetime.Datetime.prototype.fromStructTm=function(structtm) {
   );
 };
 
+/* ********** */
 datetime.Datetime.prototype.fromIso8601=function(striso8601) {
   if (typeof striso8601!='string')
-    return aux.ansko;
+    return mkuni.bad;
   var strregexp='[1-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'; // yy-mm-dd
   strregexp+='T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]'; // hh:mm:ss
   strregexp+='(\.[0-9][0-9][0-9])?'; // msec
@@ -316,7 +331,7 @@ datetime.Datetime.prototype.fromIso8601=function(striso8601) {
   var regexp=new RegExp(strregexp);
   var ans=striso8601.search(regexp);
   if (ans<0)
-    return aux.ansko;
+    return mkuni.bad;
   var idxs=0,idxe=4;
   var yy=parseInt(striso8601.substring(idxs,idxe));
   idxs+=5;
@@ -355,34 +370,36 @@ datetime.Datetime.prototype.fromIso8601=function(striso8601) {
   var tzoff=parseInt(striso8601.substring(idxs));
   tzoff=((60*tzhoff)+(tzhoff<0 ? -tzoff : tzoff));
   this.fromStructTmValues(yy,mm,dd,hh,mmm,ss,msec,tzoff);
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 datetime.Datetime.prototype.tm2string=function(key) {
   var ans='';
   var tmval=this.structtm[key];
   if (key=='timezone') {
-    ans+=(tmval<0 ? '-' : '+');
-    var tzoff=intobj.cutfloat(tmval/60);
+    ans+=(tmval<0 ? mkuni.str4code(mkuni.asciiminus) : mkuni.str4code(mkuni.asciiplus));
+    var tzoff=mkfloat.cut2int(tmval/60);
     if (tzoff<10)
-      ans+='0';
+      ans+=mkuni.str4code(mkuni.asciizero);
     ans+=tzoff.toString();
-    ans+=':';
-    tzoff=intobj.cutfloat(tmval-tzoff*60);
+    ans+=mkuni.str4code(mkuni.asciicolon);
+    tzoff=mkfloat.cut2int(tmval-tzoff*60);
     if (tzoff<10)
-      ans+='0';
+      ans+=mkuni.str4code(mkuni.asciizero);
     ans+=tzoff.toString();
   }
   else {
     if (tmval<10)
-      ans+='0';
+      ans+=mkuni.str4code(mkuni.asciizero);
     if (key=='millisecond' && tmval<100)
-      ans+='0';
+      ans+=mkuni.str4code(mkuni.asciizero);
     ans+=tmval.toString();
   }
   return ans;
 };
 
+/* ********** */
 datetime.Datetime.prototype.toIso8601=function(showmillis) {
   var ans=this.tm2string('year');
   ans+='-';
@@ -395,15 +412,16 @@ datetime.Datetime.prototype.toIso8601=function(showmillis) {
   ans+=this.tm2string('minute');
   ans+=':';
   ans+=this.tm2string('second');
-  showmillis=intobj.chknumber(showmillis,0);
+  showmillis=mkuni.chknumber(showmillis,0);
   if (showmillis!=0) {
     ans+='.';
     ans+=this.tm2string('millisecond');
   }
-  ans+=this.tm2string('timezone');  
+  ans+=this.tm2string('timezone');
   return ans;
 };
 
+/* ********** */
 datetime.Datetime.prototype.toStructTmString=function(fields) {
   var fieldL=['year','month','day','hour','minute','second','millisecond','timezone'];
   var ans='';
@@ -420,6 +438,7 @@ datetime.Datetime.prototype.toStructTmString=function(fields) {
   return ans;
 };
 
+/* ********** */
 datetime.Datetime.prototype.toUtcmillicnt=function() {
   var cnt=0,ans=0;
   for (cnt=1970;cnt<this.structtm.year;cnt++)
@@ -439,11 +458,13 @@ datetime.Datetime.prototype.toUtcmillicnt=function() {
   return ans;
 };
 
+/* ********** */
 datetime.Datetime.prototype.toString=function(showmillis) {
   var ans=this.toIso8601(showmillis);
   return ans;
 };
 
+/* ********** */
 datetime.Datetime.prototype.toJson=function(indent) {
   var ans=aux.qdecl('iso8601');
   ans+=aux.qword(this.toIso8601(1));
@@ -451,11 +472,13 @@ datetime.Datetime.prototype.toJson=function(indent) {
     ans=(indent+ans);
   return ans;
 };
+/* ########## */
 
 datetime.chkpt=0;
 
+/* ********** */
 datetime.chkrun=function(start) {
-  start=intobj.chknumber(start,0);
+  start=mkuni.chknumber(start,0);
   var ans=0;
   if (start==0)
     datetime.chkpt=datetime.utcmillicnt();

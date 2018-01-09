@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script type="application/javascript" src="/js/auxx/intobj.js">
+    <script type="application/javascript" src="/js/auxx/mkuni.js">
     </script>
-    <script type="application/javascript" src="/js/auxx/floatobj.js">
+    <script type="application/javascript" src="/js/numbers/mkint.js">
     </script>
     <script type="application/javascript" src="/js/auxx/auxx.js">
     </script>
     <script type="application/javascript" src="/js/auxx/datetime.js">
+    </script>
+    <script type="application/javascript" src="/js/numbers/mkfloat.js">
     </script>
     <script type="application/javascript" src="/js/chart/chart.js">
     </script>
@@ -28,18 +30,18 @@
   </head>
   <body onload="bodyonload();">
     <div>
-     <canvas id="canvas11" width="1000" height="800" 
+     <canvas id="canvas11" width="1000" height="800"
        onmousedown="canvas11_mousedown(event)">
      </canvas>
     </div>
     <div id="divout">
       <p>
-        <textarea id="out11" rows="400" cols="140" style="border-width:0" 
+        <textarea id="out11" rows="400" cols="140" style="border-width:0"
           onkeypress="out11_keypress(event)">
         </textarea>
       </p>
       <p>
-        <textarea id="out12" rows="400" cols="140" style="border-width:0" 
+        <textarea id="out12" rows="400" cols="140" style="border-width:0"
           onkeypress="out12_keypress(event)">
         </textarea>
       </p>

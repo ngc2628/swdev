@@ -9,73 +9,82 @@ chart.axis.typeShowLine=1;
 chart.axis.typeShowNotch=2;
 chart.axis.typeShowText=4;
 
+/* ########## */
 chart.axis.Axis=function(typename,typenum) {
   if (typeof typename!='string')
     typename='axis';
   chart.scale.Scale.call(this,typename,typenum);
   this.pos=0;
   this.visible=(chart.axis.typeShowLine|chart.axis.typeShowNotch|chart.axis.typeShowText);
-  this.linestyle={'color':0,'style':1,'width':1};
+  this.linestyle={'color':0,'style':'1','width':1};
   this.scaling=new chart.scale.Scaling();
   this.graphs=[];
 };
 
+/* ********** */
 chart.axis.Axis.prototype=Object.create(chart.scale.Scale.prototype);
 
+/* ********** */
 chart.axis.Axis.prototype.constructor=chart.axis.Axis;
 
+/* ********** */
 chart.axis.Axis.prototype.findGraph=function(graph) {
   if (graph instanceof aux.TypeId) {
-    var idx=aux.bsearch(graph,this.graphs,aux.cmptypeid);
+    var idx=mkuni.bsearch(graph,this.graphs,aux.cmptypeid);
     if (idx>=0)
       return this.graphs[idx];
   }
   return void(0);
 };
 
+/* ********** */
 chart.axis.Axis.prototype.assignGraph=function(graph) {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   if (graph instanceof aux.TypeId) {
-    var idx=aux.bsearch(graph,this.graphs,aux.cmptypeid);
+    var idx=mkuni.bsearch(graph,this.graphs,aux.cmptypeid);
     if (idx<0) {
       this.graphs.push(graph);
       this.graphs.sort(aux.cmptypeid);
       if (graph instanceof chart.graph.Graph)
         graph.setScale(this);
-      ans=aux.ansok;
+      ans=mkuni.good;
     }
   }
   return ans;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.unassignGraph=function(graph) {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   if (graph instanceof aux.TypeId) {
-    var idx=aux.bsearch(graph,this.graphs,aux.cmptypeid);
+    var idx=mkuni.bsearch(graph,this.graphs,aux.cmptypeid);
     if (idx>=0) {
       this.graphs.splice(idx,1);
       if (graph instanceof chart.graph.Graph)
         graph.unsetScale(this);
-      ans=aux.ansok;
+      ans=mkuni.good;
     }
   }
   return ans;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.setScaling=function(sc) {
   if (sc instanceof chart.scale.Scaling)
     this.scaling=sc.copy();
 };
 
+/* ********** */
 chart.axis.Axis.prototype.getScaling=function() {
   var ans=this.scaling.copy();
   return ans;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.calcRange=function(dir) {
   var currange=this.scaling.currRange();
   if (currange.bounds.min.type=='static' && currange.bounds.max.type=='static')
-    return aux.ansnop;
+    return mkuni.good;
   var accmin=NaN,accmax=NaN;
   var graph,graphdata;
   var bounds={'min':NaN,'max':NaN};
@@ -102,40 +111,43 @@ chart.axis.Axis.prototype.calcRange=function(dir) {
   if (currange.bounds.max.type=='static')
     accmax=currange.bounds.max.val;
   this.scaling.setRange(accmin,accmax,currange.bounds.min.type,currange.bounds.max.type);
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.setPos=function(pos) {
   return 0;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.sc2sz=function(vertex) {
   return NaN;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.sz2sc=function(vertex) {
   return NaN;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.findRect=function(ctx,rect,space) {
   return rect.copy();
 };
 
+/* ********** */
 chart.axis.Axis.prototype.setStyle=function(cc,ss,ww) {
-  cc=intobj.chknumber(cc,this.linestyle.color);
-  if (intobj.chknumberrange(cc,0,16777215)==aux.ansko)
+  cc=mkuni.chknumber(cc,this.linestyle.color);
+  if (mkint.chknumberrange(cc,0,16777215)==mkuni.bad)
     cc=this.linestyle.color;
-  ss=intobj.chknumber(ss,this.linestyle.style);
-  if (intobj.chknumberrange(ss,0,8)==aux.ansko)
-    ss=this.linestyle.style;
-  ww=intobj.chknumber(ww,this.linestyle.width);
-  if (intobj.chknumberrange(ww,0,16)==aux.ansko)
-    ww=this.linestyle.width;
   this.linestyle.color=cc;
-  this.linestyle.style=ss;
+  this.linestyle.style=chart.stipple(ss,this.linestyle.style);
+  ww=mkuni.chknumber(ww,this.linestyle.width);
+  if (mkint.chknumberrange(ww,0,16)==mkuni.bad)
+    ww=this.linestyle.width;
   this.linestyle.width=ww;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.getStyle=function() {
   var ans={
     'color':this.linestyle.color,'style':this.linestyle.style,'width':this.linestyle.width
@@ -143,20 +155,24 @@ chart.axis.Axis.prototype.getStyle=function() {
   return ans;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.mendScaling=function(ctx) {
-  return aux.ansko;
+  return mkuni.bad;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.drawCanvas2d=function(ctx) {
-  return aux.ansko;
+  return mkuni.bad;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.drawSvg=function(ctx) {
-  return aux.ansko;
+  return mkuni.bad;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.draw=function(ctx) {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   if (ctx instanceof CanvasRenderingContext2D) {
     ans=this.drawCanvas2d(ctx);
   }
@@ -166,6 +182,7 @@ chart.axis.Axis.prototype.draw=function(ctx) {
   return ans;
 };
 
+/* ********** */
 chart.axis.Axis.prototype.toJson=function(indent) {
   var nextindent='  ',ans=chart.scale.Scale.prototype.toJson.call(this,indent);
   if (typeof indent=='string')
@@ -182,16 +199,16 @@ chart.axis.Axis.prototype.toJson=function(indent) {
   tmp+=aux.qword(this.linestyle.color.toString());
   tmp+=aux.qnextprop();
   tmp+=aux.qdecl('style');
-  tmp+=aux.qword(this.linestyle.style.toString());
+  tmp+=aux.qword(this.linestyle.style);
   tmp+=aux.qnextprop();
   tmp+=aux.qdecl('width');
   tmp+=aux.qword(this.linestyle.width.toString());
   ans+=aux.qattr(tmp);
   ans+=aux.qnextprop(1);
-  ans+=aux.qdecl('scaling',indent);  
+  ans+=aux.qdecl('scaling',indent);
   ans+=aux.qattr(this.scaling.toJson(nextindent),1,indent);
   ans+=aux.qnextprop(1);
-  ans+=aux.qdecl('graphids',indent);  
+  ans+=aux.qdecl('graphids',indent);
   tmp='';
   var ii=0;
   for (ii=0;ii<this.graphs.length;ii++) {
@@ -202,33 +219,41 @@ chart.axis.Axis.prototype.toJson=function(indent) {
   ans+=aux.qarr(tmp,0,indent);
   return ans;
 };
+/* ########## */
 
+/* ########## */
 chart.axis.Xaxis=function(typenum) {
   chart.axis.Axis.call(this,'xaxis',typenum);
   this.pos=chart.axis.typeBottom;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype=Object.create(chart.axis.Axis.prototype);
 
+/* ********** */
 chart.axis.Xaxis.prototype.constructor=chart.axis.Xaxis;
 
+/* ********** */
 chart.axis.Xaxis.prototype.assignGraph=function(graph) {
   var ans=chart.axis.Axis.prototype.assignGraph.call(this,graph);
   return ans;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.calcRange=function(dir) {
-  chart.axis.Axis.prototype.calcRange.call(this,intobj.typeX);
+  chart.axis.Axis.prototype.calcRange.call(this,mkuni.typeX);
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.setPos=function(pos) {
-  pos=intobj.chknumber(pos,chart.axis.typeBottom);
+  pos=mkuni.chknumber(pos,chart.axis.typeBottom);
   if (pos!=chart.axis.typeBottom && pos!=chart.axis.typeTop)
     pos=chart.axis.typeBottom;
   this.pos=pos;
   return this.pos;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.sc2sz=function(vertex) {
   var ans=NaN,minmax=this.scaling.effRange();
   var dfrange=minmax.max-minmax.min,dfsz=this.rect.right()-this.rect.left();
@@ -237,14 +262,16 @@ chart.axis.Xaxis.prototype.sc2sz=function(vertex) {
   return ans;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.sz2sc=function(vertex) {
   var ans=NaN,minmax=this.scaling.effRange();
   var dfrange=minmax.max-minmax.min,dfsz=this.rect.right()-this.rect.left();
-  if (dfsz>0 && (vertex instanceof floatobj.Vertex))
+  if (dfsz>0 && (vertex instanceof mkmat.Vertex))
     ans=minmax.min+(vertex.val(0)-this.rect.left())*dfrange/dfsz;
   return ans;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.findRect=function(ctx,rect,space) {
   var majfntstr=chart.fnt2str(this.font.major),minfntstr=chart.fnt2str(this.font.minor);
   var ans=rect.copy(),pos=0;
@@ -262,15 +289,16 @@ chart.axis.Xaxis.prototype.findRect=function(ctx,rect,space) {
   return ans;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.drawCanvas2d=function(ctx) {
-  ctx.textBaseline='top';  
-  ctx.textAlign='center';  
-  ctx.strokeStyle=('#'+intobj.bits2str(intobj.str2bits(this.linestyle.color.toString(),10),16));
+  ctx.textBaseline='top';
+  ctx.textAlign='center';
+  ctx.strokeStyle=('#'+mkint.bits2str(mkint.str2bits(this.linestyle.color.toString(),10),16));
   ctx.fillStyle=ctx.strokeStyle;
   var base=this.rect.top(),loff=0,tboff=0;
   var fntoff=[
-    intobj.cutfloat(parseFloat(this.font.minor.pxsz)),
-    intobj.cutfloat(parseFloat(this.font.major.pxsz))
+    mkfloat.cut2int(parseFloat(this.font.minor.pxsz)),
+    mkfloat.cut2int(parseFloat(this.font.major.pxsz))
   ];
   if (this.pos==chart.axis.typeTop) {
     base=this.rect.bottom();
@@ -278,7 +306,7 @@ chart.axis.Xaxis.prototype.drawCanvas2d=function(ctx) {
     fntoff[1]=-fntoff[1];
     ctx.textBaseline='bottom';
   }
-  var ii=0,fnt2off=intobj.cutfloat(parseFloat(fntoff[0]/2));
+  var ii=0,fnt2off=mkfloat.cut2int(parseFloat(fntoff[0]/2));
   var fntstr=[chart.fnt2str(this.font.minor),chart.fnt2str(this.font.major)];
   ctx.beginPath();
   ctx.moveTo(this.rect.left(),base);
@@ -286,7 +314,7 @@ chart.axis.Xaxis.prototype.drawCanvas2d=function(ctx) {
   ctx.stroke();
   ctx.beginPath();
   var tic=new chart.scale.Tic();
-  var vertex=new floatobj.Vertex();
+  var vertex=new mkmat.Vertex();
   for (ii=0;ii<this.scaling.tics.length;ii++) {
     tboff=base;
     tic=this.scaling.tics[ii];
@@ -297,18 +325,19 @@ chart.axis.Xaxis.prototype.drawCanvas2d=function(ctx) {
     tboff+=(tic.sz==1 ? fntoff[0] : fnt2off);
     ctx.lineTo(loff,tboff);
     tboff+=fnt2off;
-    ctx.fillText(tic.str,loff,tboff);  
+    ctx.fillText(tic.str,loff,tboff);
   }
   ctx.stroke();
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.drawSvg=function(ctx) {
   var gxax=chart.findElementById(this.toString());
   if (!gxax) {
     gxax=chart.svgCreateElement('g');
     if (!gxax)
-      return aux.ansko;
+      return mkuni.bad;
     gxax.setAttribute('id',this.toString());
     chart.svgAddElement(ctx,gxax);
   }
@@ -316,22 +345,22 @@ chart.axis.Xaxis.prototype.drawSvg=function(ctx) {
     gxax.removeChild(gxax.firstChild);
   var base=this.rect.top(),loff=0,tboff=0;
   var fntoff=[
-    intobj.cutfloat(parseFloat(this.font.minor.pxsz)),
-    intobj.cutfloat(parseFloat(this.font.major.pxsz))
+    mkfloat.cut2int(parseFloat(this.font.minor.pxsz)),
+    mkfloat.cut2int(parseFloat(this.font.major.pxsz))
   ];
   if (this.pos==chart.axis.typeTop) {
     base=this.rect.bottom();
     fntoff[0]=-fntoff[0];
     fntoff[1]=-fntoff[1];
   }
-  var strokestyle=('#'+intobj.bits2str(intobj.str2bits(this.linestyle.color.toString(),10),16));
+  var strokecolor=('#'+mkint.bits2str(mkint.str2bits(this.linestyle.color.toString(),10),16));
   var svgtictxt=void(0);
-  var vertex=new floatobj.Vertex(this.rect.left(),base);
+  var vertex=new mkmat.Vertex(this.rect.left(),base);
   var strpath=chart.svgPath2('M',vertex);
   vertex.setVal(0,this.rect.right());
   strpath+=chart.svgPath2('L',vertex);
   var tic=new chart.scale.Tic();
-  var ii=0,fnt2off=intobj.cutfloat(parseFloat(fntoff[0]/2));
+  var ii=0,fnt2off=mkfloat.cut2int(parseFloat(fntoff[0]/2));
   var fntstr=[chart.fnt2str(this.font.minor),chart.fnt2str(this.font.major)];
   for (ii=0;ii<this.scaling.tics.length;ii++) {
     tboff=base;
@@ -348,10 +377,10 @@ chart.axis.Xaxis.prototype.drawSvg=function(ctx) {
     tboff+=fnt2off;
     vertex.setVal(1,tboff);
     svgtictxt=chart.svgCreateElement('text');
-    svgtictxt.setAttribute('x',floatobj.sprintf(vertex.val(0),0,'d'));
-    svgtictxt.setAttribute('y',floatobj.sprintf(vertex.val(1),0,'d'));
+    svgtictxt.setAttribute('x',mkfloat.sprintf(vertex.val(0),0,'d'));
+    svgtictxt.setAttribute('y',mkfloat.sprintf(vertex.val(1),0,'d'));
     svgtictxt.setAttribute('text-anchor','middle');
-    txtstyle=('fill:'+strokestyle+';font:');
+    txtstyle=('fill:'+strokecolor+';font:');
     txtstyle+=fntstr[tic.sz];
     svgtictxt.setAttribute('style',txtstyle);
     svgtictxt.textContent=tic.str;
@@ -359,16 +388,17 @@ chart.axis.Xaxis.prototype.drawSvg=function(ctx) {
   }
   var svgbase=chart.svgCreateElement('path');
   svgbase.setAttribute('d',strpath);
-  svgbase.setAttribute('stroke',strokestyle);
+  svgbase.setAttribute('stroke',strokecolor);
   svgbase.setAttribute('stroke-width',this.linestyle.width.toString());
   svgbase.setAttribute('fill','none');
   chart.svgAddElement(gxax,svgbase);
 
 //alert(document.body.innerHTML);
 
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.axis.Xaxis.prototype.mendScaling=function(ctx) {
   var majfntstr=chart.fnt2str(this.font.major),minfntstr=chart.fnt2str(this.font.minor);
   var minfntoff=parseInt(this.font.minor.pxsz,10),majfntoff=parseInt(this.font.major.pxsz,10);
@@ -388,7 +418,7 @@ chart.axis.Xaxis.prototype.mendScaling=function(ctx) {
     chart.svgAddElement(ctx,svgtxt);
   }
   var wtxt=chart.wtext(chkstr,minfntstr,svgtxt ? svgtxt : ctx);
-  var maxtics=intobj.cutfloat(ww/wtxt),lastmaxtics=maxtics;
+  var maxtics=mkfloat.cut2int(ww/wtxt),lastmaxtics=maxtics;
   var tic=new chart.scale.Tic();
   while (ww>=this.rect.width() && maxtics>2) {
     cnt=this.scaling.calcTics(maxtics);
@@ -409,7 +439,7 @@ chart.axis.Xaxis.prototype.mendScaling=function(ctx) {
       }
       else {
         lastmaxtics=maxtics;
-        maxtics=intobj.cutfloat(maxtics/2);
+        maxtics=mkfloat.cut2int(maxtics/2);
       }
     }
     else
@@ -417,54 +447,64 @@ chart.axis.Xaxis.prototype.mendScaling=function(ctx) {
   }
   chart.svgRemoveElement(ctx,svgtxt);
 };
+/* ########## */
 
+/* ########## */
 chart.axis.Yaxis=function(typenum) {
   chart.axis.Axis.call(this,'yaxis',typenum);
   this.pos=chart.axis.typeLeft;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype=Object.create(chart.axis.Axis.prototype);
 
+/* ********** */
 chart.axis.Yaxis.prototype.constructor=chart.axis.Yaxis;
 
+/* ********** */
 chart.axis.Yaxis.prototype.assignGraph=function(graph) {
   var ans=chart.axis.Axis.prototype.assignGraph.call(this,graph);
   return ans;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.calcRange=function(dir) {
-  chart.axis.Axis.prototype.calcRange.call(this,intobj.typeY);
+  chart.axis.Axis.prototype.calcRange.call(this,mkuni.typeY);
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.setPos=function(pos) {
-  pos=intobj.chknumber(pos,chart.axis.typeLeft);
+  pos=mkuni.chknumber(pos,chart.axis.typeLeft);
   if (pos!=chart.axis.typeLeft && pos!=chart.axis.typeRight)
     pos=chart.axis.typeLeft;
   this.pos=pos;
   return this.pos;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.sc2sz=function(vertex) {
   var ans=NaN,minmax=this.scaling.effRange();
   var dfrange=minmax.max-minmax.min,dfsz=this.rect.bottom()-this.rect.top();
-  if (dfrange>0 && (vertex instanceof floatobj.Vertex))
+  if (dfrange>0 && (vertex instanceof mkmat.Vertex))
     ans=this.rect.bottom()-(vertex.val(1)-minmax.min)*dfsz/dfrange;
   return ans;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.sz2sc=function(vertex) {
   var ans=NaN,minmax=this.scaling.effRange();
   var dfrange=minmax.max-minmax.min,dfsz=this.rect.bottom()-this.rect.top();
-  if (dfsz>0 && (vertex instanceof floatobj.Vertex))
+  if (dfsz>0 && (vertex instanceof mkmat.Vertex))
     ans=minmax.min+(this.rect.bottom()-vertex.val(1))*dfrange/dfsz;
   return ans;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.findRect=function(ctx,rect,space) {
   var majfntstr=chart.fnt2str(this.font.major),minfntstr=chart.fnt2str(this.font.minor);
   var ans=rect.copy();
   this.rect=rect.copy();
-  var maxtics=intobj.cutfloat(rect.height()/parseFloat(this.font.major.pxsz));
+  var maxtics=mkfloat.cut2int(rect.height()/parseFloat(this.font.major.pxsz));
   this.scaling.calcTics(maxtics);
   var svgtxt=void(0);
   if (ctx instanceof SVGElement) {
@@ -492,31 +532,32 @@ chart.axis.Yaxis.prototype.findRect=function(ctx,rect,space) {
   return ans;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.drawCanvas2d=function(ctx) {
-  ctx.textBaseline='middle';  
-  ctx.textAlign='end';  
-  ctx.strokeStyle=('#'+intobj.bits2str(intobj.str2bits(this.linestyle.color.toString(),10),16));
+  ctx.textBaseline='middle';
+  ctx.textAlign='end';
+  ctx.strokeStyle=('#'+mkint.bits2str(mkint.str2bits(this.linestyle.color.toString(),10),16));
   ctx.fillStyle=ctx.strokeStyle;
   var fntstr=[chart.fnt2str(this.font.minor),chart.fnt2str(this.font.major)];
   var base=this.rect.right(),loff=0,toff=0;
   var fntoff=[
-    intobj.cutfloat(parseFloat(this.font.minor.pxsz)),
-    intobj.cutfloat(parseFloat(this.font.major.pxsz))
+    mkfloat.cut2int(parseFloat(this.font.minor.pxsz)),
+    mkfloat.cut2int(parseFloat(this.font.major.pxsz))
   ];
   if (this.pos==chart.axis.typeRight) {
     base=this.rect.left();
     fntoff[0]=-fntoff[0];
     fntoff[1]=-fntoff[1];
-    ctx.textAlign='start'; 
+    ctx.textAlign='start';
   }
   var tic=new chart.scale.Tic();
-  var ii=0,fnt2off=intobj.cutfloat(parseFloat(fntoff[0]/2));
+  var ii=0,fnt2off=mkfloat.cut2int(parseFloat(fntoff[0]/2));
   ctx.beginPath();
   ctx.moveTo(base,this.rect.top());
   ctx.lineTo(base,this.rect.bottom());
   ctx.stroke();
   ctx.beginPath();
-  var vertex=new floatobj.Vertex();
+  var vertex=new mkmat.Vertex();
   for (ii=0;ii<this.scaling.tics.length;ii++) {
     loff=base;
     tic=this.scaling.tics[ii];
@@ -527,42 +568,43 @@ chart.axis.Yaxis.prototype.drawCanvas2d=function(ctx) {
     loff-=(tic.sz==1 ? fntoff[0] : fnt2off);
     ctx.lineTo(loff,toff);
     loff-=fnt2off;
-    ctx.fillText(tic.str,loff,toff);  
+    ctx.fillText(tic.str,loff,toff);
   }
   ctx.stroke();
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.drawSvg=function(ctx) {
   var gyax=chart.findElementById(this.toString());
   if (!gyax) {
     gyax=chart.svgCreateElement('g');
     if (!gyax)
-      return aux.ansko;
+      return mkuni.bad;
     gyax.setAttribute('id',this.toString());
     chart.svgAddElement(ctx,gyax);
   }
   while (gyax.firstChild)
     gyax.removeChild(gyax.firstChild);
   var fntoff=[
-    intobj.cutfloat(parseFloat(this.font.minor.pxsz)),
-    intobj.cutfloat(parseFloat(this.font.major.pxsz))
+    mkfloat.cut2int(parseFloat(this.font.minor.pxsz)),
+    mkfloat.cut2int(parseFloat(this.font.major.pxsz))
   ];
   var base=this.rect.right(),loff=0,toff=0;
-  var tcoff=[intobj.cutfloat(fntoff[0]/2),intobj.cutfloat(fntoff[1]/2)];
+  var tcoff=[mkfloat.cut2int(fntoff[0]/2),mkfloat.cut2int(fntoff[1]/2)];
   if (this.pos==chart.axis.typeRight) {
     base=this.rect.left();
     fntoff[0]=-fntoff[0];
     fntoff[1]=-fntoff[1];
   }
-  var strokestyle=('#'+intobj.bits2str(intobj.str2bits(this.linestyle.color.toString(),10),16));
+  var strokecolor=('#'+mkint.bits2str(mkint.str2bits(this.linestyle.color.toString(),10),16));
   var svgtictxt=void(0);
-  var vertex=new floatobj.Vertex(base,this.rect.top());
+  var vertex=new mkmat.Vertex(base,this.rect.top());
   var strpath=chart.svgPath2('M',vertex);
   vertex.setVal(1,this.rect.bottom());
   strpath+=chart.svgPath2('L',vertex);
   var tic=new chart.scale.Tic();
-  var ii=0,fnt2off=intobj.cutfloat(parseFloat(fntoff[0]/2));
+  var ii=0,fnt2off=mkfloat.cut2int(parseFloat(fntoff[0]/2));
   var fntstr=[chart.fnt2str(this.font.minor),chart.fnt2str(this.font.major)];
   for (ii=0;ii<this.scaling.tics.length;ii++) {
     loff=base;
@@ -580,10 +622,10 @@ chart.axis.Yaxis.prototype.drawSvg=function(ctx) {
     toff+=(tcoff[tic.sz]-1);
     vertex.setVal(1,toff);
     svgtictxt=chart.svgCreateElement('text');
-    svgtictxt.setAttribute('x',floatobj.sprintf(vertex.val(0),0,'d'));
-    svgtictxt.setAttribute('y',floatobj.sprintf(vertex.val(1),0,'d'));
+    svgtictxt.setAttribute('x',mkfloat.sprintf(vertex.val(0),0,'d'));
+    svgtictxt.setAttribute('y',mkfloat.sprintf(vertex.val(1),0,'d'));
     svgtictxt.setAttribute('text-anchor','end');
-    txtstyle=('fill:'+strokestyle+';font:');
+    txtstyle=('fill:'+strokecolor+';font:');
     txtstyle+=fntstr[tic.sz];
     svgtictxt.setAttribute('style',txtstyle);
     svgtictxt.textContent=tic.str;
@@ -591,20 +633,22 @@ chart.axis.Yaxis.prototype.drawSvg=function(ctx) {
   }
   var svgbase=chart.svgCreateElement('path');
   svgbase.setAttribute('d',strpath);
-  svgbase.setAttribute('stroke',strokestyle);
+  svgbase.setAttribute('stroke',strokecolor);
   svgbase.setAttribute('stroke-width',this.linestyle.width.toString());
   svgbase.setAttribute('fill','none');
   chart.svgAddElement(gyax,svgbase);
 
 //alert(document.body.innerHTML);
 
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.axis.Yaxis.prototype.mendScaling=function(ctx) {
-  var maxtics=intobj.cutfloat(this.rect.height()/parseFloat(this.font.major.pxsz));
-  this.scaling.calcTics(maxtics); 
+  var maxtics=mkfloat.cut2int(this.rect.height()/parseFloat(this.font.major.pxsz));
+  this.scaling.calcTics(maxtics);
 };
+/* ########## */
 
 
 

@@ -1,54 +1,62 @@
 
+/* ########## */
 chart.LineChart=function(typename,typenum) {
   if (typeof typename!='string')
     typename='linechart';
   chart.Chart.call(this,typename,typenum);
   this.rendercontext=void(0);
-  this.elementrect=new chart.shapes.Rect();
-  this.rect=new chart.shapes.Rect();
+  this.elementrect=new chart.shapes.WinRect();
+  this.rect=new chart.shapes.WinRect();
   this.font=chart.cpfnt(chart.chartfont);
   this.graphs=[];
   this.axes=[];
 };
 
+/* ********** */
 chart.LineChart.prototype=Object.create(chart.Chart.prototype);
 
+/* ********** */
 chart.LineChart.prototype.constructor=chart.LineChart;
 
+/* ********** */
 chart.LineChart.prototype.setCtx=function(ctx,ww,hh) {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   if (ctx) {
     this.rendercontext=ctx;
-    ans=aux.ansok;
+    ans=mkuni.good;
   }
-  this.elementrect.setWidth(intobj.chknumber(ww,0));
-  this.elementrect.setHeight(intobj.chknumber(hh,0));
+  this.elementrect.setWidth(mkuni.chknumber(ww,0));
+  this.elementrect.setHeight(mkuni.chknumber(hh,0));
   this.rect=this.elementrect.copy();
   this.rect.deflate(96);
   return ans;
 };
 
+/* ********** */
 chart.LineChart.prototype.getCtx=function() {
   return this.rendercontext;
 };
 
+/* ********** */
 chart.LineChart.prototype.getRect=function() {
   return this.rect.copy();
 };
 
+/* ********** */
 chart.LineChart.prototype.findAxis=function(axis) {
   if (axis instanceof aux.TypeId) {
-    var idx=aux.bsearch(axis,this.axes,aux.cmptypeid);
+    var idx=mkuni.bsearch(axis,this.axes,aux.cmptypeid);
     if (idx>=0)
       return this.axes[idx];
   }
   return void(0);
 };
 
+/* ********** */
 chart.LineChart.prototype.addAxis=function(axis) {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   if (axis instanceof aux.TypeId) {
-    var idx=aux.bsearch(axis,this.axes,aux.cmptypeid);
+    var idx=mkuni.bsearch(axis,this.axes,aux.cmptypeid);
     if (idx<0) {
       this.axes.push(axis);
       this.axes.sort(aux.cmptypeid);
@@ -58,19 +66,21 @@ chart.LineChart.prototype.addAxis=function(axis) {
   return ans;
 };
 
+/* ********** */
 chart.LineChart.prototype.findGraph=function(graph) {
   if (graph instanceof aux.TypeId) {
-    var idx=aux.bsearch(graph,this.graphs,aux.cmptypeid);
+    var idx=mkuni.bsearch(graph,this.graphs,aux.cmptypeid);
     if (idx>=0)
       return this.graphs[idx];
   }
   return void(0);
 };
 
+/* ********** */
 chart.LineChart.prototype.addGraph=function(graph) {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   if (graph instanceof aux.TypeId) {
-    var idx=aux.bsearch(graph,this.graphs,aux.cmptypeid);
+    var idx=mkuni.bsearch(graph,this.graphs,aux.cmptypeid);
     if (idx<0) {
       this.graphs.push(graph);
       this.graphs.sort(aux.cmptypeid);
@@ -80,8 +90,9 @@ chart.LineChart.prototype.addGraph=function(graph) {
   return ans;
 };
 
+/* ********** */
 chart.LineChart.prototype.setupAxes=function(ctx) {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   var majfnt=chart.cpfnt(this.font),minfnt=chart.cpfnt(this.font);
   minfnt.pxsz-=3;
   var rr=this.rect.copy();
@@ -122,8 +133,9 @@ chart.LineChart.prototype.setupAxes=function(ctx) {
   return ans;
 };
 
+/* ********** */
 chart.LineChart.prototype.redraw=function() {
-  var ans=aux.ansko;
+  var ans=mkuni.bad;
   var ctx=this.getCtx();
   this.setupAxes(ctx);
   var ax=void(0);
@@ -140,6 +152,7 @@ chart.LineChart.prototype.redraw=function() {
   return ans;
 };
 
+/* ********** */
 chart.LineChart.prototype.toJson=function(indent) {
   var nextindent='  ',nextnextindent='    ',nextnextnextindent='      ';
   if (typeof indent=='string') {
@@ -181,5 +194,7 @@ chart.LineChart.prototype.toJson=function(indent) {
   xans+=aux.qany('\n\n');
   return xans;
 };
-  
+/* ########## */
+
+
 

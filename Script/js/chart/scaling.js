@@ -13,8 +13,9 @@ chart.scale.datetimeintv=[
   180*datetime.adaymillis,365*datetime.adaymillis,730*datetime.adaymillis
 ];
 
+/* ********** */
 chart.scale.datetimeintvidx=function(intv) {
-  intv=intobj.chknumber(intv,0);
+  intv=mkuni.chknumber(intv,0);
   var ii=0;
   for (ii=0;ii<chart.scale.datetimeintv.length;ii++) {
     if (chart.scale.datetimeintv[ii]>intv)
@@ -23,8 +24,9 @@ chart.scale.datetimeintvidx=function(intv) {
   return chart.scale.datetimeintv.length-1;
 };
 
+/* ********** */
 chart.scale.datetimefmtfromintv=function(intv) {
-  intv=intobj.chknumber(intv,0);
+  intv=mkuni.chknumber(intv,0);
   var ans={
     'year':{'prefix':'','postfix':'-'},
     'month':{'prefix':'','postfix':''}
@@ -58,18 +60,21 @@ chart.scale.datetimefmtfromintv=function(intv) {
   return ans;
 };
 
+/* ########## */
 chart.scale.Tic=function(dval,sstr,isz,idr) {
-  this.val=intobj.chknumber(dval,NaN);
-  this.str=(typeof sstr=='string' ? sstr : '');
-  this.sz=parseInt(intobj.chknumber(isz,0),10);
-  this.drawable=parseInt(intobj.chknumber(idr,1),10);
+  this.val=mkuni.chknumber(dval,NaN);
+  this.str=((typeof sstr=='string') ? sstr : '');
+  this.sz=parseInt(mkuni.chknumber(isz,0),10);
+  this.drawable=parseInt(mkuni.chknumber(idr,1),10);
 };
 
+/* ********** */
 chart.scale.Tic.prototype.copy=function() {
   var ans=new this.constructor(this.val,this.str,this.sz,this.drawable);
   return ans;
 };
 
+/* ********** */
 chart.scale.Tic.prototype.toJson=function() {
   var ans=aux.qdecl('val');
   ans+=aux.qword(this.val.toString());
@@ -81,14 +86,17 @@ chart.scale.Tic.prototype.toJson=function() {
   ans+=aux.qword(this.sz>0 ? 'y' : 'n');
   return ans;
 };
+/* ########## */
 
+/* ********** */
 chart.scale.chkrangetype=function(rangetype) {
   var ans='auto';
-  if (typeof rangetype=='string' && rangetype.trim().toLowerCase()=='static')
+  if ((typeof rangetype=='string') && rangetype.trim().toLowerCase()=='static')
     ans='static';
   return ans;
 };
 
+/* ########## */
 chart.scale.Range=function(typename,typenum) {
   if (typeof typename!='string')
     typename='range';
@@ -96,10 +104,13 @@ chart.scale.Range=function(typename,typenum) {
   this.bounds={'min':{'val':0,'type':'auto'},'max':{'val':0,'type':'auto'}};
 };
 
+/* ********** */
 chart.scale.Range.prototype=Object.create(aux.TypeId.prototype);
 
+/* ********** */
 chart.scale.Range.prototype.constructor=chart.scale.Range;
 
+/* ********** */
 chart.scale.Range.prototype.copy=function() {
   var ans=new this.constructor(this.typename());
   ans.bounds.min.val=this.bounds.min.val;
@@ -109,11 +120,13 @@ chart.scale.Range.prototype.copy=function() {
   return ans;
 };
 
+/* ********** */
 chart.scale.Range.prototype.adjust=function() {
   var ans={'min':this.bounds.min.val,'max':this.bounds.max.val};
   return ans;
 };
 
+/* ********** */
 chart.scale.Range.prototype.toJson=function(indent) {
   var nextindent='  ',ans=aux.TypeId.prototype.toJson.call(this,indent);
   if (typeof indent=='string')
@@ -138,10 +151,12 @@ chart.scale.Range.prototype.toJson=function(indent) {
   ans+=aux.qattr(tmp1,1,indent);
   return ans;
 };
+/* ########## */
 
+/* ########## */
 chart.scale.FloatRange=function(dmin,dmax,tmin,tmax,typenum) {
   chart.scale.Range.call(this,'floatrange',typenum);
-  var dminmax=[intobj.chknumber(dmin,0),intobj.chknumber(dmax,0)];
+  var dminmax=[mkuni.chknumber(dmin,0),mkuni.chknumber(dmax,0)];
   if (dminmax[1]<dminmax[0])
     aux.swap(dminmax);
   this.bounds.min.val=dminmax[0];
@@ -150,26 +165,29 @@ chart.scale.FloatRange=function(dmin,dmax,tmin,tmax,typenum) {
   this.bounds.max.type=chart.scale.chkrangetype(tmax);
 };
 
+/* ********** */
 chart.scale.FloatRange.prototype=Object.create(chart.scale.Range.prototype);
 
+/* ********** */
 chart.scale.FloatRange.prototype.constructor=chart.scale.FloatRange;
 
+/* ********** */
 chart.scale.FloatRange.prototype.adjust=function() {
   var ans={'min':this.bounds.min.val,'max':this.bounds.max.val};
   var sgnmin=(ans.min<0 ? -1 : 1),sgnmax=(ans.max<0 ? -1 : 1);
-  var scmin=intobj.scale(ans.min),scmax=intobj.scale(ans.max),rdpos=-scmax;
-  var valdf=ans.max-ans.min,scdf=intobj.scale(valdf);
-  if (valdf<intobj.ipow10(scdf-3)) {
+  var scmin=mkfloat.base10scale(ans.min),scmax=mkfloat.base10scale(ans.max),rdpos=-scmax;
+  var valdf=ans.max-ans.min,scdf=mkfloat.base10scale(valdf);
+  if (valdf<mkfloat.ipow10(scdf-3)) {
     valdf=0;
     scdf=0;
   }
-  if (intobj.fabs(scmax-scmin)>1 || (valdf==0 && sgnmin!=sgnmax)) {
-    ans.max=floatobj.roundup(ans.max,rdpos);
-    ans.min=floatobj.rounddown(ans.min,rdpos);
+  if (mkfloat.fabs(scmax-scmin)>1 || (valdf==0 && sgnmin!=sgnmax)) {
+    ans.max=mkfloat.roundup(ans.max,rdpos);
+    ans.min=mkfloat.rounddown(ans.min,rdpos);
     if (sgnmin==sgnmax)
       ans.min=0;
     else {
-      if (intobj.fabs(ans.min)<=ans.max)
+      if (mkfloat.fabs(ans.min)<=ans.max)
         ans.min=-ans.max;
       else {
         ans.max=-ans.min;
@@ -177,22 +195,24 @@ chart.scale.FloatRange.prototype.adjust=function() {
     }
   }
   else if (valdf==0 && sgnmin==sgnmax) {
-    ans.min-=intobj.ipow10(-rdpos);
-    ans.max+=intobj.ipow10(-rdpos);
+    ans.min-=mkfloat.ipow10(-rdpos);
+    ans.max+=mkfloat.ipow10(-rdpos);
   }
   else {
     rdpos=-scdf;
-    ans.min=floatobj.rounddown(ans.min,rdpos);
-    ans.max=floatobj.roundup(ans.max,rdpos);
+    ans.min=mkfloat.rounddown(ans.min,rdpos);
+    ans.max=mkfloat.roundup(ans.max,rdpos);
   }
-  ans.min=floatobj.roundpos(ans.min,rdpos);
-  ans.max=floatobj.roundpos(ans.max,rdpos);
+  ans.min=mkfloat.roundpos(ans.min,rdpos);
+  ans.max=mkfloat.roundpos(ans.max,rdpos);
   return ans;
 };
+/* ########## */
 
+/* ########## */
 chart.scale.TimeRange=function(dmin,dmax,tmin,tmax,typenum) {
   chart.scale.Range.call(this,'timerange',typenum);
-  var dminmax=[intobj.chknumber(dmin,0),intobj.chknumber(dmax,0)];
+  var dminmax=[mkuni.chknumber(dmin,0),mkuni.chknumber(dmax,0)];
   if (dminmax[0]<0)
     dminmax[0]=0;
   if (dminmax[1]<0)
@@ -205,10 +225,13 @@ chart.scale.TimeRange=function(dmin,dmax,tmin,tmax,typenum) {
   this.bounds.max.type=chart.scale.chkrangetype(tmax);
 };
 
+/* ********** */
 chart.scale.TimeRange.prototype=Object.create(chart.scale.Range.prototype);
 
+/* ********** */
 chart.scale.TimeRange.prototype.constructor=chart.scale.TimeRange;
 
+/* ********** */
 chart.scale.TimeRange.prototype.adjust=function() {
   var ans={'min':this.bounds.min.val,'max':this.bounds.max.val};
   var dtmin=new datetime.Datetime(ans.min),dtmax=new datetime.Datetime(ans.max);
@@ -251,12 +274,12 @@ chart.scale.TimeRange.prototype.adjust=function() {
       tmmax.month=1;
       tmmax=datetime.add2StructTm(tmmax,'year',1);
     }
-  } 
+  }
   if (idx>24) {
     tmmin.month=1;
     tmmax.month=1;
     tmmax=datetime.add2StructTm(tmmax,'year',1);
-  } 
+  }
   dtmin.fromStructTm(tmmin);
   dtmax.fromStructTm(tmmax);
   ans.min=dtmin.toUtcmillicnt();
@@ -264,6 +287,7 @@ chart.scale.TimeRange.prototype.adjust=function() {
   return ans;
 };
 
+/* ********** */
 chart.scale.TimeRange.prototype.toJson=function(indent) {
   var nextindent='  ',tmp1='',tmp2='',ans=aux.TypeId.prototype.toJson.call(this,indent);
   if (typeof indent=='string')
@@ -290,7 +314,9 @@ chart.scale.TimeRange.prototype.toJson=function(indent) {
   ans+=aux.qattr(tmp1,1,indent);
   return ans;
 };
+/* ########## */
 
+/* ########## */
 chart.scale.Scaling=function(typename,typenum) {
   if (typeof typename!='string')
     typename='scale';
@@ -300,10 +326,13 @@ chart.scale.Scaling=function(typename,typenum) {
   this.interval=NaN;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype=Object.create(aux.TypeId.prototype);
 
+/* ********** */
 chart.scale.Scaling.prototype.constructor=chart.scale.Scaling;
 
+/* ********** */
 chart.scale.Scaling.prototype.copy=function() {
   var ans=new this.constructor(this.typename());
   ans.range.shift();
@@ -316,17 +345,20 @@ chart.scale.Scaling.prototype.copy=function() {
   return ans;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.setRange=function(dmin,dmax,tmin,tmax) {
 
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.stackRange=function(dmin,dmax,tmin,tmax) {
 
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.unstackRange=function(cnt) {
   var ll=this.range.length;
-  if (intobj.chknumberrange(cnt,1,ll-1)==aux.ansko)
+  if (mkint.chknumberrange(cnt,1,ll-1)==mkuni.bad)
     cnt=ll-1;
   while (cnt>0) {
     this.range.pop();
@@ -334,12 +366,14 @@ chart.scale.Scaling.prototype.unstackRange=function(cnt) {
   }
 };
 
-chart.scale.Scaling.prototype.currRange=function(isconst) { 
+/* ********** */
+chart.scale.Scaling.prototype.currRange=function(isconst) {
   var idx=this.range.length-1;
   var ans=(idx<0 ? new chart.scale.Range() : (this.range[idx]).copy());
   return ans;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.effRange=function() {
   var ans={'min':NaN,'max':NaN};
   var idx=this.range.length-1,cnttics=this.tics.length;
@@ -354,6 +388,7 @@ chart.scale.Scaling.prototype.effRange=function() {
   return ans;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.toJson=function(indent) {
   var nextindent='  ',ans=aux.TypeId.prototype.toJson.call(this,indent);
   if (typeof indent=='string')
@@ -380,61 +415,72 @@ chart.scale.Scaling.prototype.toJson=function(indent) {
   return ans;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.growIntervalSize=function(sz) {
   return 2*sz;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.calcInterval=function(maxcnttics,adjustedrange) {
   return 0;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.setMajTics=function() {
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.scale.Scaling.prototype.calcTics=function(maxcnttics) {
   return 0;
-}
+};
+/* ########## */
 
+/* ########## */
 chart.scale.LinearScaling=function() {
   chart.scale.Scaling.call(this,'linearscale');
   var sc=new chart.scale.FloatRange(0,0)
   this.range.push(sc);
 };
 
+/* ********** */
 chart.scale.LinearScaling.prototype=Object.create(chart.scale.Scaling.prototype);
 
+/* ********** */
 chart.scale.LinearScaling.prototype.constructor=chart.scale.LinearScaling;
 
+/* ********** */
 chart.scale.LinearScaling.prototype.setRange=function(dmin,dmax,tmin,tmax) {
   var idx=this.range.length-1;
   this.range[idx<0 ? 0 : idx]=new chart.scale.FloatRange(dmin,dmax,tmin,tmax);
 };
 
+/* ********** */
 chart.scale.LinearScaling.prototype.stackRange=function(dmin,dmax,tmin,tmax) {
   this.range.push(new chart.scale.FloatRange(dmin,dmax,tmin,tmax));
 };
 
+/* ********** */
 chart.scale.LinearScaling.prototype.growIntervalSize=function(sz) {
   var ans=0,lggrow=Math.log(2.)/Math.LN10;
-  var lower=floatobj.roundpos(Math.log(sz)/Math.LN10,intobj.maxfraction);
-  var higher=floatobj.roundpos(lower+lggrow,intobj.maxfraction);
+  var lower=mkfloat.roundpos(Math.log(sz)/Math.LN10,mkfloat.maxieee);
+  var higher=mkfloat.roundpos(lower+lggrow,mkfloat.maxieee);
   var chsgn=((higher>0 && lower<0) || (higher<0 && lower>0) ? 1 : 0);
   if (parseInt(higher.toString())>parseInt(lower.toString()) || chsgn==1) {
-    ans=intobj.ipow10(Math.floor(higher));
+    ans=mkfloat.ipow10(Math.floor(higher));
     if (ans>sz)
       return ans;
   }
-  if (floatobj.roundpos(higher,0)>floatobj.roundpos(lower,0) || chsgn==1) {
-		ans=intobj.ipow10(floatobj.roundpos(higher,0))/4;
+  if (mkfloat.roundpos(higher,0)>mkfloat.roundpos(lower,0) || chsgn==1) {
+		ans=mkfloat.ipow10(mkfloat.roundpos(higher,0))/4;
     if (ans>sz)
       return ans;
 	}
-  lower=floatobj.roundpos(lower+lggrow,intobj.maxfraction);
-  higher=floatobj.roundpos(higher+lggrow,intobj.maxfraction);
+  lower=mkfloat.roundpos(lower+lggrow,mkfloat.maxieee);
+  higher=mkfloat.roundpos(higher+lggrow,mkfloat.maxieee);
   chsgn=((higher>0 && lower<0) || (higher<0 && lower>0) ? 1 : 0);
   if (parseInt(higher.toString())>parseInt(lower.toString()) || chsgn==1) {
-    ans=intobj.ipow10(Math.floor(higher))/2;
+    ans=mkfloat.ipow10(Math.floor(higher))/2;
     if (ans>sz)
       return ans;
   }
@@ -442,53 +488,55 @@ chart.scale.LinearScaling.prototype.growIntervalSize=function(sz) {
   return ans;
 };
 
+/* ********** */
 chart.scale.LinearScaling.prototype.calcInterval=function(maxcnttics,adjustedrange) {
-  maxcnttics=intobj.chknumber(maxcnttics,11);
+  maxcnttics=mkuni.chknumber(maxcnttics,11);
   var cdiff=adjustedrange.max-adjustedrange.min;
-  var intv=intobj.ipow10(intobj.scale(cdiff)-2);
-  var ntics=floatobj.roundup(cdiff/intv,0);
+  var intv=mkfloat.ipow10(mkfloat.base10scale(cdiff)-2);
+  var ntics=mkfloat.roundup(cdiff/intv,0);
   while (ntics<maxcnttics) {
     intv/=10;
-    ntics=floatobj.roundup(cdiff/intv,0)+1;
+    ntics=mkfloat.roundup(cdiff/intv,0)+1;
   }
   while (maxcnttics>2 && ntics>maxcnttics) {
     intv=this.growIntervalSize(intv);
-    ntics=floatobj.roundup(cdiff/intv,0)+1;
+    ntics=mkfloat.roundup(cdiff/intv,0)+1;
   }
-  var prec=-intobj.scale(intv);
-  if (floatobj.roundpos(intv,prec)>intv)
+  var prec=-mkfloat.base10scale(intv);
+  if (mkfloat.roundpos(intv,prec)>intv)
     prec+=1;
-  this.interval=floatobj.roundpos(intv,prec);
+  this.interval=mkfloat.roundpos(intv,prec);
   return ntics;
 };
 
+/* ********** */
 chart.scale.LinearScaling.prototype.setMajTics=function() {
   var ii=0,ntics=this.tics.length;
   for (ii=0;ii<ntics;ii++)
     this.tics[ii].sz=0;
-  var cmp=0,idx=-1,scintv=intobj.scale(this.interval),rdpos=-scintv-1;
-  var rddown=0,rdup=0,rdblur=intobj.ipow10(scintv),val=NaN;
-  var iintv=floatobj.roundpos(10*this.interval/rdblur,0);
+  var cmp=0,idx=-1,scintv=mkfloat.base10scale(this.interval),rdpos=-scintv-1;
+  var rddown=0,rdup=0,rdblur=mkfloat.ipow10(scintv),val=NaN;
+  var iintv=mkfloat.roundpos(10*this.interval/rdblur,0);
   var tic=chart.scale.Tic();
   for (ii=0;ii<ntics;ii++) {
     tic=this.tics[ii];
-    val=intobj.fabs(tic.val);
-    cmp=floatobj.cmp(val,0,intobj.ipow10(scintv-1));
+    val=mkfloat.fabs(tic.val);
+    cmp=mkfloat.cmp(val,0,mkfloat.ipow10(scintv-1));
     if (cmp==0) {
       tic.sz=1;
       continue;
     }
-    rdup=floatobj.roundup(val,rdpos);
-    rddown=floatobj.rounddown(val,rdpos);
-    cmp=floatobj.cmp(rdup,rddown,rdblur);
+    rdup=mkfloat.roundup(val,rdpos);
+    rddown=mkfloat.rounddown(val,rdpos);
+    cmp=mkfloat.cmp(rdup,rddown,rdblur);
     if (cmp==0) {
       idx=ii;
       break;
     }
     if (iintv==10) {
-      rdup=floatobj.roundup(2*val,rdpos);
-      rddown=floatobj.rounddown(2*val,rdpos);
-      cmp=floatobj.cmp(rdup,rddown,rdblur);
+      rdup=mkfloat.roundup(2*val,rdpos);
+      rddown=mkfloat.rounddown(2*val,rdpos);
+      cmp=mkfloat.cmp(rdup,rddown,rdblur);
       if (cmp==0) {
         idx=ii;
         break;
@@ -518,56 +566,64 @@ chart.scale.LinearScaling.prototype.setMajTics=function() {
       }
     }
   }
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.scale.LinearScaling.prototype.calcTics=function(maxcnttics) {
-  maxcnttics=intobj.chknumber(maxcnttics,11);
+  maxcnttics=mkuni.chknumber(maxcnttics,11);
   this.tics=[];
   var currange=this.currRange();
   var adjustedrange=currange.adjust();
   var ii=0,idx=-1,ntics=this.calcInterval(maxcnttics,adjustedrange);
-  var pos=adjustedrange.min,scintv=intobj.scale(this.interval);
+  var pos=adjustedrange.min,scintv=mkfloat.base10scale(this.interval);
   for (ii=0;ii<ntics;ii++) {
     if (pos>currange.bounds.min.val) {
       idx=ii-1;
       break;
     }
-    pos=floatobj.roundpos(pos+this.interval,1-scintv);
+    pos=mkfloat.roundpos(pos+this.interval,1-scintv);
   }
   if (idx<0)
     idx=0;
-  pos=floatobj.roundpos(adjustedrange.min+idx*this.interval,1-scintv);
+  pos=mkfloat.roundpos(adjustedrange.min+idx*this.interval,1-scintv);
   for (ii=idx;ii<ntics;ii++) {
     this.tics.push(new chart.scale.Tic(pos,pos.toString()));
     if (pos>currange.bounds.max.val)
       break;
-    pos=floatobj.roundpos(pos+this.interval,1-scintv);
+    pos=mkfloat.roundpos(pos+this.interval,1-scintv);
   }
   ntics=this.tics.length;
   this.setMajTics();
   return ntics;
 };
+/* ########## */
 
+/* ########## */
 chart.scale.TimeScaling=function() {
   chart.scale.Scaling.call(this,'timescale');
   var sc=new chart.scale.TimeRange(0,0)
   this.range.push(sc);
 };
 
+/* ********** */
 chart.scale.TimeScaling.prototype=Object.create(chart.scale.Scaling.prototype);
 
+/* ********** */
 chart.scale.TimeScaling.prototype.constructor=chart.scale.TimeScaling;
 
+/* ********** */
 chart.scale.TimeScaling.prototype.setRange=function(dmin,dmax,tmin,tmax) {
   var idx=this.range.length-1;
   this.range[idx<0 ? 0 : idx]=new chart.scale.TimeRange(dmin,dmax,tmin,tmax);
 };
 
+/* ********** */
 chart.scale.TimeScaling.prototype.stackRange=function(dmin,dmax,tmin,tmax) {
   this.range.push(new chart.scale.TimeRange(dmin,dmax,tmin,tmax));
 };
 
+/* ********** */
 chart.scale.TimeScaling.prototype.growIntervalSize=function(sz) {
   var ii=0,ans=sz;
   for (ii=0;ii<chart.scale.datetimeintv.length;ii++) {
@@ -581,18 +637,20 @@ chart.scale.TimeScaling.prototype.growIntervalSize=function(sz) {
   return ans;
 };
 
+/* ********** */
 chart.scale.TimeScaling.prototype.calcInterval=function(maxcnttics,adjustedrange) {
-  maxcnttics=intobj.chknumber(maxcnttics,13);
+  maxcnttics=mkuni.chknumber(maxcnttics,13);
   var dfadj=adjustedrange.max-adjustedrange.min;
   var ii=0,intv=1,ntics=Math.ceil(dfadj/intv)+1;
   while (maxcnttics>2 && ntics>maxcnttics) {
     intv=this.growIntervalSize(intv);
     ntics=Math.ceil(dfadj/intv)+1;
-  }  
-  this.interval=floatobj.roundpos(intv,0);
+  }
+  this.interval=mkfloat.roundpos(intv,0);
   return ntics;
 };
 
+/* ********** */
 chart.scale.TimeScaling.prototype.setMajTics=function() {
   var ii=0,idx=chart.scale.datetimeintvidx(this.interval),ntics=this.tics.length;
   for (ii=0;ii<ntics;ii++)
@@ -645,11 +703,12 @@ chart.scale.TimeScaling.prototype.setMajTics=function() {
         tic.sz=1;
     }
   }
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.scale.TimeScaling.prototype.calcTics=function(maxcnttics) {
-  maxcnttics=intobj.chknumber(maxcnttics,11);
+  maxcnttics=mkuni.chknumber(maxcnttics,11);
   this.tics=[];
   var currange=this.currRange();
   var adjustedrange=currange.adjust();
@@ -668,7 +727,7 @@ chart.scale.TimeScaling.prototype.calcTics=function(maxcnttics) {
     if (pos>currange.bounds.max.val)
       break;
     if (idx<0)
-      pos=floatobj.roundpos(pos+this.interval,0);
+      pos=mkfloat.roundpos(pos+this.interval,0);
     else {
       tm=dt.toStructTm();
       if (idx<3) {
@@ -686,7 +745,7 @@ chart.scale.TimeScaling.prototype.calcTics=function(maxcnttics) {
           pos=dt.toUtcmillicnt();
         }
         else
-          pos=floatobj.roundpos(pos+this.interval,0);
+          pos=mkfloat.roundpos(pos+this.interval,0);
       }
       else {
         tm.day=1;
@@ -704,5 +763,7 @@ chart.scale.TimeScaling.prototype.calcTics=function(maxcnttics) {
   ntics=this.tics.length;
   this.setMajTics();
   return ntics;
-}
+};
+/* ########## */
+
 

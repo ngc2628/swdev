@@ -1,23 +1,27 @@
 
 chart.dataset={};
 
+/* ########## */
 chart.dataset.Data=function(typename,typenum) {
   if (typeof typename!='string')
     typename='dataset';
   aux.TypeId.call(this,typename,typenum);
   this.vertices=[];
-  this.bounds=[new floatobj.Vertex(),new floatobj.Vertex()];
+  this.bounds=[new mkmat.Vertex(),new mkmat.Vertex()];
   this.sorted=-1;
   this.datatype=[{'type':'none'},{'type':'none'},{'type':'none'},{'type':'none'}];
   this.descr='';
 };
 
+/* ********** */
 chart.dataset.Data.prototype=Object.create(aux.TypeId.prototype);
 
+/* ********** */
 chart.dataset.Data.prototype.constructor=chart.dataset.Data;
 
+/* ********** */
 chart.dataset.Data.prototype.findBounds=function() {
-  this.bounds=[new floatobj.Vertex(),new floatobj.Vertex()];
+  this.bounds=[new mkmat.Vertex(),new mkmat.Vertex()];
   var dval=NaN;
   var ii=0,jj=0;
   for (ii=0;ii<this.vertices.length;ii++) {
@@ -33,27 +37,29 @@ chart.dataset.Data.prototype.findBounds=function() {
   }
 };
 
+/* ********** */
 chart.dataset.Data.prototype.getBounds=function(typeidx) {
   var ans={'min':NaN,'max':NaN};
-  if (intobj.chknumberrange(typeidx,intobj.typeX,intobj.typeW)==aux.ansok) {
+  if (mkint.chknumberrange(typeidx,mkuni.typeX,mkuni.typeW)==mkuni.good) {
     ans.min=this.bounds[0].val(typeidx);
     ans.max=this.bounds[1].val(typeidx);
   }
   return ans;
 };
 
+/* ********** */
 chart.dataset.Data.prototype.fromJsonObj=function(dataobj) {
   if (typeof dataobj=='undefined')
-    return aux.ansko;
+    return mkuni.bad;
   var cntvertices=0;
   if (dataobj.hasOwnProperty('len')) {
     if (parseInt(dataobj.len,10)>0)
       cntvertices=parseInt(dataobj.len,10);
   }
   if (cntvertices==0)
-    return aux.ansko;
+    return mkuni.bad;
   this.vertices=[];
-  this.bounds=[new floatobj.Vertex(),new floatobj.Vertex()];
+  this.bounds=[new mkmat.Vertex(),new mkmat.Vertex()];
   this.sorted=-1;
   this.datatype=[{'type':'none'},{'type':'none'},{'type':'none'},{'type':'none'}];
   this.descr=(dataobj.hasOwnProperty('descr') ? dataobj.descr : '');
@@ -95,16 +101,16 @@ chart.dataset.Data.prototype.fromJsonObj=function(dataobj) {
   var rtimecnt=rtime.toUtcmillicnt();
   var tmrt=rtime.toStructTm();
   var strvertex=[];
-  var vv=new floatobj.Vertex();
+  var vv=new mkmat.Vertex();
   var ii=0,jj=0,sgn=1,toff=0,cnt=0;
   for (ii=0;ii<cntvertices;ii++) {
     strvertex=dataobj.vertices[ii];
-    vv=new floatobj.Vertex(parseFloat(strvertex[0],10),parseFloat(strvertex[1],10));
+    vv=new mkmat.Vertex(parseFloat(strvertex[0],10),parseFloat(strvertex[1],10));
     if (isNaN(vv.val(0)))
       continue;
     sgn=(vv.val(0)<0 ? -1 : 1);
     if (this.datatype[0].type=='time') {
-      toff=intobj.fabs(vv.val(0));
+      toff=mkfloat.fabs(vv.val(0));
       cnt=toff;
       if (this.datatype[0].scale=='month') {
         cnt=0;
@@ -121,7 +127,7 @@ chart.dataset.Data.prototype.fromJsonObj=function(dataobj) {
         cnt*=datetime.adaymillis;
       else if (this.datatype[0].scale=='hour')
         cnt*=datetime.anhourmillis;
-      if (sgn<0) 
+      if (sgn<0)
         cnt=rtimecnt-cnt;
       else
         cnt=rtimecnt+cnt;
@@ -129,27 +135,29 @@ chart.dataset.Data.prototype.fromJsonObj=function(dataobj) {
     }
     this.vertices.push(vv);
   }
-  return aux.ansok;
+  return mkuni.good;
 };
 
+/* ********** */
 chart.dataset.Data.prototype.fromJson=function(str) {
-  if (typeof str!='string' || str.length==0)
-    return aux.ansko;
+  if ((typeof str!='string') || str.length==0)
+    return mkuni.bad;
   var dataobj;
   try {
     dataobj=JSON.parse(str);
   }
   catch(exc) {
     alert(str);
-    return aux.ansko;
+    return mkuni.bad;
   }
   if (typeof dataobj=='undefined') {
     alert(str);
-    return aux.ansko;
+    return mkuni.bad;
   }
   return this.fromJsonObj(dataobj);
 };
 
+/* ********** */
 chart.dataset.Data.prototype.toJson=function(indent) {
   var nextindent='  ',ans=aux.qdecl('descr',indent);
   if (typeof indent=='string')
@@ -200,7 +208,7 @@ chart.dataset.Data.prototype.toJson=function(indent) {
       }
       else if (this.datatype[jj].type=='float') {
         if (!isNaN(this.vertices[ii].val(jj)))
-          tmp2+=aux.qword(floatobj.sprintf(this.vertices[ii].val(jj),6));
+          tmp2+=aux.qword(mkfloat.sprintf(this.vertices[ii].val(jj),6));
         else
           tmp2+='null';
       }
@@ -208,7 +216,7 @@ chart.dataset.Data.prototype.toJson=function(indent) {
         tmp2+='null';
       if (jj<3)
         tmp2+=aux.qnextprop();
-    }  
+    }
     tmp1+=aux.qarr(tmp2);
   }
   ans+=aux.qarr(tmp1,1,indent);
@@ -223,25 +231,30 @@ chart.dataset.Data.prototype.toJson=function(indent) {
   ans+=aux.qword(this.sorted.toString());
   return ans;
 };
+/* ########## */
 
+/* ########## */
 chart.dataset.DataSinCos=function(typenum) {
-  chart.dataset.Data.call(this,'sinus',typenum); 
+  chart.dataset.Data.call(this,'sinus',typenum);
   this.descr='sinus testdata';
   this.datatype[0].type='float';
   this.datatype[1].type='float';
 };
 
+/* ********** */
 chart.dataset.DataSinCos.prototype=Object.create(chart.dataset.Data.prototype);
 
+/* ********** */
 chart.dataset.DataSinCos.prototype.constructor=chart.dataset.DataSinCos;
 
+/* ********** */
 chart.dataset.DataSinCos.prototype.genData=function(sincos,cntvertices,amp,offset) {
-  if (typeof sincos!='string' || (sincos!='sin' && sincos!='cos'))
+  if ((typeof sincos!='string') || (sincos!='sin' && sincos!='cos'))
     sincos='sin';
-  if (intobj.chknumberrange(cntvertices,5,1800)==aux.ansko)
+  if (mkint.chknumberrange(cntvertices,5,1800)==mkuni.bad)
     cntvertices=60;
-  amp=intobj.chknumber(amp,100);
-  offset=intobj.chknumber(offset,0);
+  amp=mkuni.chknumber(amp,100);
+  offset=mkuni.chknumber(offset,0);
   var rtime=new datetime.Datetime();
   if (this.datatype[0].type=='time') {
     if (this.datatype[0].hasOwnProperty('reftime')) {
@@ -266,10 +279,10 @@ chart.dataset.DataSinCos.prototype.genData=function(sincos,cntvertices,amp,offse
   }
   var tmrt=rtime.toStructTm();
   var xx=offset,dfx=cntvertices/(2*Math.PI);
-  var vv=new floatobj.Vertex();
+  var vv=new mkmat.Vertex();
   var ii=0;
   for (ii=0;ii<cntvertices;ii++) {
-    vv=new floatobj.Vertex();
+    vv=new mkmat.Vertex();
     if (this.datatype[0].type=='time') {
       tmrt=rtime.toStructTm();
       if (this.datatype[0].scale=='month')
@@ -292,6 +305,8 @@ chart.dataset.DataSinCos.prototype.genData=function(sincos,cntvertices,amp,offse
     this.vertices.push(vv);
   }
 };
+/* ########## */
+
 
 
 
