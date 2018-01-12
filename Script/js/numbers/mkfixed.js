@@ -3,7 +3,9 @@ var mkfixed={};
 
 mkfixed.maxnumsz=10000;
 mkfixed.minnumsz=-10000;
-mkfixed.maxlen=1024;
+mkfixed.maxmaxlen=4096;
+mkfixed.maxlen=512;
+mkfixed.defrd=128;
 
 /* ***** internal ***** */
 mkfixed.cmpstr10=function(cmp1,cmp2) {
@@ -24,6 +26,19 @@ mkfixed.cmpstr10=function(cmp1,cmp2) {
 };
 
 /* ***** internal ***** */
+mkfixed.cutstr10=function(str) {
+  var ans=mkuni.chkstr(str);
+  if (ans.length==0)
+    return ans;
+  var idx=ans.indexOf(mkuni.str4code(mkuni.asciidot));
+  if (idx>=0)
+    ans=ans.substring(0,idx);
+  if (ans.length==0)
+    ans=mkuni.str4code(mkuni.asciizero);
+  return ans;
+};
+
+/* ***** internal ***** */
 mkfixed.chkcalctype=function(calctype) {
   var ans=0;
   if ((typeof calctype=='string') && calctype.length>0) {
@@ -35,7 +50,7 @@ mkfixed.chkcalctype=function(calctype) {
   return ans;
 };
 
-/* ########## */
+/* ##### FixedPoint ##### */
 mkfixed.FixedPoint=function(num) {
   this.compound=mkuni.chkstr(num);
   this.base=0;
@@ -51,7 +66,7 @@ mkfixed.FixedPoint=function(num) {
     this.compound=this.compound.toUpperCase();
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.copy=function() {
   var ans=new this.constructor();
   ans.compound=this.compound;
@@ -65,7 +80,7 @@ mkfixed.FixedPoint.prototype.copy=function() {
   return ans;
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.toJson=function(indent) {
   var nextindent='  ',xans='',ans='';
   if (typeof indent=='string')
@@ -74,7 +89,7 @@ mkfixed.FixedPoint.prototype.toJson=function(indent) {
   ans+=aux.qword(this.compound);
   ans+=aux.qnextprop(1,indent);
   ans+=aux.qdecl('base',nextindent);
-  ans+=aux.qword(this.base.toString());
+  ans+=aux.qword(mkint.int2str(this.base));
   ans+=aux.qnextprop(1,indent);
   ans+=aux.qdecl('sgn',nextindent);
   ans+=aux.qword(mkuni.str4code(this.sgn));
@@ -86,7 +101,7 @@ mkfixed.FixedPoint.prototype.toJson=function(indent) {
   ans+=aux.qword(this.frac);
   ans+=aux.qnextprop(1,indent);
   ans+=aux.qdecl('mag',nextindent);
-  ans+=aux.qword(this.mag.toString());
+  ans+=aux.qword(mkint.int2str(this.mag));
   ans+=aux.qnextprop(1,indent);
   ans+=aux.qdecl('mant',nextindent);
   ans+=aux.qword(this.mant);
@@ -97,7 +112,7 @@ mkfixed.FixedPoint.prototype.toJson=function(indent) {
   return xans;
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.funmix=function() {
   this.base=0;
   this.sgn=0;
@@ -148,7 +163,7 @@ mkfixed.FixedPoint.prototype.funmix=function() {
     fracarr=strfrac.split('');
   var iexp=0;
   if (strexp.length>0)
-    iexp=parseInt(strexp,10);
+    iexp=mkint.int4str(strexp);
   while (intgarr.length>0 && iexp<mkfixed.maxnumsz) {
     fracarr.unshift(intgarr.pop());
     iexp++;
@@ -189,10 +204,10 @@ mkfixed.FixedPoint.prototype.funmix=function() {
   return this.base;
 };
 
-/* ********** */
-mkfixed.FixedPoint.prototype.unmix=function(tobase) {
-  tobase=mkint.chkbase(tobase,10);
-  if (tobase==10)
+/* ***** FixedPoint ***** */
+mkfixed.FixedPoint.prototype.unmix=function(baseto) {
+  baseto=mkint.chkbase(baseto,10);
+  if (baseto==10)
     return this.funmix();
   this.base=0;
   this.sgn=0;
@@ -208,7 +223,7 @@ mkfixed.FixedPoint.prototype.unmix=function(tobase) {
   var matcharr=str.match(re_hex);
   if ((typeof matcharr!='undefined') && (matcharr instanceof Array) && matcharr.length>1) {
     str=str.substring(2);
-    tobase=16;
+    baseto=16;
   }
   var re_i=/^([+-]?)([A-Z0-9_]+)$/;
   matcharr=str.match(re_i);
@@ -235,14 +250,14 @@ mkfixed.FixedPoint.prototype.unmix=function(tobase) {
     if (cc>calcedbase)
       calcedbase=cc;
   }
-  if (calcedbase>0 && calcedbase<=tobase) {
-    this.base=tobase;
+  if (calcedbase>0 && calcedbase<=baseto) {
+    this.base=baseto;
     this.intg=strintg;
   }
   return this.base;
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.toString=function() {
   if (this.base==0)
     this.unmix();
@@ -254,55 +269,17 @@ mkfixed.FixedPoint.prototype.toString=function() {
   if (this.intg.length>0)
     ans+=this.intg;
   if (this.frac.length>0) {
-    ans+=mkuni.str4code(mkuni.asciidec);
+    ans+=mkuni.str4code(mkuni.asciidot);
     ans+=this.frac;
   }
   if (this.mag!=0) {
     ans+=mkuni.str4code(mkuni.asciiE);
-    ans+=this.mag.toString();
+    ans+=mkint.int2str(this.mag);
   }
   return ans;
 };
 
-/* ********** */
-mkfixed.FixedPoint.prototype.toStringF=function(needexp) {
-  needexp=mkuni.chknumber(needexp,NaN);
-  if (!isNaN(needexp) && needexp<mkfloat.ipow10(mkfloat.fabs(this.mag)))
-    return this.toString();
-  if (this.base==0)
-    this.unmix();
-  if (this.base==0)
-    return mkuni.strnan;
-  if (this.base==1)
-    return mkuni.str4code(mkuni.asciizero);
-  var iexp=this.mag;
-  var intgarr=this.intg.split('');
-  var fracarr=this.frac.split('');
-  if (iexp<0) {
-    while (intgarr.length>0 && iexp++<0)
-      fracarr.unshift(intgarr.pop());
-    while (iexp++<0)
-      fracarr.unshift(mkuni.str4code(mkuni.asciizero));
-  }
-  else if (iexp>0) {
-    while (fracarr.length>0 && iexp-->0)
-      intgarr.push(fracarr.shift());
-    while (iexp-->0)
-      intgarr.push(mkuni.str4code(mkuni.asciizero));
-  }
-  var ans=mkuni.str4code(this.sgn);
-  if (intgarr.length==0)
-    ans+=mkuni.str4code(mkuni.asciizero);
-  else
-    ans+=intgarr.join('');
-  if (fracarr.length>0) {
-    ans+=mkuni.str4code(mkuni.asciidec);
-    ans+=fracarr.join('');
-  }
-  return ans;
-};
-
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.toStringI=function() {
   var ans=mkuni.strnan;
   if (this.base==0)
@@ -333,7 +310,7 @@ mkfixed.FixedPoint.prototype.toStringI=function() {
   return ans;
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.toZero=function() {
   this.compound=mkuni.str4code(mkuni.asciizero);
   this.base=1;
@@ -345,21 +322,21 @@ mkfixed.FixedPoint.prototype.toZero=function() {
   this.shr=0;
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.toAbs=function() {
   var ans=this.sgn;
   this.sgn=0;
   return ans;
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.isInt=function() {
   if (this.base!=10)
     return this.base;
   return (this.mag<this.frac.length ? 0 : 10);
 };
 
-/* ********** */
+/* ***** FixedPoint ***** */
 mkfixed.FixedPoint.prototype.roundpos=function(pos) {
   var ans=this.copy();
   if (ans.base==0)
@@ -367,10 +344,12 @@ mkfixed.FixedPoint.prototype.roundpos=function(pos) {
   if (ans.base!=10)
     return ans;
   pos=mkuni.chknumber(pos,0);
-  var rdabspos=mkfloat.fabs(ans.shr)-pos;
+  var rdabspos=ans.shr;
+  if (rdabspos<0)
+    rdabspos=-rdabspos;
+  rdabspos-=pos;
   if (rdabspos<=0)
     return ans;
-  var ansshr=pos;
   rdabspos=ans.mant.length-rdabspos;
   if (rdabspos<=0) {
     ans.toZero();
@@ -386,13 +365,18 @@ mkfixed.FixedPoint.prototype.roundpos=function(pos) {
   }
   if (cc>9)
     rdarr.unshift(mkuni.str4code(mkuni.asciione));
-  while (pos++<0)
+  var revpos=pos;
+  while (revpos++<0)
     rdarr.push(mkuni.str4code(mkuni.asciizero));
-  var dpos=rdarr.length-ansshr;
+  var dpos=rdarr.length-pos;
+  while (dpos<0) {
+    rdarr.unshift(mkuni.str4code(mkuni.asciizero));
+    dpos++;
+  }
   ans.compound=mkuni.str4code(ans.sgn);
   ans.compound+=rdarr.slice(0,dpos).join('');
   if (dpos<rdarr.length) {
-    ans.compound+=mkuni.str4code(mkuni.asciidec);
+    ans.compound+=mkuni.str4code(mkuni.asciidot);
     ans.compound+=rdarr.slice(dpos).join('');
   }
   ans.unmix();
@@ -426,13 +410,13 @@ mkfixed.unfixcalc=function(calctype,strres,fp1,fp2,corr) {
     idx=-idx;
   var strarr=strres.split('');
   if (ll>idx)
-    strarr.splice(ll-idx,0,mkuni.str4code(mkuni.asciidec));
+    strarr.splice(ll-idx,0,mkuni.str4code(mkuni.asciidot));
   else {
     while (ll<idx) {
       strarr.unshift(mkuni.str4code(mkuni.asciizero));
       idx--;
     }
-    strarr.unshift(mkuni.str4code(mkuni.asciidec));
+    strarr.unshift(mkuni.str4code(mkuni.asciidot));
   }
   var ans=strarr.join('');
   return ans;
@@ -441,8 +425,8 @@ mkfixed.unfixcalc=function(calctype,strres,fp1,fp2,corr) {
 /* ***** internal ***** */
 mkfixed.add=function(strnum1,strnum2) {
   var ans=mkuni.strnan;
-  if ((typeof strnum1!='string') || (typeof strnum2!='string'))
-    return ans;
+  strnum1=mkuni.chkstr(strnum1);
+  strnum2=mkuni.chkstr(strnum2);
   var strarr1=strnum1.split('');
   var strarr2=strnum2.split('');
   var ii=0,jj=0,kk=0,l1=strarr1.length,l2=strarr2.length;
@@ -472,7 +456,7 @@ mkfixed.add=function(strnum1,strnum2) {
     strarr3[ii+1]=mkuni.str4code(calc+mkuni.asciizero);
   }
   if (carry>0)
-    strarr3[0]=mkuni.str4code(calc+mkuni.asciione);
+    strarr3[0]=mkuni.str4code(mkuni.asciione);
   else
     strarr3.shift();
   ans=mkint.stripleadingzeros(strarr3.join(''));
@@ -484,8 +468,8 @@ mkfixed.add=function(strnum1,strnum2) {
 /* ***** internal ***** */
 mkfixed.substract=function(strnum1,strnum2) {
   var ans=mkuni.strnan;
-  if ((typeof strnum1!='string') || (typeof strnum2!='string'))
-    return ans;
+  strnum1=mkuni.chkstr(strnum1);
+  strnum2=mkuni.chkstr(strnum2);
   var strarr1=strnum1.split('');
   var strarr2=strnum2.split('');
   var ii=0,jj=0,kk=0,l1=strarr1.length,l2=strarr2.length;
@@ -528,8 +512,8 @@ mkfixed.substract=function(strnum1,strnum2) {
 /* ***** internal ***** */
 mkfixed.multiply=function(strnum1,strnum2) {
   var ans=mkuni.strnan;
-  if ((typeof strnum1!='string') || (typeof strnum2!='string'))
-    return ans;
+  strnum1=mkuni.chkstr(strnum1);
+  strnum2=mkuni.chkstr(strnum2);
   var strarr1=strnum1.split('');
   var strarr2=strnum2.split('');
   var ii=0,jj=0,kk=0,idx=0,l1=strarr1.length,l2=strarr2.length;
@@ -576,8 +560,8 @@ mkfixed.multiply=function(strnum1,strnum2) {
 /* ***** internal ***** */
 mkfixed.divide=function(strnum1,strnum2,corr,lmax) {
   var ans=mkuni.strnan;
-  if ((typeof strnum1!='string') || (typeof strnum2!='string'))
-    return ans;
+  strnum1=mkuni.chkstr(strnum1);
+  strnum2=mkuni.chkstr(strnum2);
   lmax=mkuni.chknumber(lmax,mkfixed.maxlen);
   var ii=0,jj=0,kk=0,idx=0,cmp=0,chklow=0,l1=strnum1.length,l2=strnum2.length;
   if (l1==0 || l2==0 || lmax<1)
@@ -700,49 +684,48 @@ mkfixed.calculate=function(calctype,num1,num2,lmax) {
   return ans;
 };
 
-/* ********** */
-mkfixed.modulo=function(num1,num2,div,lmax) {
+/* ***** internal ***** */
+mkfixed.calcmodulo=function(strnum1,strnum2,div,lmax) {
+  var ans=mkuni.strnan;
   lmax=mkuni.chknumber(lmax,mkfixed.maxlen);
   if (lmax<1)
-    return mkuni.strnan;
-  var fp1=new mkfixed.FixedPoint(num1);
-  var fp2=new mkfixed.FixedPoint(num2);
-  if (fp1.unmix()==0 || fp2.unmix()==0)
-    return mkuni.strnan;
-  var sgn1=fp1.toAbs(),sgn2=fp2.toAbs();
-  var nsgn=(sgn1==sgn2 ? 0 : mkuni.asciiminus);
-  var strnum1=fp1.toStringI();
-  var strnum2=fp2.toStringI();
-  var strcalc=mkfixed.calculate(mkuni.str4code(mkuni.asciidiv),strnum1,strnum2,lmax);
-  var fpcalc=new mkfixed.FixedPoint(strcalc);
-  var res=fpcalc.toStringI();
+    return ans;
+  strnum1=mkfixed.cutstr10(strnum1);
+  strnum2=mkfixed.cutstr10(strnum2);
+  if (strnum1.length==0 || strnum2.length==0)
+    return ans;
+  var domult=mkuni.str4code(mkuni.asciimult);
+  var dodiv=mkuni.str4code(mkuni.asciidiv);
+  var dosubs=mkuni.str4code(mkuni.asciiminus);
+  var strcalc=mkfixed.calculate(dodiv,strnum1,strnum2,lmax);
+  strcalc=mkfixed.cutstr10(strcalc);
   if ((typeof div!='undefined') && div.hasOwnProperty('div'))
-    div.div=(mkuni.str4code(nsgn)+res);
-  if (res==mkuni.str4code(mkuni.asciizero))
+    div.div=strcalc;
+  if (strcalc==mkuni.str4code(mkuni.asciizero))
     ans=strnum1;
   else {
-    strcalc=mkfixed.calculate(mkuni.str4code(mkuni.asciimult),strnum2,res);
-    ans=mkfixed.calculate(mkuni.str4code(mkuni.asciiminus),strnum1,strcalc);
+    strcalc=mkfixed.calculate(domult,strnum2,strcalc,lmax);
+    ans=mkfixed.calculate(dosubs,strnum1,strcalc,lmax);
   }
-  ans=(mkuni.str4code(nsgn)+ans);
   return ans;
 };
 
-/* ********** */
-mkfixed.convertbase=function(num,basefrom,baseto,lmax) {
-  basefrom=mkint.chkbase(basefrom);
-  var fp=new mkfixed.FixedPoint(num);
-  fp.unmix(basefrom);
-  if (fp.base==0 || (fp.base==10 && fp.isInt()==0))
-    return mkuni.strnan;
-  if (fp.base==1)
-    return mkuni.str4code(mkuni.asciizero);
-  var nsgn=fp.toAbs();
-  var strnum=fp.toStringI();
+/* ***** FixedPoint ***** */
+mkfixed.FixedPoint.prototype.convert=function(baseto,lmax) {
+  if (this.base==0)
+    this.unmix();
+  if (this.base<2)
+    return this.base;
+  var basefrom=this.base;
   baseto=mkint.chkbase(baseto,basefrom);
-  if (basefrom==baseto)
-    return (mkuni.str4code(nsgn)+strnum);
+  if (basefrom==baseto || (basefrom==10 && this.isInt()==0))
+    return this.base;
+  var domult=mkuni.str4code(mkuni.asciimult);
+  var doadd=mkuni.str4code(mkuni.asciiplus);
+  var nsgn=this.toAbs();
   var cc=0,cmp=0,ii=0,jj=0,idx=-1;
+  var strbasefrom=mkint.int2str(basefrom),strbaseto=mkint.int2str(baseto);
+  var strnum=this.toStringI();
   var strnum10=mkuni.str4code(mkuni.asciizero);
   var strbaseacc=mkuni.str4code(mkuni.asciione);
   var strtmp='';
@@ -757,29 +740,86 @@ mkfixed.convertbase=function(num,basefrom,baseto,lmax) {
           break;
         }
       }
-      strtmp=mkfixed.calculate(mkuni.str4code(mkuni.asciimult),idx,strbaseacc);
-      strnum10=mkfixed.calculate(mkuni.str4code(mkuni.asciiplus),strnum10,strtmp);
-      strbaseacc=mkfixed.calculate(mkuni.str4code(mkuni.asciimult),strbaseacc,basefrom);
+      strtmp=mkfixed.calculate(domult,mkint.int2str(idx),strbaseacc,lmax);
+      strnum10=mkfixed.calculate(doadd,strnum10,strtmp,lmax);
+      strbaseacc=mkfixed.calculate(domult,strbaseacc,strbasefrom,lmax);
     }
   }
+  if (baseto==10) {
+    this.compound=strnum10.toUpperCase();
+    this.funmix();
+    this.sgn=nsgn;
+    return this.base;
+  }
   var div={'div':mkuni.str4code(mkuni.asciizero)};
-  var ans='';
+  var converted='';
   do {
-    strtmp=mkfixed.modulo(strnum10,baseto,div);
+    strtmp=mkfixed.calcmodulo(strnum10,strbaseto,div,lmax);
     if (strtmp==mkuni.strnan)
-      return mkuni.strnan;
-    idx=parseInt(strtmp,10);
-    ans=mkuni.str4code(mkint.basecharcode[idx])+ans;
+      return this.base;
+    idx=mkint.int4str(strtmp);
+    converted=mkuni.str4code(mkint.basecharcode[idx])+converted;
     strnum10=div.div;
     cmp=mkfixed.cmpstr10(strnum10,mkuni.str4code(mkuni.asciizero));
   } while (cmp==1);
-  if (ans.length==0)
-    ans=mkuni.str4code(mkuni.asciizero);
-  ans=(mkuni.str4code(nsgn)+ans);
+  if (converted.length==0)
+    converted=mkuni.str4code(mkuni.asciizero);
+  this.compound=converted.toUpperCase();
+  this.unmix(baseto);
+  this.sgn=nsgn;
+  return this.base;
+};
+
+/* ***** FixedPoint ***** */
+mkfixed.FixedPoint.prototype.toStringF=function(needexp,lmax) {
+  if (this.base>1 && this.base!=10) {
+    var fp=this.copy();
+    fp.convert(10,lmax);
+    return fp.toStringF(needexp,lmax);
+  }
+  needexp=mkuni.chknumber(needexp,NaN);
+  if (!isNaN(needexp) && needexp<mkfloat.fabs(this.mag))
+    return this.toString();
+  if (this.base==0)
+    this.unmix();
+  if (this.base==0)
+    return mkuni.strnan;
+  if (this.base==1)
+    return mkuni.str4code(mkuni.asciizero);
+  var iexp=this.mag;
+  var intgarr=this.intg.split('');
+  var fracarr=this.frac.split('');
+  if (iexp<0) {
+    while (intgarr.length>0 && iexp++<0)
+      fracarr.unshift(intgarr.pop());
+    while (iexp++<0)
+      fracarr.unshift(mkuni.str4code(mkuni.asciizero));
+  }
+  else if (iexp>0) {
+    while (fracarr.length>0 && iexp-->0)
+      intgarr.push(fracarr.shift());
+    while (iexp-->0)
+      intgarr.push(mkuni.str4code(mkuni.asciizero));
+  }
+  var ans=mkuni.str4code(this.sgn);
+  if (intgarr.length==0)
+    ans+=mkuni.str4code(mkuni.asciizero);
+  else
+    ans+=intgarr.join('');
+  if (fracarr.length>0) {
+    ans+=mkuni.str4code(mkuni.asciidot);
+    ans+=fracarr.join('');
+  }
   return ans;
 };
 
-
+/* ********** */
+mkfixed.chkfixedpoint=function(fp) {
+  var ans=mkuni.bad;
+  if ((typeof fp!='undefined') && (fp instanceof mkfixed.FixedPoint))
+    ans=mkuni.good;
+  return ans;
+};
 
 /* ********** */
 /* ********** */
@@ -798,15 +838,17 @@ mkfixed.round=function(num1,num2) {
 };
 
 mkfixed.calcconvert=function(num1,num2,num3,lmax) {
-  var ans=mkfixed.convertbase(num1,num2,num3);
-  console.log(new Error().lineNumber+' '+num1+' '+num2+' '+num3+' '+ans);
+  var fp=new mkfixed.FixedPoint(num1);
+  fp.unmix(num2);
+  fp.convert(num3);
+  console.log(new Error().lineNumber+' '+fp.toJson()+' '+fp.toStringF(7));
 };
 
 mkfixed.chkfp=function(num,base) {
   var fp=new mkfixed.FixedPoint(num);
   fp.unmix(base);
   console.log(new Error().lineNumber+' '+
-    fp.toJson()+'\n['+fp.toStringF()+'] ['+fp.toStringI()+'] ['+fp.isInt()+']');
+    fp.toJson()+'\n['+fp.toStringF(7)+'] ['+fp.toStringI()+'] ['+fp.isInt()+']');
   console.log(new Error().lineNumber+' '+fp.toJson());
 };
 

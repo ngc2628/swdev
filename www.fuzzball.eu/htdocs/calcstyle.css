@@ -1,0 +1,118 @@
+
+.presult {
+  width: 610px;
+  display: flex;
+  flex-flow: row wrap;
+  border: 0px solid blue;
+}
+
+textarea#result {
+  resize: none;
+  font-size: 16px;
+  width: 100%;
+  text-align: right;
+  background-color: #f5fdf5;
+  box-shadow: 0 0 0 0;
+  border-radius: 8px;
+}
+
+div.numtable {
+  display: table;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+div.numtablerow {
+  display: table-row;
+  border: 0px solid green;
+  border-collapse: collapse;
+}
+
+div.numtablecol {
+  display: table-cell;
+  border: 0px solid burlywood;
+  border-collapse: collapse;
+  padding: 1px 1px;
+}
+
+div.numtablecoleq {
+  display: table-caption;
+  border: 0px solid blue;
+  padding: 1px 1px;
+}
+
+div#info {
+  font-size: 10px;
+  text-align: right;
+  vertical-align: top;
+}
+
+input[type='button']  {
+  min-width: 100px;
+  margin: 0px;
+  background: #fcfbfa;
+  border-radius: 8px;
+}
+
+input[type='radio']  {
+  min-width: 50px;
+  float: right;
+  margin: 0px;
+  background: #fcfbfa;
+}
+
+input#lesc {
+  width: 35px;
+  float: center;
+  margin: 0px;
+  background-color: #f5fdf5;
+  box-shadow: 0 0 0 0;
+  border: 0;
+}
+
+input#lerd {
+  width: 45px;
+  float: right;
+  margin-left: 2px;
+  background:#fcfbfa;
+  border-radius: 8px;
+}
+
+input#lesci {
+  width: 45px;
+  float: right;
+  margin-left: 2px;
+  background:#fcfbfa;
+  border-radius: 8px;
+}
+
+input#equals {
+  min-width: 304px;
+  margin: 0px;
+  background: #fcfbfa;
+}
+
+label {
+  float: right;
+  margin: 0px;
+  background: #fcfbfa;
+}
+
+label#lbase {
+  float: center;
+  margin-right: 10px;
+  background: #fcfbfa;
+}
+
+select#base {
+  min-width: 45px;
+  float: right;
+  margin: 0px;
+  background: #fcfbfa;
+  border-radius: 8px;
+}
+
+body {
+  /*background: url(tiger112.jpg);*/
+  background: #f5fdf5;
+}
