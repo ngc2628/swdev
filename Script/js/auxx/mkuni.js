@@ -9,20 +9,23 @@ mkuni.typeX=0; mkuni.typeY=1; mkuni.typeZ=2; mkuni.typeW=3;
 // nan
 mkuni.strten='10';
 mkuni.strnan='NAN';
+// alert(new Error().lineNumber+' ');
 
 // ascii char code names
-mkuni.asciibackspace=8; mkuni.asciispace=32; mkuni.asciihash=35; mkuni.asciimult=42;
-mkuni.asciiplus=43; mkuni.asciiminus=45; mkuni.asciidec=46; mkuni.asciidiv=47;
-mkuni.asciizero=48; mkuni.asciione=49; mkuni.asciitwo=50; mkuni.asciithree=51;
-mkuni.asciifour=52; mkuni.asciifive=53; mkuni.asciisix=54; mkuni.asciiseven=55;
-mkuni.asciieight=56; mkuni.asciinine=57; mkuni.asciicolon=58; mkuni.asciiA=65;
-mkuni.asciiB=66; mkuni.asciiC=67; mkuni.asciiD=68; mkuni.asciiE=69; mkuni.asciiF=70;
-mkuni.asciiG=71; mkuni.asciiH=72; mkuni.asciiI=73; mkuni.asciiJ=74; mkuni.asciiK=75;
-mkuni.asciiL=76; mkuni.asciiM=77; mkuni.asciiN=78; mkuni.asciiO=79; mkuni.asciiP=80;
-mkuni.asciiQ=81; mkuni.asciiR=82; mkuni.asciiS=83; mkuni.asciiT=84; mkuni.asciiU=85;
-mkuni.asciiV=86; mkuni.asciiW=87; mkuni.asciiX=88; mkuni.asciiY=89; mkuni.asciiZ=90;
-mkuni.ascii_=95; mkuni.asciid=100; mkuni.asciie=101; mkuni.asciif=102; mkuni.asciig=103;
-mkuni.asciii=105; mkuni.asciix=120; mkuni.asciidel=127;
+mkuni.asciibackspace=8; mkuni.asciilf=10; mkuni.asciicr=13; mkuni.asciispace=32; 
+mkuni.asciihash=35; mkuni.asciileft=37; mkuni.asciiup=38; mkuni.asciiright=39; 
+mkuni.asciidown=40; mkuni.asciimult=42; mkuni.asciiplus=43; mkuni.asciiminus=45; 
+mkuni.asciidot=46; mkuni.asciidiv=47; mkuni.asciizero=48; mkuni.asciione=49; 
+mkuni.asciitwo=50; mkuni.asciithree=51; mkuni.asciifour=52; mkuni.asciifive=53; 
+mkuni.asciisix=54; mkuni.asciiseven=55; mkuni.asciieight=56; mkuni.asciinine=57; 
+mkuni.asciicolon=58; mkuni.asciiequals=61; mkuni.asciiA=65; mkuni.asciiB=66; 
+mkuni.asciiC=67; mkuni.asciiD=68; mkuni.asciiE=69; mkuni.asciiF=70; mkuni.asciiG=71; 
+mkuni.asciiH=72; mkuni.asciiI=73; mkuni.asciiJ=74; mkuni.asciiK=75; mkuni.asciiL=76; 
+mkuni.asciiM=77; mkuni.asciiN=78; mkuni.asciiO=79; mkuni.asciiP=80; mkuni.asciiQ=81; 
+mkuni.asciiR=82; mkuni.asciiS=83; mkuni.asciiT=84; mkuni.asciiU=85; mkuni.asciiV=86; 
+mkuni.asciiW=87; mkuni.asciiX=88; mkuni.asciiY=89; mkuni.asciiZ=90; mkuni.ascii_=95; 
+mkuni.asciia=97; mkuni.asciib=98; mkuni.asciic=99; mkuni.asciid=100; mkuni.asciie=101; 
+mkuni.asciif=102; mkuni.asciig=103; mkuni.asciii=105; mkuni.asciix=120; mkuni.asciidel=127;
 
 /* ********** */
 mkuni.chkstr=function(obj) {

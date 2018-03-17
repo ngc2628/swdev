@@ -557,10 +557,9 @@ mkcalc.Calculator.prototype.chkrdpos=function(digs) {
 
 /* ***** Calculator ***** */
 mkcalc.Calculator.prototype.chkscifmt=function(isci) {
-  var sci=this.scifmt;
   isci=mkuni.chknumber(isci);
-  if (isNaN(isci) || isci<0)
-    return sci;
+  if (isNaN(isci) || isci<0 || this.scifmt==isci)
+    return this.scifmt;
   this.scifmt=isci;
   if (this.numfmt==10 && this.output.length>0) {
     var fp=new mkfixed.FixedPoint(this.output);

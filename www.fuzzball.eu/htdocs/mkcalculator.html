@@ -14,7 +14,8 @@
   <body bgcolor="#EEEEDD" onload="mkcalc.newcalculator();">
     <form name="inputform">
       <p>calculator, fixed point simple operations with arbitrary (
-        <input type="text" id="lesc" onfocusout="mkcalc.domaxlen(event,this)">
+        <input type="text" id="lesc" 
+          onfocusout="mkcalc.domaxlen(event,this)" onkeyup="mkcalc.dokeyup(event,this)">
       ) precision</p><br>
       <p class="presult">
         <textarea id="result" name="result" rows="4" maxlength="200"
@@ -43,11 +44,13 @@
             <label for="base" id="lbase">base</label>
           </div>
           <div class="numtablecol">
-            <input type="text" id="lerd" onfocusout="mkcalc.doroundpos(event,this)">
+            <input type="text" id="lerd" 
+              onfocusout="mkcalc.doroundpos(event,this)" onkeyup="mkcalc.dokeyup(event,this)">
             <label for="lerd" id="llerd">round</label>
           </div>
           <div class="numtablecol">
-            <input type="text" id="lesci" onfocusout="mkcalc.dosci(event,this)">
+            <input type="text" id="lesci" 
+              onfocusout="mkcalc.dosci(event,this)" onkeyup="mkcalc.dokeyup(event,this)">
             <label for="lesci" id="llesci">sci</label>
           </div>
           <div class="numtablecol">

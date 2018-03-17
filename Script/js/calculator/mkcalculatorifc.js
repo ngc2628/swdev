@@ -70,39 +70,56 @@ mkcalc.findTagById=function(eid) {
 
 /* ********** */
 mkcalc.domaxlen=function(evt,inp) {
+  var ans=mkuni.bad;
   var lineedit=mkcalc.findLineeditById(inp.id);
   if (lineedit) {
     var oldmax=mkcalc.pc.chkscale();
     if (mkcalc.pc.chkscale(mkint.int4str(lineedit.value))==oldmax)
       lineedit.value=mkint.int2str(oldmax);
+    else 
+      ans=mkuni.good;
   }
+  return ans;
 };
 
 /* ********** */
 mkcalc.doroundpos=function(evt,inp) {
+  var ans=mkuni.bad;
   var lineedit=mkcalc.findLineeditById(inp.id);
   if (lineedit) {
     var oldrd=mkcalc.pc.chkrdpos();
     if (mkcalc.pc.chkrdpos(mkint.int4str(lineedit.value))==oldrd)
       lineedit.value=mkint.int2str(oldrd);
+    else 
+      ans=mkuni.good;
   }
+  return ans;
 };
 
 /* ********** */
 mkcalc.dosci=function(evt,inp) {
+  var ans=mkuni.bad;
   var lineedit=mkcalc.findLineeditById(inp.id);
   if (lineedit) {
     var oldscifmt=mkcalc.pc.chkscifmt();
     if (mkcalc.pc.chkscifmt(mkint.int4str(lineedit.value))==oldscifmt)
       lineedit.value=mkint.int2str(oldscifmt);
+    else 
+      ans=mkuni.good;
   }
+  return ans;
 };
 
 /* ********** */
 mkcalc.dobase=function(evt,inp) {
+  var ans=mkuni.bad;
   var combo=mkcalc.findComboById(inp.id);
-  if (combo)
-    mkcalc.pc.chknumfmt(combo.options.selectedIndex+2);
+  if (combo) {
+    var oldbase=mkcalc.pc.chknumfmt();
+    if (mkcalc.pc.chknumfmt(combo.options.selectedIndex+2)!=oldbase)
+      ans=mkuni.good;
+  }
+  return ans;
 };
 
 /* ********** */
@@ -165,13 +182,26 @@ mkcalc.dokeyup=function(evt,inp) {
   var ans=mkuni.bad;
   var kevt=(evt || window.event);
   var keycode=(kevt.keyCode || kevt.which);
-  if (keycode==mkuni.asciibackspace || keycode==mkuni.asciidel) {
-    var txtres=mkcalc.findTextareaById('result');
-    if (txtres) {
-      var str=txtres.value;
+  if (inp.id=='result') {
+    var txtres=mkcalc.findTextareaById(inp.id);
+    if (txtres && (keycode==mkuni.asciibackspace || keycode==mkuni.asciidel)) {
+      ans=mkcalc.pc.replaceoutput(txtres.value);
+      if (ans==mkuni.good) {
+        kevt.returnValue=false;
+        kevt.preventDefault();
+      }
+    }
+  }
+  else if (keycode==mkuni.asciilf || keycode==mkuni.asciicr) { 
+    if (inp.id=='lesc') 
+      ans=mkcalc.domaxlen(evt,inp);
+    else if (inp.id=='lerd')
+      ans=mkcalc.doroundpos(evt,inp);
+    else if (inp.id=='lesci')
+      ans=mkcalc.dosci(evt,inp);
+    if (ans==mkuni.good) {
       kevt.returnValue=false;
       kevt.preventDefault();
-      mkcalc.pc.replaceoutput(str);
     }
   }
   return ans;
