@@ -1,3 +1,0 @@
-#!/bin/csh -f
-
-mkoctfile -I/data/opt/NAG/cll6a23dgl/include -L/data/opt/NAG/cll6a23dgl/lib -lnagc_nag $*
