@@ -1,0 +1,41 @@
+
+all:
+	cd $(CPPDIR)\auxx
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\numeric
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\osix
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\graphic\shapes
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\graphic\charts\simpleplot
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\spreadsheet
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\calculator
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\qt
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\app
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)
+clean:
+	cd $(CPPDIR)\app
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\qt
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\calculator
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\spreadsheet
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\graphic\charts\simpleplot
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\graphic\shapes
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\osix
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\auxx
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)
+
+

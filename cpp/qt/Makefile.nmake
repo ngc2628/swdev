@@ -1,0 +1,25 @@
+all:
+	cd $(CPPDIR)\qt\util 
+	nmake /f Makefile.nmake
+	cd $(CPPDIR)\qt\calculator
+	nmake /f Makefile.nmake
+	cd $(CPPDIR)\qt\txtcalculator
+	nmake /f Makefile.nmake
+	cd $(CPPDIR)\qt\spreadsheet
+	nmake /f Makefile.nmake
+	cd $(CPPDIR)\qt\simpleplot
+	nmake /f Makefile.nmake
+	cd $(CPPDIR)\qt
+clean:
+	cd $(CPPDIR)\qt\util
+	nmake /f Makefile.nmake clean
+	cd $(CPPDIR)\qt\calculator
+	nmake /f Makefile.nmake clean
+	cd $(CPPDIR)\qt\txtcalculator
+	nmake /f Makefile.nmake clean
+	cd $(CPPDIR)\qt\spreadsheet
+	nmake /f Makefile.nmake clean
+	cd $(CPPDIR)\qt\simpleplot
+	nmake /f Makefile.nmake clean
+	cd $(CPPDIR)\qt
+

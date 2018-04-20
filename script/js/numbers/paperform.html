@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>txtcalc</title>
+    <script type="text/javascript" src="paperform.js"></script>
+  </head>
+  <body bgcolor="#EEEEDD">
+    <p>&nbsp;</p>
+    <form name="inputform">
+      <table border="0 " width="500" height="100%">
+        <tr>
+          <th colspan="10">simple calculator, arbitrary precision</th>
+        </tr>
+        <tr height="20"></tr>
+        <tr>
+          <td>number 1</td>
+          <td colspan="6">
+            <input type="text" id="number1" size="80" onkeypress="checkBase1(event)">
+          </td>
+          <td align="right">base</td>
+          <td>
+            <select id="base1" size="1" onchange="convBase1(this.form)">
+              <option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option>
+              <option>10</option><option>11</option><option>12</option><option>13</option>
+              <option>14</option><option>15</option><option>16</option><option>17</option>
+              <option>18</option><option>19</option><option>20</option><option>21</option>
+              <option>22</option><option>23</option><option>24</option><option>25</option>
+              <option>26</option><option>27</option><option>28</option><option>29</option>
+              <option>30</option><option>31</option><option>32</option><option>33</option>
+              <option>34</option><option>35</option><option>36</option><option selected>10</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>operator</td>
+          <td>
+            <select id="operator" size="1">
+              <option>+</option>
+              <option>-</option>
+              <option>*</option>
+              <option>/</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>number 2</td>
+          <td colspan="6">
+            <input type="text" id="number2" size="80" onkeypress="checkBase2(event)">
+          </td>
+          <td align="right">base</td>
+          <td>
+            <select id="base2" size="1" onchange="convBase2(this.form)">
+              <option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option>
+              <option>10</option><option>11</option><option>12</option><option>13</option>
+              <option>14</option><option>15</option><option>16</option><option>17</option>
+              <option>18</option><option>19</option><option>20</option><option>21</option>
+              <option>22</option><option>23</option><option>24</option><option>25</option>
+              <option>26</option><option>27</option><option>28</option><option>29</option>
+              <option>30</option><option>31</option><option>32</option><option>33</option>
+              <option>34</option><option>35</option><option>36</option><option selected>10</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="button" name="compute" value="compute" onclick="calc3(this.form)">
+          </td>
+          <td colspan="7" align="right">maxlength</td>
+          <td>
+            <input type="text" id="maxlen" size="3" value="100" onkeypress="checkMaxlen(event)">
+          </td>
+        </tr>
+        <tr>
+          <td>result</td>
+          <td rowspan="4" colspan="5">
+            <textarea id="result" rows="10" wrap="hard" cols="100" readonly>
+            </textarea>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="7"></td>
+          <td>
+            <input colspan="2" type="button" name="round" value="round" onclick="roundResult(this.form)">
+          </td>
+          <td>
+            <input type="text" id="roundresult" size="3">
+          </td>
+        </tr>
+        <tr>
+          <td colspan="7"></td>
+          <td>
+            <input colspan="3" type="button" name="float -> exp" value="float -> exp" onclick="f2e(this.form)">
+          </td>
+        </tr>
+        <tr>
+          <td colspan="7"></td>
+          <td>
+            <input colspan="3" type="button" name="exp -> float" value="exp -> float" onclick="e2f(this.form)">
+          </td>
+        </tr>
+        <tr height="20"></tr>
+        <tr>
+          <td>
+            <input type="button" name="reset" value="reset" onclick="resetInput(this.form)">
+          </td>
+        </tr>
+      </table>
+    </form>
+  </body>
+</html>

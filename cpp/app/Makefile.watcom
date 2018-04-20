@@ -1,0 +1,31 @@
+all:
+	cd $(CPPDIR)\app\pun
+	nmake /f Makefile.watcom
+#	cd $(CPPDIR)\app\qt\calculatorapp
+#	nmake /f Makefile.watcom
+#	cd $(CPPDIR)\app\qt\spreadsheetapp
+#	nmake /f Makefile.watcom
+#	cd $(CPPDIR)\app\qt\simpleplotapp
+#	nmake /f Makefile.watcom
+	cd $(CPPDIR)\app\rgb2int
+	nmake /f Makefile.watcom
+	cd $(CPPDIR)\app\txtcalc
+	nmake /f Makefile.watcom
+	ls $(BINDIR)
+	cd $(CPPDIR)\app
+clean:
+	cd $(CPPDIR)\app\pun
+	nmake /f Makefile.watcom clean
+#	cd $(CPPDIR)\app\qt\calculatorapp
+#	nmake /f Makefile.watcom clean
+#	cd $(CPPDIR)\app\qt\spreadsheetapp
+#	nmake /f Makefile.watcom clean
+#	cd $(CPPDIR)\app\qt\simpleplotapp
+#	nmake /f Makefile.watcom clean
+	cd $(CPPDIR)\app\rgb2int
+	nmake /f Makefile.watcom clean
+	cd $(CPPDIR)\app\txtcalc
+	nmake /f Makefile.watcom clean
+	cd $(CPPDIR)\app
+
+

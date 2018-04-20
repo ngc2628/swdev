@@ -1,0 +1,32 @@
+#!/bin/csh -f
+# mkoctfile -I/data/versions/swdev/C -L/data/lib -lnumeric -lauxx  $*
+
+PRJROOT       = $(MVER)
+PRJ           = xxoct
+DESTDIR       = $(MVER)
+
+WFLAGS		  =
+LFLAGS        = -L"$(LIBDIR)" -L"$(OCTAVEDIR)\lib"  
+INCPATH       = -I"$(CVER)" -I"$(OCTAVEDIR)\include"
+LIBS          = libnumeric.lib libauxx.lib 
+HEADER        = 
+SOURCES       = xxspline.cc xxsplineeval.cc
+OBJECTS       = xxspline.oct xxsplineeval.oct
+TARGET        = $(PRJ)
+
+DEFINES       = 
+CFLAGS        =  $(WFLAGS) $(DEFINES)
+CXXFLAGS      =  $(WFLAGS) $(DEFINES)
+RM            = del
+MKOCTFILE	  = $(OCTAVEDIR)\bin\mkoctfile.exe
+
+all: $(TARGET)
+
+.cc.oct:
+	$(MKOCTFILE) $(INCPATH) $(LFLAGS) $(LIBS) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(OBJECTS) 
+
+clean: 
+	$(RM) $(DESTDIR)\$(OBJECTS) 

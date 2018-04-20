@@ -1,0 +1,42 @@
+
+PRJROOT       = $(CPPDIR)
+PRJ           = numeric
+DESTDIR       = $(LIBDIR)
+
+WFLAGS        = 
+LFLAGS        = /DLL /LIBPATH:"$(LIBDIR)"   
+INCPATH       = -I"$(PRJROOT)"
+LIBS          = libauxx.lib
+HEADER        = matrix.h interpolation.h
+SOURCES       = matrix.cpp interpolation.cpp
+OBJECTS       = matrix.obj interpolation.obj
+TARGET        = lib$(PRJ).dll
+TARGETLIB     = lib$(PRJ).lib
+
+CC            = cl
+CXX           = cl
+LEX           = flex
+YACC          = yacc
+DEFINES       = /DOSWINDLL
+CFLAGS        = /D_CRT_SECURE_NO_WARNINGS /GR /FC /MD /MP2 /Wall $(WFLAGS) $(DEFINES) /c 
+CXXFLAGS      =  $(CFLAGS)
+LEXFLAGS      = 
+LINK          = link
+AR            = ar cq
+RANLIB        = ranlib -s
+COMPRESS      = zip 
+RM            = del
+
+all: $(TARGET)
+
+.cpp.obj:
+	$(CC) $(CFLAGS) $(INCPATH) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) /OUT:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+
+clean: 
+	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB)
+
+

@@ -1,0 +1,43 @@
+
+PRJROOT       = $(CPPDIR)
+PRJ           = shapes
+DESTDIR       = $(LIBDIR)
+
+#WFLAGS       = -w3
+WFLAGS        = 
+LFLAGS        = -dll
+INCPATH       = -i"$(PRJROOT)"
+LIBS          = $(LIBDIR)\libosix.lib $(LIBDIR)\libnumeric.lib $(LIBDIR)\libauxx.lib 
+HEADER        = ellipse.h line.h rect.h triangle.h polygon.h shape.h
+SOURCES       = ellipse.cpp line.cpp rect.cpp triangle.cpp polygon.cpp shape.cpp
+OBJECTS       = ellipse.obj line.obj rect.obj triangle.obj polygon.obj shape.obj
+TARGET        = lib$(PRJ).dll
+TARGETLIB     = lib$(PRJ).lib
+
+CC            = wpp386
+CXX           = wpp386
+LEX           = flex
+YACC          = yacc
+DEFINES       = -dOSWINDLL -d_CRT_SECURE_NO_WARNINGS
+CFLAGS        = $(DEFINES) -bd -bm -br -ef -ei -xr -ze -zw $(WFLAGS)
+CXXFLAGS      = $(CFLAGS)
+LEXFLAGS      = 
+LINK          = link
+AR            = ar cq
+RANLIB        = ranlib -s
+COMPRESS      = zip 
+RM            = del
+
+all: $(TARGET)
+
+.cpp.obj:
+	$(CC) $(CFLAGS) $(INCPATH) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+
+clean: 
+	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB) *.err
+
+

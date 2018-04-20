@@ -1,0 +1,31 @@
+all:
+	cd $(CPPDIR)\app\pun
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\app\qt\calculatorapp
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\app\qt\spreadsheetapp
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\app\qt\simpleplotapp
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\app\rgb2int
+	nmake /f Makefile.msvc
+	cd $(CPPDIR)\app\txtcalc
+	nmake /f Makefile.msvc
+	dir $(BINDIR)
+	cd $(CPPDIR)\app
+clean:
+	cd $(CPPDIR)\app\pun
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\app\qt\calculatorapp
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\app\qt\spreadsheetapp
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\app\qt\simpleplotapp
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\app\rgb2int
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\app\txtcalc
+	nmake /f Makefile.msvc clean
+	cd $(CPPDIR)\app
+
+

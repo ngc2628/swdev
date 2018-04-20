@@ -1,0 +1,43 @@
+
+PRJROOT       = $(CPPDIR)
+PRJ           = calculator
+DESTDIR       = $(LIBDIR)
+
+#WFLAGS       = -w3
+WFLAGS        = 
+LFLAGS        = -dll
+INCPATH       = -i"$(PRJROOT)"
+LIBS          = $(LIBDIR)\libshapes.lib $(LIBDIR)\libosix.lib $(LIBDIR)\libnumeric.lib $(LIBDIR)\libauxx.lib 
+HEADER        = calculator.h
+SOURCES       = calculator.cpp
+OBJECTS       = calculator.obj
+TARGET        = lib$(PRJ).dll
+TARGETLIB     = lib$(PRJ).lib
+
+CC            = wpp386
+CXX           = wpp386
+LEX           = flex
+YACC          = yacc
+DEFINES       = -dOSWINDLL -d_CRT_SECURE_NO_WARNINGS
+CFLAGS        = $(DEFINES) -bd -bm -br -ef -ei -xr -ze -zw $(WFLAGS)
+CXXFLAGS      = $(CFLAGS)
+LEXFLAGS      = 
+LINK          = link
+AR            = ar cq
+RANLIB        = ranlib -s
+COMPRESS      = zip 
+RM            = del
+
+all: $(TARGET)
+
+.cpp.obj:
+	$(CC) $(CFLAGS) $(INCPATH) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+
+clean: 
+	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB) *.err
+
+

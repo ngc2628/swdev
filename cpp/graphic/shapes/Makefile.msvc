@@ -1,0 +1,41 @@
+
+PRJROOT       = $(CPPDIR)
+PRJ           = shapes
+DESTDIR       = $(LIBDIR)
+
+WFLAGS        = 
+LFLAGS        = /DLL /LIBPATH:"$(LIBDIR)"   
+INCPATH       = -I"$(PRJROOT)"
+LIBS          = libosix.lib libnumeric.lib libauxx.lib
+HEADER        = ellipse.h line.h rect.h triangle.h polygon.h shape.h
+SOURCES       = ellipse.cpp line.cpp rect.cpp triangle.cpp polygon.cpp shape.cpp
+OBJECTS       = ellipse.obj line.obj rect.obj triangle.obj polygon.obj shape.obj
+TARGET        = lib$(PRJ).dll
+
+CC            = cl
+CXX           = cl
+LEX           = flex
+YACC          = yacc
+DEFINES       = /DOSWINDLL
+CFLAGS        = /D_CRT_SECURE_NO_WARNINGS /GR /FC /MD /MP2 /Wall $(WFLAGS) $(DEFINES) /c 
+CXXFLAGS      =  $(CFLAGS)
+LEXFLAGS      = 
+LINK          = link
+AR            = ar cq
+RANLIB        = ranlib -s
+COMPRESS      = zip 
+RM            = del
+
+all: $(TARGET)
+
+.cpp.obj:
+	$(CC) $(CFLAGS) $(INCPATH) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) /OUT:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+
+clean: 
+	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET)
+
+

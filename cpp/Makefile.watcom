@@ -1,0 +1,45 @@
+
+all:
+	cd $(CPPDIR)\auxx
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)\numeric
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)\osix
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)\graphic\shapes
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)\graphic\charts\simpleplot
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)\spreadsheet
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)\calculator
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)\txtcalculator
+	nmake -f Makefile.watcom
+#	cd $(CPPDIR)\qt
+#	nmake -f Makefile.watcom
+	cd $(CPPDIR)\app
+	nmake -f Makefile.watcom
+	cd $(CPPDIR)
+clean:
+	cd $(CPPDIR)\app
+	nmake -f Makefile.watcom clean
+#	cd $(CPPDIR)\qt
+#	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)\txtcalculator
+	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)\calculator
+	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)\spreadsheet
+	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)\graphic\charts\simpleplot
+	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)\graphic\shapes
+	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)\osix
+	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)\auxx
+	nmake -f Makefile.watcom clean
+	cd $(CPPDIR)
+
+
