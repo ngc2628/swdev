@@ -1,0 +1,42 @@
+
+PRJROOT       = $(SWDIR)
+PRJ           = mkbase
+DESTDIR       = $(LIBDIR)
+
+WFLAGS        = -w3
+LFLAGS        = -nologo -dll 
+INCPATH       = -i"$(SWDIR)\c"
+LIBS          =  
+HEADER        = defs.h exportdefs.h mkbase.h
+SOURCES       = mkbase.c
+OBJECTS       = mkbase.obj
+TARGET        = lib$(PRJ).dll
+TARGETLIB     = lib$(PRJ).lib
+
+CC            = wpp386
+CXX           = wpp386
+LEX           = flex
+YACC          = yacc
+DEFINES       = -dOSWINDLL -d_CRT_SECURE_NO_WARNINGS 
+CFLAGS        = $(DEFINES) -bd -bm -br -ef -ei -xr -ze -zw $(WFLAGS) 
+CXXFLAGS      = $(CFLAGS)
+LEXFLAGS      = 
+LINK          = link
+AR            = ar cq
+RANLIB        = ranlib -s
+COMPRESS      = zip 
+RM            = del
+
+all: $(TARGET)
+
+.c.obj:
+	$(CC) $(INCPATH) $(CFLAGS) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+
+clean: 
+	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB) *.err
+
+
