@@ -12,7 +12,7 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 
-// ***** int types
+/* int types */
 #if defined (_MSC_VER)
 #include <basetsd.h>
 #if defined (_WIN64)
