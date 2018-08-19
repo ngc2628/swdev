@@ -1,4 +1,8 @@
 
+#include <QtWidgets/QApplication>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <osix/xxkey.h>
 #include <osix/xxmouse.h>
 #include <osix/xxpaint.h>
@@ -6,11 +10,7 @@
 #include <qt/util/qtutil.h>
 #include <qt/util/qtpaint.h>
 #include <app/qt/calculatorapp/appframe.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 //#include <pthread.h>
-#include <QtWidgets/QApplication>
 
 int main(int argc,char **argv) { 
 

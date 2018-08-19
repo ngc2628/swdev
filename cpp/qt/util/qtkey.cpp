@@ -1,6 +1,6 @@
 
-#include <osix/xxevent.h>
 #include <QtGui/QKeyEvent>
+#include <osix/xxevent.h>
 
 namespace qtutil {
 

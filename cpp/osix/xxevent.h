@@ -2,6 +2,7 @@
 #ifndef _xxevent_h_
 #define _xxevent_h_
 
+#include <mkbase/defs.h>
 #include <auxx/auxx.h>
 #include <auxx/vertex.h>
 #include <osix/xxkey.h>
@@ -44,10 +45,10 @@ class oswinexp xxEvent {
     unsigned short m_xxsym;
     aux::Vector3 m_pos,m_globalpos,m_lastpos,m_downpos;
     xxRect m_r;
-    char m_info[aux::qwlen][aux::qwlen];
+    char m_info[mk_qwlen][mk_qwlen];
     xxEvent() : 
       m_type(0),m_mods(0),m_consumer(0),m_xxk(0),m_buttons(0),m_xxsym(0) {
-      memset(&m_info[0][0],0,aux::k4len);
+      memset(&m_info[0][0],0,mk_k4len);
     }
     xxEvent(const xxEvent &ass) :
       m_type(ass.m_type),m_mods(ass.m_mods),m_consumer(ass.m_consumer),
@@ -55,7 +56,7 @@ class oswinexp xxEvent {
       m_pos(ass.m_pos),m_globalpos(ass.m_globalpos),m_lastpos(ass.m_lastpos),
       m_downpos(ass.m_downpos),m_r(ass.m_r) {
       if (&ass!=this)
-        memcpy(&m_info[0][0],&ass.m_info[0][0],aux::k4len);
+        memcpy(&m_info[0][0],&ass.m_info[0][0],mk_k4len);
     }
     ~xxEvent() {
     }
@@ -72,7 +73,7 @@ class oswinexp xxEvent {
         m_lastpos=ass.m_lastpos;
         m_downpos=ass.m_downpos;
         m_r=ass.m_r;
-        memcpy(&m_info[0][0],&ass.m_info[0][0],aux::k4len);
+        memcpy(&m_info[0][0],&ass.m_info[0][0],mk_k4len);
       }
       return *this;
     }

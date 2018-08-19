@@ -1,7 +1,7 @@
 
+#include <QtGui/QMouseEvent>
 #include <osix/xxevent.h>
 #include <qt/util/qtutil.h>
-#include <QtGui/QMouseEvent>
 
 namespace qtutil {
 

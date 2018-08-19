@@ -53,8 +53,8 @@ aux::Vector3 Triangle::center() const {
   mm.translate(xm21,ym21);
   mm.transform(&n21);
   mm.reset();
-  double xs=aux::dnan,ys=aux::dnan;
-  aux::linesintersection(xm10,ym10,n10[0],n10[1],xm21,ym21,n21[0],n21[1],&xs,&ys);
+  double xs=mk_dnan,ys=mk_dnan;
+  mk_linesintersection(xm10,ym10,n10[0],n10[1],xm21,ym21,n21[0],n21[1],&xs,&ys,mk_ddPrec,0,0);
   return aux::Vector3(xs,ys);
 
 }
@@ -83,8 +83,8 @@ int Triangle::eval(TVList<Vector3> *pointL,int npoints) {
   mm.translate(xm21,ym21);
   mm.transform(&n21);
   mm.reset();
-  double xs=aux::dnan,ys=aux::dnan;
-  aux::linesintersection(xm10,ym10,n10[0],n10[1],xm21,ym21,n21[0],n21[1],&xs,&ys);
+  double xs=mk_dnan,ys=mk_dnan;
+  mk_linesintersection(xm10,ym10,n10[0],n10[1],xm21,ym21,n21[0],n21[1],&xs,&ys,mk_ddPrec,0,0);
   mm.translate(-xs,-ys);
   mm.scale(m_scale,m_scale,1.);
   mm.rotateZ(m_rotate);

@@ -1,10 +1,10 @@
 
-#include <osix/xxstyle.h>
-#include <osix/xxshape.h>
-#include <qt/util/qtpaint.h>
-#include <qt/util/qtutil.h>
 #include <QtGui/QPainter>
 #include <QtWidgets/QStyleOptionButton>
+#include <qt/util/qtpaint.h>
+#include <qt/util/qtutil.h>
+#include <osix/xxstyle.h>
+#include <osix/xxshape.h>
 
 namespace qtutil {
 
@@ -189,7 +189,7 @@ int xxresizeDrawableQt(void *,osix::xxDrawable *dest,osix::xxGC *gc) {
 
   if (dest->m_w==0 || gc->m_r.busted()>0)
     return 1;
-  int ww=aux::round2(gc->m_r.size().width()),hh=aux::round2(gc->m_r.size().height());
+  int ww=mk_round2(gc->m_r.size().width()),hh=mk_round2(gc->m_r.size().height());
   if ((dest->m_t&osix::xx_window)>0) {
     QWidget *wq=(QWidget*)dest->m_w;
     if (wq->size().width()!=ww || wq->size().height()!=hh)
@@ -219,21 +219,21 @@ int xxcopyAreaQt(void *,osix::xxDrawable *dest,osix::xxDrawable *src,
       (src->m_t&osix::xx_pixmap)==0)
     return 1;
   int destx=0,desty=0,srcx=0,srcy=0,
-      srcw=(int)aux::round2(src->m_r.size().width()),
-      srch=(int)aux::round2(src->m_r.size().height()),
-      destw=(int)aux::round2(dest->m_r.size().width()),
-      desth=(int)aux::round2(dest->m_r.size().height());
+      srcw=(int)mk_round2(src->m_r.size().width()),
+      srch=(int)mk_round2(src->m_r.size().height()),
+      destw=(int)mk_round2(dest->m_r.size().width()),
+      desth=(int)mk_round2(dest->m_r.size().height());
   if (rsrc.empty()==0) {
-    srcx=(int)aux::round2(rsrc.left());
-    srcy=(int)aux::round2(rsrc.top());
-    srcw=(int)aux::round2(rsrc.size().width());
-    srch=(int)aux::round2(rsrc.size().height());
+    srcx=(int)mk_round2(rsrc.left());
+    srcy=(int)mk_round2(rsrc.top());
+    srcw=(int)mk_round2(rsrc.size().width());
+    srch=(int)mk_round2(rsrc.size().height());
   }
   if (rdest.empty()==0) {
-    destx=(int)aux::round2(rdest.left());
-    desty=(int)aux::round2(rdest.top());
-    destw=(int)aux::round2(rdest.size().width());
-    desth=(int)aux::round2(rdest.size().height());
+    destx=(int)mk_round2(rdest.left());
+    desty=(int)mk_round2(rdest.top());
+    destw=(int)mk_round2(rdest.size().width());
+    desth=(int)mk_round2(rdest.size().height());
   }
   QPainter pp;
   if ((dest->m_t&osix::xx_pixmap)==0)

@@ -1,11 +1,11 @@
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = ipcclient
 DESTDIR       = $(BINDIR)
 
 WFLAGS        = 
 LFLAGS        = /LIBPATH:"$(LIBDIR)"   
-INCPATH       = -I"$(PRJROOT)"
+INCPATH       = -I"$(SWDIR)\cpp"
 LIBS          = 
 HEADER        = client.h
 SOURCES       = client.cpp main.cpp

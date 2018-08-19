@@ -13,7 +13,7 @@
 #include <time.h>
 #include <ctype.h>
 
-/* const unsigned short _d0=0; // big endian
+/* const unsigned short _d0=0;  // big endian
 const unsigned short _d1=1;
 const unsigned short _d2=2;
 const unsigned short _d3=3; */
@@ -1143,7 +1143,7 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
    unsigned short *ps=(unsigned short *)&d; // ps still points to double !!!
    short xchar=((ps[_d0]&dMask11)>>dOff),sg=(ps[_d0]>>15)&1;
    ps[_d0]=(((ps[_d0]&~dMask11)|dBias<<dOff)&sLimit);
-  
+
    ... *** but if optimizing takes place gcc does not allow
    to manipulate d as subscript 0 of array of short so 64bits needed */
   union tp_ucur ur48l={{255,255,255,255,255,255,0,0}},ur16h={{0,0,0,0,0,0,255,255}};
@@ -2230,3 +2230,221 @@ int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *
   }
   return -1;
 }
+
+/* ########## */
+int mk_vertexcopy(struct mk_vertex *vvto,struct mk_vertex *vvfrom) {
+
+  if (!vvto || !vvfrom)
+    return 1;
+  int ii=0;
+  for (ii=0;ii<4;ii++)
+    vvto->xyzw[ii]=vvfrom->xyzw[ii];
+  return 0;
+
+}
+
+double mk_vertexlen(struct mk_vertex *vertex) {
+
+  if (!vertex)
+    return .0;
+  double pp[3]={mk_isBusted(vertex->xyzw[0])==0 ? vertex->xyzw[0] : .0,
+                mk_isBusted(vertex->xyzw[1])==0 ? vertex->xyzw[1] : .0,
+                mk_isBusted(vertex->xyzw[2])==0 ? vertex->xyzw[2] : .0};
+  return sqrt(pp[0]*pp[0]+pp[1]*pp[1]+pp[2]*pp[2]);
+
+}
+
+/* ########## */
+int mk_vertexcmp(struct mk_vertex *cmp1,struct mk_vertex *cmp2) {
+
+  double ll1=mk_vertexlen(cmp1),ll2=mk_vertexlen(cmp2);
+  return (ll1<ll2 ? -1 : (ll2<ll1 ? 1 : 0));
+
+}
+
+/* ########## */
+int mk_vertexadd(struct mk_vertex *vertex,struct mk_vertex *addend) {
+
+  if (!vertex || !addend)
+    return 1;
+  int ii=0;
+  for (ii=0;ii<4;ii++) {
+    if (mk_isBusted(vertex->xyzw[ii])==0 && mk_isBusted(addend->xyzw[ii])==0)
+      vertex->xyzw[ii]+=addend->xyzw[ii];
+    else
+      vertex->xyzw[ii]=mk_dnan;
+  }
+  return 0;
+
+}
+
+/* ########## */
+int mk_vertexsubs(struct mk_vertex *vertex,struct mk_vertex *addend) {
+
+  if (!vertex || !addend)
+    return 1;
+  int ii=0;
+  for (ii=0;ii<4;ii++) {
+    if (mk_isBusted(vertex->xyzw[ii])==0 && mk_isBusted(addend->xyzw[ii])==0)
+      vertex->xyzw[ii]-=addend->xyzw[ii];
+    else
+      vertex->xyzw[ii]=mk_dnan;
+  }
+  return 0;
+
+}
+
+/* ########## */
+int mk_vertexmult(struct mk_vertex *vertex,double sc) {
+
+  if (!vertex)
+    return 1;
+  int bsc=mk_isBusted(sc),ii=0;
+  for (ii=0;ii<4;ii++) {
+    if (mk_isBusted(vertex->xyzw[ii])==0 && bsc==0)
+      vertex->xyzw[ii]*=sc;
+    else
+      vertex->xyzw[ii]=mk_dnan;
+  }
+  return 0;
+
+}
+
+/* ########## */
+int mk_vertexdiv(struct mk_vertex *vertex,double sc) {
+
+  if (!vertex)
+    return 1;
+  int bsc=(mk_isBusted(sc) && sc!=.0 ? 0 : 1),ii=0;
+  for (ii=0;ii<4;ii++) {
+    if (mk_isBusted(vertex->xyzw[ii])==0 && bsc==0)
+      vertex->xyzw[ii]/=sc;
+    else
+      vertex->xyzw[ii]=mk_dnan;
+  }
+  return 0;
+
+}
+
+/* ########## */
+double mk_vertexdot(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
+
+  if (!vertex1 || !vertex2)
+    return .0;
+  struct mk_vertex *vertex[2]={vertex1,vertex2};
+  double pp[2][3];
+  int ii=0,jj=0;
+  for (jj=0;jj<2;jj++) {
+    for (ii=0;ii<3;ii++) {
+      if (mk_isBusted(vertex[jj]->xyzw[ii])==0)
+        pp[jj][ii]=vertex[jj]->xyzw[ii];
+      else
+        pp[jj][ii]==mk_dnan;
+    }
+  }
+  return (pp[0][0]*pp[1][0]+pp[0][1]*pp[1][1]+pp[0][2]*pp[1][2]);
+
+}
+
+/* ########## */
+int mk_vertexnorm(struct mk_vertex *vertex) {
+
+  if (!vertex)
+    return 1;
+  double ll=mk_vertexlen(vertex);
+  int ii=0;
+  for (ii=0;ii<3;ii++) {
+    if (mk_isBusted(vertex->xyzw[ii])==0 && ll>.0)
+      vertex->xyzw[ii]/=ll;
+    else
+      vertex->xyzw[ii]=mk_dnan;
+  }
+  return 0;
+
+}
+
+/* ########## */
+int mk_vertexcross(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
+
+  if (!vertex1 || !vertex2)
+    return 1;
+  double pp[3]={mk_dnan,mk_dnan,mk_dnan};
+  if (mk_isBusted(vertex1->xyzw[1])==0 && mk_isBusted(vertex1->xyzw[2])==0 &&
+      mk_isBusted(vertex2->xyzw[1])==0 && mk_isBusted(vertex2->xyzw[2])==0)
+    pp[0]=vertex1->xyzw[1]*vertex2->xyzw[2]-vertex1->xyzw[2]*vertex2->xyzw[1];
+  if (mk_isBusted(vertex1->xyzw[0])==0 && mk_isBusted(vertex1->xyzw[2])==0 &&
+      mk_isBusted(vertex2->xyzw[0])==0 && mk_isBusted(vertex2->xyzw[2])==0)
+    pp[1]=vertex1->xyzw[2]*vertex2->xyzw[0]-vertex1->xyzw[0]*vertex2->xyzw[2];
+  if (mk_isBusted(vertex1->xyzw[0])==0 && mk_isBusted(vertex1->xyzw[1])==0 &&
+      mk_isBusted(vertex2->xyzw[0])==0 && mk_isBusted(vertex2->xyzw[1])==0)
+    pp[2]=vertex1->xyzw[0]*vertex2->xyzw[1]-vertex1->xyzw[1]*vertex2->xyzw[0];
+  int ii=0;
+  for (ii=0;ii<3;ii++)
+   vertex1->xyzw[ii]=pp[ii];
+  return 0;
+
+}
+
+/* ########## */
+double mk_vertexangrad(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
+
+  if (!vertex1 || !vertex2)
+    return .0;
+  double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
+  if (den==.0)
+    return .0;
+  return acos(mk_vertexdot(vertex1,vertex2)/den);
+
+}
+
+/* ########## */
+double mk_vertexangdeg(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
+
+  if (!vertex1 || !vertex2)
+    return .0;
+  double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
+  if (den==.0)
+    return .0;
+  double arg=mk_vertexdot(vertex1,vertex2)/den;
+  return acos(arg)/mk_rad;
+
+}
+
+/* ########## */
+int mk_verticesalloc(struct mk_vertices *vertices) {
+
+  if (!vertices)
+    return 1;
+  vertices->vertexL=(struct mk_vertex*)malloc(vertices->maxcnt*sizeof(struct mk_vertex));
+  int ii=0,jj=0;
+  for (ii=0;ii<vertices->maxcnt;ii++) {
+    for (jj=0;jj<4;jj++)
+      vertices->vertexL[ii].xyzw[jj]=mk_dnan;
+  }
+  vertices->cnt=0;
+  return 0;
+
+}
+
+/* ########## */
+struct mk_vertex *mk_verticesget(struct mk_vertices *vertices,int idx) {
+
+  if (!vertices || idx<0 || idx>=vertices->cnt)
+    return 0;
+  return &(vertices->vertexL[idx]);
+
+}
+
+/* ########## */
+int mk_verticesappend(struct mk_vertices *vertices,struct mk_vertex *vertex) {
+
+  if (!vertices || !vertex || vertices->maxcnt<=vertices->cnt)
+    return -1;
+  int jj=0;
+  for (jj=0;jj<4;jj++)
+    vertices->vertexL[vertices->cnt].xyzw[jj]=vertex->xyzw[jj];
+  vertices->cnt++;
+  return vertices->cnt-1;
+
+}
+

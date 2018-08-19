@@ -33,7 +33,7 @@ Axis::Axis(const char *type,unsigned int idd) :
   m_visible(typeShowLine|typeShowNotch|typeShowText),
   m_style(osix::xx_somecolors[osix::black],1,1) {
 
-  m_autobounds[0]=m_autobounds[1]=aux::dnan;
+  m_autobounds[0]=m_autobounds[1]=mk_dnan;
   m_fnt[0]=m_fnt[1]=osix::xxFnt();
   	    
 }
@@ -95,16 +95,16 @@ void Axis::setScale(Scale *scale) {
 
 int Axis::findAutoBounds(int btype,double *min,double *max) {
 
-  double xmin=aux::dinf,xmax=aux::dsinf,xmintmp=xmin,xmaxtmp=xmax;
+  double xmin=mk_dinf,xmax=mk_dsinf,xmintmp=xmin,xmaxtmp=xmax;
   int ii=0;
   Graph *graph=0;
   for (ii=0;ii<m_graphs.count();ii++) {
     graph=dynamic_cast<Graph*>(m_graphs[ii]);
     if (graph) {
       graph->findBounds(btype,&xmintmp,&xmaxtmp);
-      if (aux::dlt(xmintmp,xmin))
+      if (mk_dlt(xmintmp,xmin))
         xmin=xmintmp;
-      if (aux::dlt(xmax,xmaxtmp))
+      if (mk_dlt(xmax,xmaxtmp))
         xmax=xmaxtmp;
     }
   }
@@ -115,9 +115,9 @@ int Axis::findAutoBounds(int btype,double *min,double *max) {
   if (max)
     *max=xmax;
   int res=0;
-  if (!aux::isInf(xmin))
+  if (!mk_isInf(xmin))
     res|=typeBoundAutoMin;
-  if (!aux::isInf(xmax))
+  if (!mk_isInf(xmax))
     res|=typeBoundAutoMax;
 
   return res;
@@ -127,11 +127,11 @@ int Axis::findAutoBounds(int btype,double *min,double *max) {
 int Axis::checkAutoBounds(double min,double max) {
 
   short res=0;
-  if (aux::dlt(min,m_autobounds[0])) {
+  if (mk_dlt(min,m_autobounds[0])) {
     m_autobounds[0]=min;
     res|=typeBoundAutoMin;
   }
-  if (aux::dlt(m_autobounds[1],max)) {
+  if (mk_dlt(m_autobounds[1],max)) {
     m_autobounds[1]=max;
     res|=typeBoundAutoMax;
   }
@@ -147,8 +147,8 @@ int Axis::calcTics(double maxlen,double space,aux::TVList<Tic> *ticL) {
       m_scale->clear();
     return 0;
   }
-  m_scale->setRange((m_scale->rangeOption()&typeBoundAutoMin)>0 ? m_autobounds[0] : aux::dnan,
-                     (m_scale->rangeOption()&typeBoundAutoMax)>0 ? m_autobounds[1] : aux::dnan);
+  m_scale->setRange((m_scale->rangeOption()&typeBoundAutoMin)>0 ? m_autobounds[0] : mk_dnan,
+                     (m_scale->rangeOption()&typeBoundAutoMax)>0 ? m_autobounds[1] : mk_dnan);
   int ii=0,maxtics=(int)(maxlen/space/2.),ntics=m_scale->calcTics(maxtics,ticL);
   double sumlen=.0;
   while (ntics>3) {
@@ -200,7 +200,7 @@ double Xaxis::needExcess(osix::xxRectSize size) {
 
 double Xaxis::needSize(osix::xxRectSize) {
 
-  m_size.setHeight(aux::round2(1.5*m_fnt[1].m_metric.height())); // improve 4 angle
+  m_size.setHeight(mk_round2(1.5*m_fnt[1].m_metric.height())); // improve 4 angle
   return m_size.height();
   
 }
@@ -217,11 +217,11 @@ int Xaxis::sc2sz(aux::Vector3 *v) const {
 
   if (!v)
     return -1;
-  double min=aux::dnan,max=aux::dnan;
+  double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  v->setX(aux::linEq(min,max,0.,m_size.width(),v->x()));
-  return (aux::isNan(v->x())==0 ? 0 : -1);
+  v->setX(mk_linEq(min,max,0.,m_size.width(),v->x()));
+  return (mk_isNan(v->x())==0 ? 0 : -1);
 
 }
 
@@ -229,11 +229,11 @@ int Xaxis::sz2sc(aux::Vector3 *v) const {
 
   if (!v)
     return -1;
-  double min=aux::dnan,max=aux::dnan;
+  double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  v->setX(aux::linEq(0.,m_size.width(),min,max,v->x()));
-  return (aux::isNan(v->x())==0 ? 0 : -1);
+  v->setX(mk_linEq(0.,m_size.width(),min,max,v->x()));
+  return (mk_isNan(v->x())==0 ? 0 : -1);
 
 }
 
@@ -283,7 +283,7 @@ double Yaxis::needSize(osix::xxRectSize size) {
       ww=wtmp;
     str=0;
   }
-  ww=aux::round2(ww);
+  ww=mk_round2(ww);
   m_size.setWidth(ww);  
   return ww;
 
@@ -301,11 +301,11 @@ int Yaxis::sc2sz(aux::Vector3 *vv) const {
 
   if (!vv)
     return -1;
-  double min=aux::dnan,max=aux::dnan;
+  double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  vv->setY(aux::linEq(min,max,0.,m_size.height(),vv->y()));
-  return (aux::isNan(vv->y())==0 ? 0 : -1);
+  vv->setY(mk_linEq(min,max,0.,m_size.height(),vv->y()));
+  return (mk_isNan(vv->y())==0 ? 0 : -1);
 
 }
 
@@ -313,11 +313,11 @@ int Yaxis::sz2sc(aux::Vector3 *vv) const {
 
   if (!vv)
     return -1;
-  double min=aux::dnan,max=aux::dnan;
+  double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  vv->setY(aux::linEq(0.,m_size.height(),min,max,vv->y()));
-  return (aux::isNan(vv->y())==0 ? 0 : -1);
+  vv->setY(mk_linEq(0.,m_size.height(),min,max,vv->y()));
+  return (mk_isNan(vv->y())==0 ? 0 : -1);
 
 }
 

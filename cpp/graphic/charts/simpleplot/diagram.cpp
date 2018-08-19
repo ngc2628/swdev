@@ -595,7 +595,7 @@ osix::xxRectSize DiagramXY::setup(osix::xxRectSize sz,osix::xxRectSize *excess) 
     if (tmp>wexcess)
       wexcess=tmp;
   }
-  wexcess=aux::round2(wexcess);
+  wexcess=mk_round2(wexcess);
   wexcess+=(double)((int)wexcess%2);
   sz.setWidth(sz.width()-wexcess);
   for (ii=0;ii<ny;ii++) {
@@ -605,7 +605,7 @@ osix::xxRectSize DiagramXY::setup(osix::xxRectSize sz,osix::xxRectSize *excess) 
     if (tmp>hexcess)
       hexcess=tmp;
   }
-  hexcess=aux::round2(hexcess);
+  hexcess=mk_round2(hexcess);
   hexcess+=(double)((int)hexcess%2);
   if (excess)
     *excess=osix::xxRectSize(wexcess,hexcess);

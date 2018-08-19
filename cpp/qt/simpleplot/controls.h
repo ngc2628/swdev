@@ -2,8 +2,6 @@
 #ifndef _CONTROLS_H_
 #define _CONTROLS_H_
 
-#include <auxx/auxx.h>
-#include <qt/simpleplot/chart2.h> 
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QLabel>
@@ -17,6 +15,8 @@
 #include <QtWidgets/QFontDialog>
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QTabWidget>
+#include <auxx/auxx.h>
+#include <qt/simpleplot/chart2.h> 
 
 namespace qtsimpleplot {
 

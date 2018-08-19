@@ -1,11 +1,4 @@
 
-#include <osix/xxstyle.h>
-#include <spreadsheet/spreadsheetdata.h>
-#include <qt/util/qtutil.h>
-#include <qt/spreadsheet/spreadsheet.h>
-#include <app/qt/spreadsheetapp/appframe.h>
-#include <math.h>
-
 #include <QtCore/QEvent>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
@@ -19,6 +12,12 @@
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QMessageBox>
 #include <QtGui/QClipboard>
+#include <math.h>
+#include <osix/xxstyle.h>
+#include <spreadsheet/spreadsheetdata.h>
+#include <qt/util/qtutil.h>
+#include <qt/spreadsheet/spreadsheet.h>
+#include <app/qt/spreadsheetapp/appframe.h>
 
 namespace qtspreadsheet {
 
@@ -318,21 +317,21 @@ void AppFrame::slotSpreadsheetDataResizeAction() {
     return;
   
   int idxtype=(spreadsheet::sectiontypeCol|spreadsheet::sectiontypeHeader|spreadsheet::sectiontypeStatic);
-  spreadsheet::SpreadsheetIndex section(idxtype,0,aux::dnan);
+  spreadsheet::SpreadsheetIndex section(idxtype,0,mk_dnan);
   spreadsheetsdata[0]->setIndexDescr(section);
   idxtype=(spreadsheet::sectiontypeCol|spreadsheet::sectiontypeStatic);
-  section.set(idxtype,1,aux::dnan);
+  section.set(idxtype,1,mk_dnan);
   spreadsheetsdata[0]->setIndexDescr(section);
   section.set(idxtype,cols-1,135.);
   spreadsheetsdata[0]->setIndexDescr(section);
   //spreadsheetsdata[0]->setColDescr(cols-2,-1.,1,"col "+QString::number(cols-2));
   idxtype=(spreadsheet::sectiontypeRow|spreadsheet::sectiontypeHeader|spreadsheet::sectiontypeStatic);
-  section.set(idxtype,0,aux::dnan);
+  section.set(idxtype,0,mk_dnan);
   spreadsheetsdata[0]->setIndexDescr(section);
   idxtype=(spreadsheet::sectiontypeRow|spreadsheet::sectiontypeStatic);
-  section.set(idxtype,1,aux::dnan);
+  section.set(idxtype,1,mk_dnan);
   spreadsheetsdata[0]->setIndexDescr(section);
-  section.set(idxtype,rows-1,aux::dnan);
+  section.set(idxtype,rows-1,mk_dnan);
   spreadsheetsdata[0]->setIndexDescr(section);
   //spreadsheetsdata[0]->setRowDescr(rows-2,-1.,1,"row "+QString::number(rows-2));
   

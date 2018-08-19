@@ -2,9 +2,6 @@
 #ifndef _spreadsheet_qt_
 #define _spreadsheet_qt_
 
-#include <spreadsheet/spreadsheetdata.h>
-#include <spreadsheet/spreadsheet.h>
-#include <qt/util/qtwidgets.h>
 #include <QtCore/QObject>
 #include <QtCore/QEvent>
 #include <QtCore/QRect>
@@ -14,6 +11,9 @@
 #include <QtWidgets/QScrollBar>
 #include <QtGui/QPainter>
 #include <QtGui/QResizeEvent>
+#include <qt/util/qtwidgets.h>
+#include <spreadsheet/spreadsheetdata.h>
+#include <spreadsheet/spreadsheet.h>
 
 namespace qtspreadsheet {
 

@@ -1,41 +1,41 @@
 
 all:
-	cd $(CPPDIR)\auxx
+	cd $(SWDIR)\cpp\auxx
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\numeric
+	cd $(SWDIR)\cpp\numeric
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\osix
+	cd $(SWDIR)\cpp\osix
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\graphic\shapes
+	cd $(SWDIR)\cpp\graphic\shapes
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\graphic\charts\simpleplot
+	cd $(SWDIR)\cpp\graphic\charts\simpleplot
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\spreadsheet
+	cd $(SWDIR)\cpp\spreadsheet
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\calculator
+	cd $(SWDIR)\cpp\calculator
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\qt
+	cd $(SWDIR)\cpp\qt
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)\app
+	cd $(SWDIR)\cpp\app
 	nmake /f Makefile.msvc
-	cd $(CPPDIR)
+	cd $(SWDIR)\cpp
 clean:
-	cd $(CPPDIR)\app
+	cd $(SWDIR)\cpp\app
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)\qt
+	cd $(SWDIR)\cpp\qt
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)\calculator
+	cd $(SWDIR)\cpp\calculator
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)\spreadsheet
+	cd $(SWDIR)\cpp\spreadsheet
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)\graphic\charts\simpleplot
+	cd $(SWDIR)\cpp\graphic\charts\simpleplot
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)\graphic\shapes
+	cd $(SWDIR)\cpp\graphic\shapes
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)\osix
+	cd $(SWDIR)\cpp\osix
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)\auxx
+	cd $(SWDIR)\cpp\auxx
 	nmake /f Makefile.msvc clean
-	cd $(CPPDIR)
+	cd $(SWDIR)\cpp
 
 

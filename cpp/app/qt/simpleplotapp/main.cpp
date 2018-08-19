@@ -1,12 +1,12 @@
 
+#include <QtWidgets/QApplication>
+#include <stdio.h>
+#include <string.h>
+//#include <pthread.h>
 #include <osix/xxevent.h>
 #include <osix/xxpaint.h>
 #include <qt/util/qtpaint.h>
 #include <app/qt/simpleplotapp/appframe.h>
-#include <stdio.h>
-#include <string.h>
-//#include <pthread.h>
-#include <QtWidgets/QApplication>
 
 int main(int argc,char **argv) { 
 

@@ -25,27 +25,28 @@ static void dbgOp(aux::Asciistr input,const aux::TVList<Entry> &opL,int line) {
 }
 
 static int esplitanum(
-  aux::Asciistr str,aux::Asciistr *strmant,unsigned char *sgnmant,aux::Asciistr *strexp,unsigned char *sgnexp) {
+  aux::Asciistr str,aux::Asciistr *strmant,unsigned char *sgnmant,
+  aux::Asciistr *strexp,unsigned char *sgnexp) {
 
   *strmant=0;
-  *sgnmant=aux::asciiplus;
+  *sgnmant=mk_asciiplus;
   *strexp=0;
-  *sgnexp=aux::asciiplus;
+  *sgnexp=mk_asciiplus;
   if (str.len()==0)
     return -1;
-  if (str[0]==(char)aux::asciiplus || str[0]==(char)aux::asciiminus) {
-    if (str[0]==(char)aux::asciiminus)
-      *sgnmant=aux::asciiminus;
+  if (str[0]==(char)mk_asciiplus || str[0]==(char)mk_asciiminus) {
+    if (str[0]==(char)mk_asciiminus)
+      *sgnmant=mk_asciiminus;
     str=str.substr(1,-1);
   }
-  int idx=str.find(aux::asciie,-1,aux::asciib,aux::asciii);
+  int idx=str.find(mk_asciie,-1,mk_asciib,mk_asciii);
   if (idx<0)
     *strmant=str;
   else {
     *strmant=str.substr(0,idx);
-    if (str[idx+1]==(char)aux::asciiplus || str[idx+1]==(char)aux::asciiminus) {
-      if (str[idx+1]==(char)aux::asciiminus)
-        *sgnexp=aux::asciiminus;
+    if (str[idx+1]==(char)mk_asciiplus || str[idx+1]==(char)mk_asciiminus) {
+      if (str[idx+1]==(char)mk_asciiminus)
+        *sgnexp=mk_asciiminus;
     }
     *strexp=str.substr(idx+2,-1);
   }
@@ -233,7 +234,7 @@ unsigned int Calculator::doFmt(unsigned int numfmt) {
   int ok=actfmt,ll=m_input.len(),i10=0;
   aux::Asciistr buf,errmsg("err : cannot convert ");
   if (ll>0) {
-    ok=aux::txtchknum((const char *)m_input,actfmt,&i10);
+    ok=mk_txtchknum((const char *)m_input,actfmt,&i10);
     if (ok!=actfmt || (m_numfmt!=10 && i10==0)) {
       errmsg.append(ok!=actfmt ? "number" : "to integer");
       errComp(errmsg);
@@ -241,7 +242,7 @@ unsigned int Calculator::doFmt(unsigned int numfmt) {
     }
     buf=m_input;
     buf.reserve(maxlenstr);
-    aux::txtconvfmt(buf.rawdata(),actfmt,m_numfmt,maxlenstr-5);
+    mk_txtconvfmt(buf.rawdata(),actfmt,m_numfmt,maxlenstr-5);
     if (m_numfmt==16)
       buf.prepend("0x");
     else if (m_numfmt==8)
@@ -252,7 +253,7 @@ unsigned int Calculator::doFmt(unsigned int numfmt) {
     Entry *lastentry=m_ops.at(m_ops.count()-1);
     int a=isAction(*lastentry);
     if ((a&fmtAction)==0 && (a&fmtUnaction)==0) {
-      ok=aux::txtchknum((const char *)lastentry->m_str,actfmt,&i10);
+      ok=mk_txtchknum((const char *)lastentry->m_str,actfmt,&i10);
       if (ok!=actfmt || (m_numfmt!=10 && i10==0)) {
         errmsg.append(ok!=actfmt ? "number" : "to integer");
         errComp(errmsg);
@@ -260,7 +261,7 @@ unsigned int Calculator::doFmt(unsigned int numfmt) {
       }
       buf=lastentry->m_str;
       buf.reserve(maxlenstr);
-      aux::txtconvfmt(buf.rawdata(),actfmt,m_numfmt,maxlenstr-3);
+      mk_txtconvfmt(buf.rawdata(),actfmt,m_numfmt,maxlenstr-3);
       if (m_numfmt==16)
         buf.prepend("0x");
       else if (m_numfmt==8)
@@ -291,24 +292,24 @@ int Calculator::chgSgn() {
   if (idx>=0) {
     sgn=(strexp.len()>0 ? strexp[0] : 0);
     if (sgn==0)
-      strexp.append(aux::asciiminus);
-    else if (sgn==aux::asciiplus)
-      strexp.set(0,aux::asciiminus);
-    else if (sgn==aux::asciiminus)
-      strexp.set(0,aux::asciiplus);
+      strexp.append(mk_asciiminus);
+    else if (sgn==mk_asciiplus)
+      strexp.set(0,mk_asciiminus);
+    else if (sgn==mk_asciiminus)
+      strexp.set(0,mk_asciiplus);
     else
-      strexp.prepend(aux::asciiminus);
-    strmant.append(aux::asciiE);
+      strexp.prepend(mk_asciiminus);
+    strmant.append(mk_asciiE);
     strmant.append(strexp);
   }
   else {
     sgn=strmant[0];
-    if (sgn==aux::asciiplus)
-      strmant.set(0,aux::asciiminus);
-    else if (sgnmant==aux::asciiminus)
+    if (sgn==mk_asciiplus)
+      strmant.set(0,mk_asciiminus);
+    else if (sgnmant==mk_asciiminus)
       strmant=strmant.substr(1,-1);
     else
-      strmant.prepend(aux::asciiminus);
+      strmant.prepend(mk_asciiminus);
   }
   setInput(strmant);
   updateOutput(m_input);
@@ -434,13 +435,13 @@ static int xappendNumber(int fmt,aux::Asciistr num,aux::Asciistr inp,aux::Asciis
   printf ("%d inp=%s num=%s\n",__LINE__,(const char *)inp,(const char *)num);
   *xinp=inp;
   xinp->append(num);
-  int i10=0,xval=aux::txtchknum((const char *)(*xinp),fmt,&i10);
-printf ("%d xinp=%s chk=%d i10=%d\n",__LINE__,(const char *)(*xinp),xval,i10);
+  int i10=0,xval=mk_txtchknum((const char *)(*xinp),fmt,&i10);
+//printf ("%d xinp=%s chk=%d i10=%d\n",__LINE__,(const char *)(*xinp),xval,i10);
   aux::Asciistr strmant,strexp;
-  unsigned char sgnmant=aux::asciiplus,sgnexp=aux::asciiminus;
+  unsigned char sgnmant=mk_asciiplus,sgnexp=mk_asciiminus;
   int idx=esplitanum(*xinp,&strmant,&sgnmant,&strexp,&sgnexp);
 
-printf ("%d mant=%s exp=%s\n",__LINE__,(const char *)strmant,(const char *)strexp);
+//printf ("%d mant=%s exp=%s\n",__LINE__,(const char *)strmant,(const char *)strexp);
 
   return 0;
 
@@ -456,52 +457,52 @@ aux::Asciistr xinp;
 xappendNumber(m_numfmt,num,m_input,&xinp);
 
   aux::Asciistr input(m_input),strmant,strexp;
-  unsigned char sgnmant=aux::asciiplus,sgnexp=aux::asciiminus;
+  unsigned char sgnmant=mk_asciiplus,sgnexp=mk_asciiminus;
   int ok=-1,inplen=input.len(),idx=esplitanum(m_input,&strmant,&sgnmant,&strexp,&sgnexp);
 
   if (idx>=0 && m_numfmt!=fmtHex) {
     if (!isdigit(num[0]))
       return -1;
     char sgn=strexp[0];
-    aux::Asciistr strexpa(sgn==aux::asciiplus || sgn==aux::asciiminus ? strexp.substr(1,-1) : strexp);
-    int nexp=(int)aux::a2i((const char *)strexpa,&ok);
+    aux::Asciistr strexpa(sgn==mk_asciiplus || sgn==mk_asciiminus ? strexp.substr(1,-1) : strexp);
+    int nexp=(int)mk_a2i((const char *)strexpa,&ok,0);
     if (ok<0)
       return -1;
-    aux::i2a((aux::lreal)nexp,&strexpa,10,3,true);
+    aux::i2a((mk_lreal)nexp,&strexpa,10,3,true);
     strexpa.set(0,strexpa[1]);
     strexpa.set(1,strexpa[2]);
     strexpa.set(2,num[0]);
-    if(strexpa[0]==aux::asciizero)
+    if(strexpa[0]==mk_asciizero)
       strexpa=strexpa.substr(1,-1);
-    if(strexpa[0]==aux::asciizero)
+    if(strexpa[0]==mk_asciizero)
       strexpa=strexpa.substr(1,-1);
     input=strmant;
-    input.append(aux::asciiE);
-    if (sgn==aux::asciiplus || sgn==aux::asciiminus)
+    input.append(mk_asciiE);
+    if (sgn==mk_asciiplus || sgn==mk_asciiminus)
       input.append(sgn);
     input.append(strexpa);
-    if (aux::isNan(aux::a2d((const char *)input))!=0)
+    if (mk_isNan(mk_a2d((const char *)input))!=0)
       return -1;
   }
   else {
-    if (num[0]==aux::asciidec && m_numfmt!=fmtDec)
+    if (num[0]==mk_asciidec && m_numfmt!=fmtDec)
       return -1;
     if ((m_numfmt==fmtBin && inplen>63) ||
         (m_numfmt==fmtOct && inplen>20) ||
         (m_numfmt==fmtHex && inplen>15))
       return -1;
-    idx=input.find(aux::asciidec,0,aux::asciif);
+    idx=input.find(mk_asciidec,0,mk_asciif);
     if (idx>=0 && (inplen>15 || num[0]=='.'))
       return -1;
-    if ((num[0]==aux::asciie || num[0]==aux::asciiE) && (
+    if ((num[0]==mk_asciie || num[0]==mk_asciiE) && (
         (m_numfmt!=fmtHex && m_numfmt!=fmtDec) || (m_numfmt==fmtDec && inplen==0)))
       return -1;
     input.append(num);
     if (m_numfmt!=fmtDec) {
       ok=(int)m_numfmt;
-      aux::a2ui((const char *)input,&ok);
+      mk_a2ui((const char *)input,&ok);
     }
-    else if (aux::isNan(aux::a2d((const char *)input))!=0)
+    else if (mk_isNan(mk_a2d((const char *)input))!=0)
       return -1;
   }
   setInput(input);
@@ -550,12 +551,12 @@ int Calculator::setExtraNumber(aux::Asciistr numtype) {
     return appendNumber("e+0");
   known=fn_euler;
   if (numtype==known) {
-    aux::d2a(aux::euler,&input,15,0);
+    aux::d2a(mk_euler,&input,15,0);
     return updateOutput(setInput(input));
   }
   known=fn_pi;
   if (numtype==known) {
-    aux::d2a(aux::pi,&input,15,0);
+    aux::d2a(mk_pi,&input,15,0);
     return updateOutput(setInput(input));
   }
   return 0;
@@ -617,10 +618,10 @@ printf("i=%d opi=%s\n",i,qx(acts[i]));*/
   if (numcnt==0 && opcnt==0)
     return -1;
   if (numcnt==0 || opcnt==0) {
-		if (numcnt==0)
-		  actentry=acts[0];
-		else
-		  actentry=nums[0];
+    if (numcnt==0)
+      actentry=acts[0];
+    else
+      actentry=nums[0];
     if (actentry.m_str.len()>0) {
       if (numcnt==0)
         setOp(-1,"0");
@@ -770,25 +771,25 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
   Entry num1=num1_,num2=num2_;
   int fmt1=num1.m_option,fmt2=num2.m_option;
   int oki1=fmt1,oki2=fmt2,i=0,prec1=0,prec2=0,sgnr=1,sgni1=1,sgni2=1;
-  aux::ulreal nl1=aux::a2ui((const char *)num1.m_str,&oki1,&sgni1),
-                nl2=aux::a2ui((const char *)num2.m_str,&oki2,&sgni2);
+  mk_ulreal nl1=mk_a2ui((const char *)num1.m_str,&oki1,&sgni1);
+  mk_ulreal nl2=mk_a2ui((const char *)num2.m_str,&oki2,&sgni2);
 
   if (oki1<0 && (fmt1==2 || fmt1==8 || fmt1==16))
     return res;
   if (oki2<0 && (fmt2==2 || fmt2==8 || fmt2==16))
     return res;
   bool isintcalc=(oki1>0 && oki2>0);
-  aux::ulreal rl=0;
+  mk_ulreal rl=0;
   double nd1=.0,nd2=.0,rd=.0;
   if (oki1>0)
     nd1=(double)sgni1*double(nl1);
   else
-    nd1=aux::a2d((const char *)num1.m_str,&prec1);
+    nd1=mk_a2d((const char *)num1.m_str,&prec1);
   if (oki2>0)
     nd2=(double)sgni2*double(nl2);
   else
-    nd2=aux::a2d((const char *)num2.m_str,&prec2);
-  if (aux::isNan(nd1)!=0 || aux::isNan(nd2)!=0)
+    nd2=mk_a2d((const char *)num2.m_str,&prec2);
+  if (mk_isNan(nd1)!=0 || mk_isNan(nd2)!=0)
     return res;
   if (action==fn_plus)
     rd=nd1+nd2;
@@ -804,11 +805,11 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     rd=pow(nd1,1.0/nd2);
   else
     return res;
-  if (!aux::isFinite(rd))
+  if (!mk_isFinite(rd))
     return res;
-  int magrd=aux::mag(rd);
+  int magrd=mk_mag(rd);
   if (isintcalc && (
-    magrd>aux::ui64Mag ||
+    magrd>mk_ui64Mag ||
     (action==fn_pow && sgni2<0) ||
      action==fn_invpow ||
      (action==fn_div && (nl1<nl2 || (nl1%nl2)!=0))))
@@ -821,7 +822,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     else if (iaction==fn_minus && sgni1!=sgni2)
       iaction=fn_plus;
     if (iaction==fn_plus) {
-      rl=aux::binAdd(nl1,nl2,&overflow);
+      rl=mk_binAdd(nl1,nl2,&overflow);
       if (overflow&1)
         isintcalc=false;
       else if (sgni1<0)
@@ -840,7 +841,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
       }
     }
     else if (iaction==fn_mult) {
-      rl=aux::binMult(nl1,nl2,&overflow);
+      rl=mk_binMult(nl1,nl2,&overflow);
       if (overflow&1)
         isintcalc=false;
       else if ((sgni1<0 && sgni2>0) || (sgni1>0 && sgni2<0))
@@ -854,7 +855,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     else if (iaction==fn_pow) {
       rl=1;
       for (i=0;i<(int)nl2;i++) {
-        rl=aux::binMult(rl,nl1,&overflow);
+        rl=mk_binMult(rl,nl1,&overflow);
         if (overflow&1) {
           isintcalc=false;
           break;
@@ -863,7 +864,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
       if (sgni1<0 && nl2!=0 && nl2%2)
         sgnr=-1;
     }
-    if (isintcalc && rl>(aux::lreal)aux::i64Limit && sgnr<0)
+    if (isintcalc && rl>(mk_ulreal)mk_i64Limit && sgnr<0)
       isintcalc=false;
   }
   aux::Asciistr buf;
@@ -879,7 +880,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     if (action==fn_plus || action==fn_minus)
       aux::d2a(rd,&buf,prec1>prec2 ? prec1 : prec2,-1);
     else
-      aux::d2a(rd,&buf,-magrd+aux::dPrec,-1);
+      aux::d2a(rd,&buf,-magrd+mk_dPrec,-1);
     res.m_str=buf;
     res.m_option=fmtDec;
     //doFmt(11);
@@ -916,7 +917,7 @@ Entry Calculator::calcUnary(Entry unop) {
   bool isintcalc=false;
   int ok=(int)m_numfmt,sgni=1,prec=0;
   double n=0.;
-  aux::ulreal ni=aux::a2ui((const char *)numstr.m_str,&ok,&sgni);
+  mk_ulreal ni=mk_a2ui((const char *)numstr.m_str,&ok,&sgni);
   if (ok<0) {
     if (m_numfmt==fmtBin || m_numfmt==fmtOct || m_numfmt==fmtHex) {
       errComp(0);
@@ -928,8 +929,8 @@ Entry Calculator::calcUnary(Entry unop) {
   if (isintcalc)
     n=double(ni);
   else {
-    n=aux::a2d((const char *)numstr.m_str,&prec);
-    if (aux::isNan(n)!=0) {
+    n=mk_a2d((const char *)numstr.m_str,&prec);
+    if (mk_isNan(n)!=0) {
       strDbg="err : cannot parse number ";
       strDbg.append((const char *)numstr.m_str);
       errComp(strDbg);
@@ -938,7 +939,7 @@ Entry Calculator::calcUnary(Entry unop) {
   }
   if (!(unop==fn_sqr))
     isintcalc=false;
-  double trignum=((m_trigfmt&fmtRad)>0 ? 1. : aux::rad);
+  double trignum=((m_trigfmt&fmtRad)>0 ? 1. : mk_rad);
   if (unop==fn_sqrt) {
     if (n<.0) {
       errComp("err : cannot compute transcendent number");
@@ -948,7 +949,7 @@ Entry Calculator::calcUnary(Entry unop) {
   }
   else if (unop==fn_sqr) {
     if (isintcalc) {
-      aux::ulreal tstni=ni;
+      mk_ulreal tstni=ni;
       ni=ni*ni;
       if (ni<tstni)
         isintcalc=false;
@@ -956,15 +957,15 @@ Entry Calculator::calcUnary(Entry unop) {
     n=n*n;
   }
   else if (unop==fn_sin)
-    n=aux::round2(sin(n*trignum),14);
+    n=mk_round2(sin(n*trignum),14);
   else if (unop==fn_asin)
     n=asin(n)/trignum;
   else if (unop==fn_cos)
-    n=aux::round2(cos(n*trignum),14);
+    n=mk_round2(cos(n*trignum),14);
   else if (unop==fn_acos)
     n=acos(n)/trignum;
   else if (unop==fn_tan) {
-    if (aux::deq(cos(n*trignum),.0)) {
+    if (mk_deq(cos(n*trignum),.0)) {
       errComp("err : cannot divide by \"0\"");
       return res;
     }
@@ -980,7 +981,7 @@ Entry Calculator::calcUnary(Entry unop) {
     n=log(n);
   }
   else if (unop==fn_powe) {
-    if (n>log(aux::dLimit)) {
+    if (n>log(mk_dLimit)) {
       errComp("err : input too large");
       return res;
     }
@@ -994,7 +995,7 @@ Entry Calculator::calcUnary(Entry unop) {
     n=log10(n);
   }
   else if (unop==fn_pow10) {
-    if (n>(double)aux::mag(aux::dLimit)) {
+    if (n>(double)mk_mag(mk_dLimit)) {
       errComp("err : input too large");
       return res;
     }
@@ -1002,19 +1003,19 @@ Entry Calculator::calcUnary(Entry unop) {
   }
   else if (unop==fn_fac) {
     ok=0;
-    int in=(int)aux::a2i((const char *)numstr.m_str,&ok);
+    int in=(int)mk_a2i((const char *)numstr.m_str,&ok,0);
     if (ok<0) {
       errComp("err : input must be integer");
       return res;
     }
-    n=aux::factorial(in);
+    n=mk_factorial(in);
     if (n<1.0) {
       errComp(0);
       return res;
     }
   }
   else if (unop==fn_reci) {
-    if (aux::deq(n,.0)) {
+    if (mk_deq(n,.0)) {
       errComp("err : cannot divide by \"0\"");
       return res;
     }
@@ -1022,30 +1023,30 @@ Entry Calculator::calcUnary(Entry unop) {
   }
   else if (unop==fn_chsgn) {
     aux::Asciistr strmant,strexp;
-    unsigned char sgnmant=aux::asciiplus,sgnexp=aux::asciiminus;
+    unsigned char sgnmant=mk_asciiplus,sgnexp=mk_asciiminus;
     int idx=esplitanum(numstr.m_str,&strmant,&sgnmant,&strexp,&sgnexp);
     if (idx>=0) {
       char sgn=strexp[0];
-      strmant.append(aux::asciiE);
+      strmant.append(mk_asciiE);
       if (sgn!='-')
-        strmant.append(aux::asciiminus);
-      if (sgn==aux::asciiplus || sgn==aux::asciiminus)
+        strmant.append(mk_asciiminus);
+      if (sgn==mk_asciiplus || sgn==mk_asciiminus)
         strmant.append(strexp.substr(1,-1));
       else
         strmant.append(strexp);
-      n=aux::a2d((const char *)strmant,&prec);
-      if (aux::isNan(n)!=0) {
+      n=mk_a2d((const char *)strmant,&prec);
+      if (mk_isNan(n)!=0) {
         errComp(0);
         return res;
       }
-	  }
-	  else n=-n;
+    }
+    else n=-n;
   }
   aux::Asciistr buf;
   if (isintcalc)
     aux::ui2a(ni,&buf,m_numfmt);
   else {
-    aux::d2a(n,&buf,-aux::mag(n)+aux::dPrec,-1);
+    aux::d2a(n,&buf,-mk_mag(n)+mk_dPrec,-1);
     //doFmt(11);
   }
   numstr.m_str=buf;

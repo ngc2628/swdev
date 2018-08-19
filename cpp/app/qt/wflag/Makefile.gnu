@@ -1,7 +1,7 @@
 
 ####### definitions #######
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = wflag
 DESTDIR       = $(BINDIR)
 TARGET        = $(PRJ)
@@ -9,7 +9,7 @@ DEFINES       =
 SOURCES       = controllerwindow.cpp previewwindow.cpp spantoolbar.cpp main.cpp
 HEADERS       = controllerwindow.h previewwindow.h spantoolbar.h
 MOCS          = controllerwindow.h previewwindow.h spantoolbar.h
-LIBS          = -lQt5X11Extras -lQt5Widgets -lQt5Gui -lQt5Core -lz -lm 
+LIBS          = -lQt5X11Extras -lQt5Widgets -lQt5Gui -lQt5Core -lmkbase -lxcb -lz -lm 
 SOLN					= 
 
 ####### names and locations #######
@@ -17,7 +17,7 @@ SOLN					=
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%_moc.cpp $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
-vpath					%.cpp $(PRJROOT)/$(PRJ)
+vpath					%.cpp $(SWDIR)/cpp/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.cpp=.o))
 SOURCES_MOC   = $(patsubst %,$(OBJPRJ)/%,$(MOCS:.h=_moc.cpp))
 OBJECTS_MOC   = $(SOURCES_MOC:.cpp=.o)
@@ -28,10 +28,11 @@ WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment
 WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
 WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
 WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
-WFLAGS				= $(WFLAGS1) $(WFLAGS2)
+#WFLAGS				= $(WFLAGS1) $(WFLAGS2)
+WFLAGS				= 
 CFLAGS        = -pipe -O2 -fno-strict-aliasing -std=c++11 $(WFLAGS) -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -fno-strict-aliasing -std=c++11 $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(PRJROOT) -I$(QTDIR)/include -I$(QTDIR)/include/QtCore -I$(QTDIR)/include/QtWidgets
+IFLAGS				= -I$(SWDIR)/cpp -I$(SWDIR)/c -I$(QTDIR)/include -I$(QTDIR)/include/QtCore -I$(QTDIR)/include/QtWidgets -I$(QTDIR)/include/QtX11Extras
 LFLAGS				= -L$(LIBDIR) -L$(QTDIR)/lib
 LEXFLAGS      =
 YACCFLAGS     = -d
@@ -48,7 +49,8 @@ AR            = ar cq
 RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-RM            = rm -rf
+RM            = rm -f
+RMDIR         = rm -rf
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
 MOC           = $(QTDIR)/bin/moc $(DEFINES)
@@ -80,7 +82,8 @@ $(TARGET):  $(OBJECTS) $(OBJECTS_MOC)
 	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(OBJECTS_MOC) $(LIBS)
 
 clean:
-	$(RM) $(OBJPRJ) $(DESTDIR)/$(TARGET)
+	$(RM) $(DESTDIR)/$(TARGET)
+	$(RMDIR) $(OBJPRJ)
 	$(RM) *~ core *.core
 
 .SECONDARY: $(SOURCES_MOC)

@@ -14,7 +14,7 @@ Shape2 &Shape2::operator=(const Shape2 &ass) {
   m_rotate=ass.m_rotate;
   m_translate=ass.m_translate;
   m_points=ass.m_points;
-  memcpy(&m_descr[0],&ass.m_descr[0],aux::idlen);
+  memcpy(&m_descr[0],&ass.m_descr[0],mk_idlen);
   m_styleO=ass.m_styleO;
   m_styleF=ass.m_styleF;
   return *this; 
@@ -23,7 +23,7 @@ Shape2 &Shape2::operator=(const Shape2 &ass) {
 
 double Shape2::scale(double sc) {
 
-  if (aux::dbusted(sc)==0 && sc>.0)
+  if (mk_isBusted(sc)==0 && sc>.0)
     m_scale=sc;
   m_points.clear();
   return m_scale;
@@ -32,8 +32,8 @@ double Shape2::scale(double sc) {
 
 double Shape2::rotate(double rr) { 
       
-  if (aux::dbusted(rr)==0)
-    m_rotate=aux::dsign(rr)*fmod(fabs(rr),360.);
+  if (mk_isBusted(rr)==0)
+    m_rotate=mk_dsign(rr)*fmod(fabs(rr),360.);
   m_points.clear(); 
   return m_rotate; 
   
@@ -50,9 +50,9 @@ aux::Vector3 Shape2::translate(aux::Vector3 tt) {
 
 void Shape2::setDescr(const char *descr) { 
 
-  memset(&m_descr[0],0,aux::idlen);
+  memset(&m_descr[0],0,mk_idlen);
   if (descr)
-    strncpy(&m_descr[0],descr,aux::idlen-1);
+    strncpy(&m_descr[0],descr,mk_idlen-1);
   
 }	
 

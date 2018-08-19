@@ -2,6 +2,7 @@
 #ifndef _vertex_H_
 #define _vertex_H_
 
+#include <mkbase/mkbase.h>
 #include <auxx/auxx.h>
 
 namespace aux {
@@ -63,7 +64,7 @@ class oswinexp Vertex {
     Vertex cross(const Vertex &) const;
     double angrad(const Vertex &) const;
     double angdeg(const Vertex &) const;
-    void toString(Asciistr *,int prec=ddPrec) const;
+    void toString(Asciistr *,int prec=mk_ddPrec) const;
 
 };
 

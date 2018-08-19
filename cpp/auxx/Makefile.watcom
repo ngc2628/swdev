@@ -1,15 +1,15 @@
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = auxx
 DESTDIR       = $(LIBDIR)
 
 WFLAGS        = -w3
 LFLAGS        = -nologo -dll 
-INCPATH       = -i"$(PRJROOT)"
-LIBS          =  
-HEADER        = exportdef.h auxx.h txtcalc.h vertex.h
-SOURCES       = auxx.cpp txtcalc.cpp vertex.cpp
-OBJECTS       = auxx.obj txtcalc.obj vertex.obj
+INCPATH       = -i"$(SWDIR)\cpp" -i"$(SWDIR)\c"
+LIBS          = $(LIBDIR)\libmkbase.lib 
+HEADER        = auxx.h vertex.h
+SOURCES       = auxx.cpp vertex.cpp
+OBJECTS       = auxx.obj vertex.obj
 TARGET        = lib$(PRJ).dll
 TARGETLIB     = lib$(PRJ).lib
 
@@ -26,17 +26,30 @@ AR            = ar cq
 RANLIB        = ranlib -s
 COMPRESS      = zip 
 RM            = del
+MV            = move /Y 
+MD            = mkdir
+RD            = rmdir /S /Q 
 
-all: $(TARGET)
+all: PREMK $(TARGET) POSTMK
 
 .cpp.obj:
 	$(CC) $(INCPATH) $(CFLAGS) $<
+
+PREMK:
+	$(RM) $(DESTDIR)\$(TARGET) 2>nul || echo .
+	$(MV) $(OBJDIR)\$(PRJ)\*.obj . 2>nul || echo . 
+	$(RD) $(OBJDIR)\$(PRJ) 2>nul || echo .
 
 $(TARGET): $(OBJECTS)   
 	$(RM) $(DESTDIR)\$(TARGET) 
 	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
 
-clean: 
-	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB) *.err
+POSTMK:
+	$(MD) $(OBJDIR)\$(PRJ)
+	$(MV) *.err $(OBJDIR)\$(PRJ) 
+	$(MV) *.obj $(OBJDIR)\$(PRJ) 
 
+clean: 
+	$(RM) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB)
+	$(RD) $(OBJDIR)\$(PRJ) 2>nul || echo .
 

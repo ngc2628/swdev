@@ -8,303 +8,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <auxx/exportdef.h>
+#include <ctype.h>
+#include <mkbase/defs.h>
+#include <mkbase/exportdefs.h>
+#include <mkbase/mkbase.h>
 
 namespace aux {
 
-// ***** integers
-#if defined (_MSC_VER)
-#include <basetsd.h>
-#if defined (_WIN64)
-typedef int64_t lreal;
-typedef uint64_t ulreal;
-#else
-typedef __int64__ lreal;
-typedef __uint64__ ulreal;
-#endif
-const lreal i64Limit=9223372036854775807i64;
-const ulreal ui64Limit=18446744073709551615ui64 ;
-const unsigned int uiLimit=4294967295;
-#elif defined (__WATCOMC__)
-typedef int64_t lreal;
-typedef uint64_t ulreal;
-const lreal i64Limit=9223372036854775807LL;
-const ulreal ui64Limit=18446744073709551615ULL;
-const unsigned int uiLimit=4294967295U;
-#define finite(x) isfinite(x)
-#elif defined (__MACH__)
-#include <inttypes.h>
-typedef long long int lreal;
-typedef unsigned long long int  ulreal;
-const ulreal i64Limit=9223372036854775807LL;
-const ulreal ui64Limit=18446744073709551615ULL;
-const unsigned int uiLimit=4294967295U;
-#else
-#include <inttypes.h>
-typedef long long int lreal;
-typedef unsigned long long int  ulreal;
-const lreal i64Limit=9223372036854775807LL;
-const ulreal ui64Limit=18446744073709551615ULL;
-const unsigned int uiLimit=4294967295U;
-#endif
-const int iLimit=2147483647;
-const unsigned short usLimit=65535;
-const short sLimit=32767;
-
-
-// ***** floatings
-
-/* const unsigned short _d0=0; // big endian
-const unsigned short _d1=1;
-const unsigned short _d2=2;
-const unsigned short _d3=3; */
-const unsigned short _d0=3; // little endian
-const unsigned short _d1=2;
-const unsigned short _d2=1;
-const unsigned short _d3=0;
-const unsigned short dBias=1022;
-const unsigned short dOff=4;
-const unsigned short dFrac=15;
-const unsigned short dMask11=32752;
-const unsigned short ndig=16;
-union tp_ucpd {
-  unsigned char ucd[8];
-  double d;
-};
-//const union tp_ucpd defdnan={{127,248,0,0,0,0,0,0}}; // big endian
-const union tp_ucpd defdnan={{0,0,0,0,0,0,248,127}}; // little endian
-const double dnan=*(&defdnan.d);
-//const union tp_ucpd defdsnan={{255,248,0,0,0,0,0,0}}; // big endian
-const union tp_ucpd defdsnan={{0,0,0,0,0,0,248,255}}; // little endian
-const double dsnan=*(&defdsnan.d);
-//const union tp_ucpd defdinf={{127,240,0,0,0,0,0,0}}; // big endian
-const union tp_ucpd defdinf={{0,0,0,0,0,0,240,127}}; // little endian
-const double dinf=*(&defdinf.d);
-//const union tp_ucpd defdsinf={{255,240,0,0,0,0,0,0}}; // big endian
-const union tp_ucpd defdsinf={{0,0,0,0,0,0,240,255}}; // little endian
-const double dsinf=*(&defdsinf.d);
-
-union tp_ucpf {
-  unsigned char ucf[4];
-  float f;
-};
-//const union tp_ucpf deffnan={{127,192,0,0}}; // big endian
-const union tp_ucpf deffnan={{0,0,192,127}}; // little endian
-const float fnan=*(&deffnan.f);
-//const union tp_ucpf deffsnan={{255,192,0,0}}; // big endian
-const union tp_ucpf deffsnan={{0,0,192,255}}; // little endian
-const float fsnan=*(&deffsnan.f);
-//const union tp_ucpf deffinf={{127,128,0,0}}; // big endian
-const union tp_ucpf deffinf={{0,0,128,127}}; // little endian
-const float finf=*(&deffinf.f);
-//const union tp_ucpf deffsinf={{255,128,0,0}}; // big endian
-const union tp_ucpf deffsinf={{0,0,128,255}}; // little endian
-const float fsinf=*(&deffsinf.f);
-
-// ***** static defaults
-const double dLimit=1.7976931348623157e308;
-const double dErr=0.000000000000001;
-const double euler=2.718281828459045235;
-const double pi=3.1415926535897932385;
-const double rad=0.0174532925199432957694;
-const double log210=0.3010299956639812;
-const double loge10=0.4342944819032518;
-const double log10e=2.3025850929940457;
-const unsigned short dMag=308;
-const unsigned short i64Mag=18;
-const unsigned short ui64Mag=19;
-const unsigned short dPrec=15;
-const unsigned short ddPrec=3;
-const unsigned short emptyUcsstr[1]={0};
-const unsigned short nullUcsstr[7]={91,78,85,76,76,93,0};
-const unsigned short blen=8;
-const unsigned short wlen=16;
-const unsigned short dwlen=32;
-const unsigned short qwlen=64;
-const unsigned short dqwlen=128;
-const unsigned short idlen=256;
-const unsigned short klen=1024;
-const unsigned short k4len=4096;
-const unsigned short separatorGroupLen=3;
-const unsigned short maxSeparatorLen=6;
-const unsigned short maxArrSz=20;
-const unsigned short maxintbase=36;
-const unsigned short maxNumstrLen=316;
-const unsigned int maxStrLen=1073741824;
-const unsigned char basechar[maxintbase+1]={'0','1','2','3','4','5','6','7','8','9',
-                                  'A','B','C','D','E','F','G','H','I','J',
-                                  'K','L','M','N','O','P','Q','R','S','T',
-                                  'U','V','W','X','Y','Z','0'};
-const unsigned char asciispace=32;
-const unsigned char asciihash=35;
-const unsigned char asciiplus=43;
-const unsigned char asciiminus=45;
-const unsigned char asciidec=46;
-const unsigned char asciizero=48;
-const unsigned char asciione=49;
-const unsigned char asciifive=53;
-const unsigned char asciinine=57;
-const unsigned char asciiE=69;
-const unsigned char asciiF=70;
-const unsigned char asciiI=73;
-const unsigned char asciiX=88;
-const unsigned char asciib=98;
-const unsigned char asciie=101;
-const unsigned char asciif=102;
-const unsigned char asciii=105;
-const unsigned char asciix=120;
-const unsigned char asciidel=127;
-const char * const emptyString="";
 const char *const nullAsciistr="[NULL]";
-
-#if !defined MIN
-#define MIN(x,y) ((x)<(y) ? (x) : (y))
-#endif
-#if !defined MAX
-#define MAX(x,y) ((x)<(y) ? (y) : (x))
-#endif
-
-inline int oswinexp dsgn(double d) {
-  return (((((const unsigned char *)&d)[7])>>7)>0 ? -1 : 1);
-} // little endian 0 -> 7
-
-inline double oswinexp dsign (double d) {
-  return (double)dsgn(d);
-}
-
-inline int oswinexp isInf(double d) {
-
-#if defined (_MSC_VER)
-  return (_fpclass(d)==_FPCLASS_NINF ? -1 : (_fpclass(d)==_FPCLASS_PINF ? 1 : 0));
-#else
-  return (finite(d) ? 0 : dsgn(d));
-#endif
-}
-
-inline int oswinexp isNan(double d) {
-#if defined (_MSC_VER)
-  return (_isnan(d) ? dsgn(d) : 0);
-#else
-  return (isnan(d) ? dsgn(d) : 0);
-#endif
-}
-
-inline int oswinexp isFinite(double d) {
-#if defined (_MSC_VER)
-  return (_finite(d) ? dsgn(d) : 0);
-#else
-  return (finite(d) ? dsgn(d) : 0);
-#endif
-}
-
-inline int oswinexp dbusted(double d) {
-#if defined (_MSC_VER)
-  return (!_isnan(d) && _finite(d) ? 0 : dsgn(d));
-#else
-  return (!isnan(d) && finite(d) ? 0 : dsgn(d));
-#endif
-}
-
-extern ulreal oswinexp nextCnt();
-
-extern ulreal oswinexp nextT();
-
-extern double oswinexp ipow10(int);
-
-extern double oswinexp ipow2(int);
-
-extern int oswinexp exp2simple (char numstr[klen]);
-
-extern int oswinexp removeSeparators(char *,const char * const,const char * const);
-
-extern int oswinexp insertSeparators(char *,int,const char * const,const char * const);
-
-extern ulreal oswinexp parseInt(const char *,int *,int *sign=0,const char *group=0);
-
-extern double oswinexp parseFloat(const char *,int *type=0,int *acc=0,const char *decsep=".",const char *groupsep=0);
-
-extern ulreal oswinexp a2ui(const char *,int *base=0,int *sign=0,const char *group=0);
-
-extern lreal oswinexp a2i(const char *,int *base=0,const char *group=0);
-
-extern int oswinexp ui2a(ulreal,char [klen],int base=10,int width=0,int padzero=1,const char *group=0);
-
-extern int oswinexp i2a(lreal,char [klen],int base=10,int width=0,int padzero=1,const char *group=0);
-
-extern ulreal oswinexp binAdd(ulreal,ulreal,int *overflow=0);
-
-extern ulreal oswinexp binMult(ulreal,ulreal,int *overflow=0);
-
-extern double oswinexp a2d(const char *,int *prec=0,const char *dec=".",const char *group=0);
-
-extern int oswinexp dconvert (double,char [klen],int,char fmt=-1,int pad=-1);
-
-extern int oswinexp d2a(double,char [klen],int prec=15,char fmt=-1,int pad=-1,const char *dec=".",const char *group=0);
-
-extern int oswinexp exp2simple(char [klen]);
-
-extern int oswinexp mag(double,int incacc=1);
-
-extern int oswinexp dbusted(double,double,int *cmp=0);
-
-extern int oswinexp deq(double,double);
-
-extern int oswinexp dlt(double,double);
-
-extern int oswinexp dgt(double,double);
-
-extern double oswinexp diff(double,double,double eps=0.000000000000001,double tolerance=0.000001);
-
-extern double oswinexp linEq(double,double,double,double,double);
-
-extern double oswinexp lgEq(double,double,double,double,double);
-
-extern double oswinexp round2(double,int roundPos=0,double errmag=0.0001);
-
-extern double oswinexp roundUp(double,int,int trailing=3);
-
-extern double oswinexp roundDown (double,int,int trailing=3);
-
-extern double oswinexp logm(double,double);
-
-extern double oswinexp powrat(double,float);
-
-extern void oswinexp indextab1(int,const double[],int []);
-
-extern void oswinexp iindextab1(int,const int [],int []);
-
-extern void oswinexp indextab2(int,const double [],int []);
-
-extern void oswinexp iindextab2(int,const int [],int []);
-
-extern int oswinexp isPrim(int);
-
-extern int oswinexp isPrim3(int);
-
-extern int oswinexp nextLargerPrim(int);
-
-extern int oswinexp lcm(int,int);
-
-extern int oswinexp gcd(int,int);
-
-extern double oswinexp doubleMod(double,double);
-
-extern double oswinexp factorial(int);
-
-extern double oswinexp binomialCoeff(int,int);
-
-extern void oswinexp intersectionpointsLineRect(double,double,double,double,double,double,double,double,
-                                double *,double *,double *,double *,double *,double *,double *,double *,
-                                int *,int *,int *,int *,int);
-
-extern int oswinexp polygonintersection(int,double *,double *,int,double *,double *[],double *,double *);
-
-extern int oswinexp linesintersection(double,double,double,double,double,double,double,double,
-                       double *,double *,int prec=ddPrec,int xbox=0,int ybox=0);
+const unsigned short nullUcsstr[7]={91,78,85,76,76,93,0};
 
 class oswinexp Asciistr {
 
-  private:
+  protected:
     char *m_str;
     int m_sz;
 
@@ -336,13 +52,13 @@ class oswinexp Asciistr {
 
 };
 
-extern int oswinexp ui2a(ulreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
+extern int oswinexp ui2a(mk_ulreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
 
-extern int oswinexp i2a(lreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
+extern int oswinexp i2a(mk_lreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
 
 extern int oswinexp d2a(double,Asciistr*,int prec=15,char fmt=-1,int pad=-1,const char *dec=".",const char *group=0);
 
-extern ulreal oswinexp nextT(Asciistr *);
+extern mk_ulreal oswinexp nextT(Asciistr *);
 
 class oswinexp Ucsstr {
 
@@ -379,11 +95,11 @@ class oswinexp Ucsstr {
 class oswinexp TypeId {
 
   protected:
-    ulreal m_idd;
-    char m_type[idlen];
+    mk_ulreal m_idd;
+    char m_type[mk_idlen];
 
   public:
-    TypeId(const char *name=0,ulreal idd=0);
+    TypeId(const char *name=0,mk_ulreal idd=0);
     TypeId(const TypeId &);
     virtual ~TypeId();
     TypeId &operator=(const TypeId &);
@@ -392,7 +108,7 @@ class oswinexp TypeId {
     virtual TypeId *clone() const;
     int busted() const;
     const char *type() const;
-    ulreal idd() const;
+    mk_ulreal idd() const;
     virtual void toString(Asciistr *) const;
     virtual int fromString(const char *);
 
@@ -406,7 +122,7 @@ class oswinexp Rounded {
   public:
     double m_d;
     int m_a;
-    Rounded(double d=dnan,int a=sLimit) : m_d(d),m_a(a) {
+    Rounded(double d=mk_dnan,int a=mk_sLimit) : m_d(d),m_a(a) {
     }
     Rounded(const Rounded &ass) : m_d(ass.m_d),m_a(ass.m_a) {
     }
@@ -937,7 +653,8 @@ template <class X> class TPArr {
 
   public:
     int m_autoGrow;
-    TPArr(int sz=0) : m_sz(sz<0 ? 0 : (sz>=(int)ipow2(maxArrSz) ? (int)ipow2(maxArrSz)-1 : sz)),
+    TPArr(int sz=0) : 
+      m_sz(sz<0 ? 0 : (sz>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : sz)),
       m_last(-1),m_arr(0),m_autoGrow(1) {
       if (m_sz>0) {
         m_arr=new X*[(size_t)m_sz];
@@ -968,8 +685,8 @@ template <class X> class TPArr {
     int resize(int sz,int destr=0) {
       if (sz<0)
         sz=0;
-      else if (sz>=ipow2(maxArrSz))
-        sz=(int)ipow2(maxArrSz)-1;
+      else if (sz>=mk_ipow2(mk_maxArrSz))
+        sz=(int)mk_ipow2(mk_maxArrSz)-1;
       if (sz==m_sz)
         return m_sz;
       int ii=0;
@@ -1059,7 +776,8 @@ template <class X> class TVArr {
 
   public:
     int m_autoGrow;
-    TVArr(int sz=0) : m_sz(sz<0 ? 0 : (sz>=(int)ipow2(maxArrSz) ? (int)ipow2(maxArrSz)-1 : sz)),
+    TVArr(int sz=0) : 
+      m_sz(sz<0 ? 0 : (sz>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : sz)),
       m_last(-1),m_arr(0),dum(X()),m_autoGrow(true) {
       if (m_sz>0) {
         m_arr=new X[(size_t)m_sz];
@@ -1068,7 +786,8 @@ template <class X> class TVArr {
           m_arr[ii]=dum;
       }
     }
-    TVArr(const TVArr &ass) : m_sz(ass.m_sz),m_last(ass.m_last),m_arr(0),dum(X()),m_autoGrow(ass.m_autoGrow) {
+    TVArr(const TVArr &ass) : 
+      m_sz(ass.m_sz),m_last(ass.m_last),m_arr(0),dum(X()),m_autoGrow(ass.m_autoGrow) {
       if (m_sz>0) {
         m_arr=new X[(size_t)m_sz];
         memcpy(&m_arr[0],&ass.m_arr[0],m_sz*sizeof(X));
@@ -1112,8 +831,8 @@ template <class X> class TVArr {
     int resize(int sz) {
       if (sz<0)
         sz=0;
-      else if (sz>=ipow2(maxArrSz))
-        sz=(int)ipow2(maxArrSz)-1;
+      else if (sz>=mk_ipow2(mk_maxArrSz))
+        sz=(int)mk_ipow2(mk_maxArrSz)-1;
       if (sz==m_sz)
         return m_sz;
       X *arr=0;
@@ -1174,9 +893,9 @@ template <class X> class TPList {
     int (*cmp)(const void *,const void *);
     TPList(int sz=0) : m_sz(0),m_cnt(0),m_idx(-1),m_sorted(0),m_list(0),m_autoGrow(1),cmp(0) {
       int ii=0;
-      while (ii<maxArrSz && ipow2(ii)<=sz)
+      while (ii<mk_maxArrSz && mk_ipow2(ii)<=sz)
         ii++;
-      m_sz=(int)ipow2(ii)-1;
+      m_sz=(int)mk_ipow2(ii)-1;
       if (m_sz>0) {
         m_list=new X*[(size_t)m_sz];
         memset(&m_list[0],0,m_sz*sizeof(X*));
@@ -1225,9 +944,9 @@ template <class X> class TPList {
     }
     int resize(int sz,int destr=0) {
       int ii=0;
-      while (ii<maxArrSz && ipow2(ii)<=sz)
+      while (ii<mk_maxArrSz && mk_ipow2(ii)<=sz)
         ii++;
-      sz=(int)ipow2(ii)-1;
+      sz=(int)mk_ipow2(ii)-1;
       if (sz==m_sz)
         return m_sz;
       m_sz=sz;
@@ -1817,8 +1536,8 @@ template <class X> class TPArr2d {
     TPArr2d(int rows=0,int cols=0) : m_rows(0),m_cols(0),m_arr(0),m_autoGrow(1) {
       int ii=0;
       if (rows>0 && cols>0) {
-        m_rows=(rows>=(int)ipow2(maxArrSz) ? (int)ipow2(maxArrSz)-1 : rows);
-        m_cols=(cols>=(int)ipow2(maxArrSz) ? (int)ipow2(maxArrSz)-1 : cols);
+        m_rows=(rows>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : rows);
+        m_cols=(cols>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : cols);
         m_arr=new X**[(size_t)m_rows];
         for (ii=0;ii<m_rows;ii++) {
           m_arr[ii]=new X*[(size_t)m_cols];
@@ -1870,10 +1589,10 @@ template <class X> class TPArr2d {
     int resize(int r,int c,int destr=0) {
       if (r<=0 || c<=0)
         r=c=0;
-      if (r>=ipow2(maxArrSz))
-        r=(int)ipow2(maxArrSz)-1;
-      if (c>=ipow2(maxArrSz))
-        c=(int)ipow2(maxArrSz)-1;
+      if (r>=mk_ipow2(mk_maxArrSz))
+        r=(int)mk_ipow2(mk_maxArrSz)-1;
+      if (c>=mk_ipow2(mk_maxArrSz))
+        c=(int)mk_ipow2(mk_maxArrSz)-1;
       if (r==m_rows && c==m_cols)
         return m_rows*m_cols;
       int ii=0,jj=0;
@@ -1995,11 +1714,12 @@ template <class X> class TVArr2d {
 
   public:
     int m_autoGrow;
-    TVArr2d(int rows=0,int cols=0,X xdum=X()) : m_rows(0),m_cols(0),m_arr(0),dum(xdum),m_autoGrow(1) {
+    TVArr2d(int rows=0,int cols=0,X xdum=X()) : 
+      m_rows(0),m_cols(0),m_arr(0),dum(xdum),m_autoGrow(1) {
       int ii=0,jj=0;
       if (rows>0 && cols>0) {
-        m_rows=(rows>=ipow2(maxArrSz) ? (int)ipow2(maxArrSz)-1 : rows);
-        m_cols=(cols>=ipow2(maxArrSz) ? (int)ipow2(maxArrSz)-1 : cols);
+        m_rows=(rows>=mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : rows);
+        m_cols=(cols>=mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : cols);
         m_arr=new X*[m_rows];
         for (ii=0;ii<m_rows;ii++) {
           m_arr[ii]=new X[m_cols];
@@ -2008,7 +1728,8 @@ template <class X> class TVArr2d {
         }
       }
     }
-    TVArr2d(const TVArr2d &ass) : m_rows(ass.m_rows),m_cols(ass.m_cols),m_arr(0),m_autoGrow(ass.m_autoGrow) {
+    TVArr2d(const TVArr2d &ass) : 
+      m_rows(ass.m_rows),m_cols(ass.m_cols),m_arr(0),m_autoGrow(ass.m_autoGrow) {
       int ii=0,jj=0;
       if (m_rows>0 && m_cols>0) {
         m_arr=new X*[m_rows];
@@ -2077,10 +1798,10 @@ template <class X> class TVArr2d {
       dum=xdum;
       if (r<=0 || c<=0)
         r=c=0;
-      if (r>=ipow2(maxArrSz))
-        r=(int)ipow2(maxArrSz)-1;
-      if (c>=ipow2(maxArrSz))
-        c=(int)ipow2(maxArrSz)-1;
+      if (r>=mk_ipow2(mk_maxArrSz))
+        r=(int)mk_ipow2(mk_maxArrSz)-1;
+      if (c>=mk_ipow2(mk_maxArrSz))
+        c=(int)mk_ipow2(mk_maxArrSz)-1;
       if (r==m_rows && c==m_cols)
         return m_rows*m_cols;
       int ii=0,jj=0;

@@ -1,12 +1,12 @@
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = osix
 DESTDIR       = $(LIBDIR)
 
 WFLAGS        = 
 LFLAGS        = /DLL /LIBPATH:"$(LIBDIR)"   
-INCPATH       = -I"$(PRJROOT)"
-LIBS          = libnumeric.lib libauxx.lib
+INCPATH       = -I"$(SWDIR)\cpp" -I"$(SWDIR)\c"
+LIBS          = libnumeric.lib libauxx.lib libmkbase.lib 
 HEADER        = xxkey.h xxmouse.h xxevent.h xxstyle.h xxshape.h xxtxt.h xxpaint.h
 SOURCES       = xxevent.cpp xxstyle.cpp xxshape.cpp xxtxt.cpp xxpaint.cpp
 OBJECTS       = xxevent.obj xxstyle.obj xxshape.obj xxtxt.obj xxpaint.obj

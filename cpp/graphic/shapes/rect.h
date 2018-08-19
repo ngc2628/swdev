@@ -15,8 +15,8 @@ class oswinexp RectSize {
 
   public:
     RectSize(double w=.0,double h=.0) :
-      m_width(aux::dbusted(w)!=0 || w<.0 ? .0 : w),
-      m_height(aux::dbusted(h)!=0 || h<.0 ? .0 : h) { 
+      m_width(mk_isBusted(w)!=0 || w<.0 ? .0 : w),
+      m_height(mk_isBusted(h)!=0 || h<.0 ? .0 : h) { 
     }
     RectSize(const RectSize &ass) : m_width(ass.m_width),m_height(ass.m_height) {
     }
@@ -34,16 +34,16 @@ class oswinexp RectSize {
       return (m_width*m_height<cmp.m_width*cmp.m_height);
     }
     double setWidth(double w) {
-      m_width=(aux::dbusted(w)!=0 || w<0. ? 0. : w);
+      m_width=(mk_isBusted(w)!=0 || w<0. ? 0. : w);
       return m_width;
     }
     double setHeight(double h) {
-      m_height=(aux::dbusted(h)!=0 || h<0. ? 0. : h);
+      m_height=(mk_isBusted(h)!=0 || h<0. ? 0. : h);
       return m_height;
     }
     RectSize set(double w=.0,double h=.0) {
-      m_width=(aux::dbusted(w)!=0 || w<0. ? 0. : w);
-      m_height=(aux::dbusted(h)!=0 || h<0. ? 0. : h);
+      m_width=(mk_isBusted(w)!=0 || w<0. ? 0. : w);
+      m_height=(mk_isBusted(h)!=0 || h<0. ? 0. : h);
       return *this;
     }
     double width() const {
@@ -104,7 +104,7 @@ class oswinexp Rect : public Shape2 {
       return m_sz;
     }
     double rotate(double r) { 
-      m_rotate=aux::dsign(r)*fmod(fabs(r),90.); 
+      m_rotate=mk_dsign(r)*fmod(fabs(r),90.); 
       m_points.clear();
       return m_rotate; 
     }

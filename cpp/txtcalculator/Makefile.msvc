@@ -1,13 +1,13 @@
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = txtcalculator
 DESTDIR       = $(LIBDIR)
 
 #WFLAGS        = /Wall
 WFLAGS        = 
 LFLAGS        = /DLL /LIBPATH:"$(LIBDIR)"   
-INCPATH       = -I"$(PRJROOT)"
-LIBS          = libnumeric.lib libosix.lib libauxx.lib
+INCPATH       = -I"$(SWDIR)\cpp" -I"$(SWDIR)\c"
+LIBS          = libnumeric.lib libosix.lib libauxx.lib libmkbase.lib
 HEADER        = calculator.h
 SOURCES       = calculator.cpp
 OBJECTS       = calculator.obj

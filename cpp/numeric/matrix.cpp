@@ -467,7 +467,7 @@ int SquareMatrix::decomposition() {
       if (tmp>maxcoeff)
         maxcoeff=tmp;
     }
-    if (deq(maxcoeff,.0)) {
+    if (mk_deq(maxcoeff,.0)) {
       invalidate();
       delete [] rowscale;
       return -1;
@@ -518,7 +518,7 @@ int SquareMatrix::decomposition() {
       swap(&m_rowperm[jj],&m_rowperm[imax]);
       m_parity=-m_parity;
     }
-    if (deq(m_lum[jj][jj],.0)) {
+    if (mk_deq(m_lum[jj][jj],.0)) {
       invalidate();
       delete [] rowscale;
       return -1;
@@ -647,7 +647,7 @@ int TransformMatrix::rotateZ(double degrees) {
 
   if (!m_m)
     return -1;
-  double radang=degrees*rad;
+  double radang=degrees*mk_rad;
   TransformMatrix tm;
   tm.m_m[0][0]=cos(radang);
   tm.m_m[0][1]=-sin(radang);
@@ -661,7 +661,7 @@ int TransformMatrix::rotateX(double degrees) {
 
   if (!m_m)
     return -1;
-  double radang=degrees*rad;
+  double radang=degrees*mk_rad;
   TransformMatrix tm;
   tm.m_m[1][1]=cos(radang);
   tm.m_m[1][2]=-sin(radang);
@@ -675,7 +675,7 @@ int TransformMatrix::rotateY(double degrees) {
 
   if (!m_m)
     return -1;
-  double radang=degrees*rad;
+  double radang=degrees*mk_rad;
   TransformMatrix tm;
   tm.m_m[0][0]=cos(radang);
   tm.m_m[0][2]=sin(radang);
@@ -722,10 +722,10 @@ int TransformMatrix::transform(Vertex *vertex) {
 
   if (!m_m || !vertex)
     return -1;
-  Vertex v(dbusted(vertex->x())!=0 ? .0 : vertex->x(),
-           dbusted(vertex->y())!=0 ? .0 : vertex->y(),
-           dbusted(vertex->z())!=0 ? .0 : vertex->z(),
-           dbusted(vertex->w())!=0 ? 1. : vertex->w());
+  Vertex v(mk_isBusted(vertex->x())!=0 ? .0 : vertex->x(),
+           mk_isBusted(vertex->y())!=0 ? .0 : vertex->y(),
+           mk_isBusted(vertex->z())!=0 ? .0 : vertex->z(),
+           mk_isBusted(vertex->w())!=0 ? 1. : vertex->w());
   vertex->set(.0,.0,.0,.0);
   int i=0,j=0;
   double *vdata=vertex->data();
@@ -769,7 +769,7 @@ int ludecomposition(int num, double **m, double **lum, int *rowperm, double *par
       if (tmp>maxcoeff)
         maxcoeff=tmp;
     }
-    if (deq(maxcoeff,.0))
+    if (mk_deq(maxcoeff,.0))
       return -1;
     rowscale[ii]=maxcoeff;
   }
@@ -814,7 +814,7 @@ int ludecomposition(int num, double **m, double **lum, int *rowperm, double *par
       swap(&rowperm[jj],&rowperm[imax]);
       *parity=-(*parity);
     }
-    if (deq(lum[jj][jj],.0))
+    if (mk_deq(lum[jj][jj],.0))
       return -1;
     // finallly (for this column) divide all lower row elements 
     // by the pivot

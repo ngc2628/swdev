@@ -55,9 +55,9 @@ class oswinexp Interpolation {
     int nctrl() const;
     virtual int setup();
     virtual int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-												 double start=aux::dnan,double end=aux::dnan);
+												 double start=mk_dnan,double end=mk_dnan);
     virtual int interpol(int,aux::TVList<aux::Vector3> *,
-												 double start=aux::dnan,double end=aux::dnan);
+												 double start=mk_dnan,double end=mk_dnan);
     virtual double interp(double) const;
     virtual double extrap(double) const;
     int options(aux::TVList<aux::Asciistr> *optL=0) const;
@@ -85,9 +85,9 @@ class oswinexp InterpolationConst : public Interpolation {
     InterpolationConst(int nctrl=0,double *x=0,double *y=0);
     virtual ~InterpolationConst();
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     double interp(double) const;
 
   protected:
@@ -105,9 +105,9 @@ class oswinexp InterpolationLinear : public Interpolation {
     InterpolationLinear(int nctrl=0,double *x=0,double *y=0);
     virtual ~InterpolationLinear();
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     double interp(double) const;
 
   protected:
@@ -130,9 +130,9 @@ class oswinexp Spline : public Interpolation {
     int setup();
     int invalidate();
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     double interp(double) const;
     double extrap(double) const;
 
@@ -163,9 +163,9 @@ class oswinexp SplineP : public Interpolation {
     int setup();
     int invalidate();
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     double interp(double) const;
 
     int makeSpline(double *der1=0,double *der2=0);
@@ -194,9 +194,9 @@ class oswinexp Polynomial : public Interpolation {
 		int setCtrl(int nctrl=0,double *x=0,double *y=0,double *z=0);
     int setCtrl(aux::TVList<aux::Vector3> *);
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     double interp(double) const;
     int coeff(double,aux::TVList<double> *);
     int rootsBrute(double *,double,double,int *effdeg=0);
@@ -218,9 +218,9 @@ class oswinexp Bezier : public Interpolation {
     Bezier (int nctrl=0,double *x=0,double *y=0);
     virtual ~Bezier ();
     int interpol (int,double *xint=0, double *yint=0,double *zint=0,
-									double start=aux::dnan,double end=aux::dnan);
+									double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=aux::dnan,double end=aux::dnan);
+								 double start=mk_dnan,double end=mk_dnan);
     double interp(double d) const {
       return d;
     }

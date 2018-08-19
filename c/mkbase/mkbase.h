@@ -106,6 +106,15 @@ static const unsigned char mk_asciii=105;
 static const unsigned char mk_asciix=120;
 static const unsigned char mk_asciidel=127;
 
+oswinexp struct mk_vertex {
+  double xyzw[4];
+};
+
+oswinexp struct mk_vertices {
+  struct mk_vertex *vertexL;
+  int cnt,maxcnt;
+};
+
 /* in number , return -1,1 */
 inline int oswinexp mk_dsgn(double d) {
   return (((((const unsigned char *)&d)[7])>>7)>0 ? -1 : 1);
@@ -217,9 +226,9 @@ xtern double oswinexp mk_a2d_(int,...);
 /* in number , out str , in prec , in fmt=-1 , in pad=-1 , return 0,1 */
 xtern int oswinexp mk_dconvert (double,char [mk_klen],int,char,int);
 
-/* 
-  in number , out str , in prec=15 , in fmt=-1 , in pad=-1 , in str dec=. , 
-  in str group=0 , return 0,1 
+/*
+  in number , out str , in prec=15 , in fmt=-1 , in pad=-1 , in str dec=. ,
+  in str group=0 , return 0,1
 */
 xtern int oswinexp mk_d2a(double,char [mk_klen],int,char,int,const char *,const char *);
 
@@ -301,43 +310,118 @@ xtern double oswinexp mk_factorial(int);
 /* in number set , in number subset , return result */
 xtern double oswinexp mk_binomialCoeff(int,int);
 
-/* 
-  in rect.left , in rect.right , in rect.bottom , in rect.top , 
-  in line.p1.x , in line.p1.y ,  in line.p2.x , in line.p2.y , 
+/*
+  in rect.left , in rect.right , in rect.bottom , in rect.top ,
+  in line.p1.x , in line.p1.y ,  in line.p2.x , in line.p2.y ,
   out *p.bottom.x , out *p.bottom.y , out *p.left.x , out *p.left.y ,
-  out *p.top.x , out *p.top.y , out *p.right.x , out *p.right.y , 
-  out *cutbottom 0,1 , out *cutleft 0,1 , out *cuttop 0,1 , out *cutright 0,1 , 
-  in cliptorect 0,1 
+  out *p.top.x , out *p.top.y , out *p.right.x , out *p.right.y ,
+  out *cutbottom 0,1 , out *cutleft 0,1 , out *cuttop 0,1 , out *cutright 0,1 ,
+  in cliptorect 0,1
 */
 xtern void oswinexp mk_intersectionpointsLineRect(
   double,double,double,double,double,double,double,double,double *,double *,double *,double *,
   double *,double *,double *,double *,int *,int *,int *,int *,int);
 
-/* 
-  in polygon1.numbervertices , in *polygon1.px , in *polygon1.py , 
-  in polygon2.numbervertices , in *polygon2.px , in *polygon2.py , 
+/*
+  in polygon1.numbervertices , in *polygon1.px , in *polygon1.py ,
+  in polygon2.numbervertices , in *polygon2.px , in *polygon2.py ,
   out *intersection.px , out *intersection.py , return numberintersectionpoints
 */
 xtern int oswinexp mk_polygonintersection(
   int,double *,double *,int,double *,double *,double *,double *);
 
-/* 
+/*
   in line1.x1 , in line1.y1 , in line1.x2 , in line1.y2 ,
   in line2.x1 , in line2.y1 , in line2.x2 , in line2.y2 ,
-  out *intersection.px , out *intersection.py , 
+  out *intersection.px , out *intersection.py ,
   in prec=3 , in xbox=0 0,1 , in ybox=0 0,1 , return 0,1
 */
 xtern int oswinexp mk_linesintersection(
   double,double,double,double,double,double,double,double,double *,double *,int,int,int);
 
 /* in numberelements , inout **array , in cmp-function */
-xtern void mk_heapsort(int,void **,int (*)(const void *,const void *));
+xtern void oswinexp mk_heapsort(int,void **,int (*)(const void *,const void *));
 
-/* 
-  in *look-for , in numberelements , in **array , in cmp-function , 
-  in guess-likely-index=-1 , return index-in-array 
+/*
+  in *look-for , in numberelements , in **array , in cmp-function ,
+  in guess-likely-index=-1 , return index-in-array
 */
-xtern int mk_binsearch(const void *,int,const void **,int (*)(const void *,const void *),int);
+xtern int oswinexp mk_binsearch(const void *,int,const void **,int (*)(const void *,const void *),int);
+
+/*
+  in *vertex-copy-from , out *vertex-copy-to , return 0,1
+*/
+xtern int oswinexp mk_vertexcopy(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  in *vertex , return length
+*/
+xtern double oswinexp mk_vertexlen(struct mk_vertex *);
+
+/*
+  in *vertex-cmp1 , in *vertex-cmp2 , return -1,0,1
+*/
+xtern int oswinexp mk_vertexcmp(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  inout *vertex-mod , in *vertex-addend  , return 0,1
+*/
+xtern int oswinexp mk_vertexadd(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  inout *vertex-mod , in *vertexaddend  , return 0,1
+*/
+xtern int oswinexp mk_vertexsubs(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  inout *vertex-mod , in multiplier  , return 0,1
+*/
+xtern int oswinexp mk_vertexmult(struct mk_vertex *,double);
+
+/*
+  inout *vertex-mod , in divisor  , return 0,1
+*/
+xtern int oswinexp mk_vertexdiv(struct mk_vertex *,double);
+
+/*
+  in *vertex1 , in *vertex2  , return dotproduct
+*/
+xtern double oswinexp mk_vertexdot(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  inout *vertex-mod , return 0,1
+*/
+xtern int oswinexp mk_vertexnorm(struct mk_vertex *);
+
+/*
+  inout *mod-vertex , in *multiplier  , return 0,1
+*/
+xtern int oswinexp mk_vertexcross(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  in *vertex1 , int *vertex2 , return angle(rad)-vertex1-vertex2
+*/
+xtern double oswinexp mk_vertexangrad(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  in *vertex1 , in *vertex2 , return angle(deg)-vertex1-vertex2
+*/
+xtern double oswinexp mk_vertexangdeg(struct mk_vertex *,struct mk_vertex *);
+
+/*
+  inout list-of-vertices* , return 0,1
+*/
+xtern int oswinexp mk_verticesalloc(struct mk_vertices *);
+
+/*
+  in list-of-vertices* , int arrindex , return item-at-index*
+*/
+xtern struct mk_vertex *oswinexp mk_verticesget(struct mk_vertices *,int);
+
+/*
+  inout list-of-*vertices , in *vertex , in maxcntvertices , return list-index
+*/
+xtern int oswinexp mk_verticesappend(struct mk_vertices *,struct mk_vertex *);
 
 #ifdef __cplusplus
 }

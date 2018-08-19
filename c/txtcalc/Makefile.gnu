@@ -6,7 +6,7 @@ PRJ           = txtcalc
 DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
 DEFINES       =
-HEADER        = txtcalc.h 
+HEADER        = txtcalc.h
 SOURCES       = txtcalc.c
 LIBS          = -lmkbase -lz -lm
 SOLN		  = -shared
@@ -43,7 +43,8 @@ AR            = ar cq
 RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-RM            = rm -rf
+RM            = rm -f
+RMDIR         = rm -rf
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
 
@@ -68,6 +69,7 @@ $(TARGET):  $(OBJECTS)
 	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(LIBS)
 
 clean:
-	$(RM) $(OBJPRJ) $(DESTDIR)/$(TARGET)
+	$(RM) $(DESTDIR)/$(TARGET)
+	$(RMDIR) $(OBJPRJ)
 	$(RM) *~ core *.core
 

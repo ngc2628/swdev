@@ -1,16 +1,16 @@
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = auxx
 DESTDIR       = $(LIBDIR)
 
 #WFLAGS        =  /Wall
 WFLAGS        = 
 LFLAGS        = /DLL /LIBPATH:"$(LIBDIR)"   
-INCPATH       = -I"$(PRJROOT)"
-LIBS          =  
-HEADER        = exportdef.h auxx.h txtcalc.h vertex.h
-SOURCES       = auxx.cpp txtcalc.cpp vertex.cpp
-OBJECTS       = auxx.obj txtcalc.obj vertex.obj
+INCPATH       = -I"$(SWDIR)\cpp" -I"$(SWDIR)\c"
+LIBS          = $(LIBDIR)\libmkbase.lib 
+HEADER        = auxx.h vertex.h
+SOURCES       = auxx.cpp vertex.cpp
+OBJECTS       = auxx.obj vertex.obj
 TARGET        = lib$(PRJ).dll
 
 CC            = cl

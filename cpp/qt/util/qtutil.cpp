@@ -1,11 +1,4 @@
 
-#include <osix/xxevent.h>
-#include <osix/xxstyle.h>
-#include <osix/xxshape.h>
-#include <osix/xxtxt.h>
-#include <qt/util/qtutil.h>
-#include <stdio.h>
-#include <auxx/auxx.h>
 #include <QtCore/QString>
 #include <QtCore/QRectF>
 #include <QtGui/QPen>
@@ -15,6 +8,13 @@
 #include <QtGui/QResizeEvent>
 #include <QtGui/QClipboard>
 #include <QtWidgets/QApplication>
+#include <osix/xxevent.h>
+#include <osix/xxstyle.h>
+#include <osix/xxshape.h>
+#include <osix/xxtxt.h>
+#include <qt/util/qtutil.h>
+#include <stdio.h>
+#include <auxx/auxx.h>
 
 namespace qtutil {
 
@@ -117,7 +117,7 @@ int fromQPen(const QPen *qpen,osix::xxStyle *style) {
 
 int fromQBrush(const QBrush *qbrush,osix::xxStyle *style) {
 
-  style->set(qbrush ? (unsigned int)qbrush->color().rgba() : aux::uiLimit,
+  style->set(qbrush ? (unsigned int)qbrush->color().rgba() : mk_uiLimit,
              qbrush ? (short)qbrush->style() : 1,.0);
   return 0;
 
@@ -201,7 +201,8 @@ int toQRectF(const osix::xxRect *rr,QRectF *qr) {
 
 int toQPen(const osix::xxStyle *style,QPen *pen) {
 
-  int iwidth=(int)aux::round2(style ? style->m_width : 1.),ok=(iwidth>0 && style && style->m_style>0 ? 0 : -1);
+  int iwidth=(int)mk_round2(style ? style->m_width : 1.),
+    ok=(iwidth>0 && style && style->m_style>0 ? 0 : -1);
   if (ok==0) {
     QBrush brush(style ? style->m_color : 0,Qt::SolidPattern);
     *pen=QPen(brush,iwidth%2 ? iwidth : iwidth+1,(Qt::PenStyle)(style ? style->m_style : 1));

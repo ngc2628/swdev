@@ -1,10 +1,6 @@
 #ifndef _calculator_qt_
 #define _calculator_qt_
 
-#include <auxx/auxx.h>
-#include <qt/util/qtwidgets.h>
-#include <txtcalculator/calculator.h>
-#include <stdio.h>
 #include <QtWidgets/QApplication>
 #include <QtGui/QClipboard>
 #include <QtWidgets/QGridLayout>
@@ -15,6 +11,10 @@
 #include <QtGui/QFont>
 #include <QtGui/QFontMetrics>
 #include <QtWidgets/QGroupBox>
+#include <stdio.h>
+#include <auxx/auxx.h>
+#include <qt/util/qtwidgets.h>
+#include <txtcalculator/calculator.h>
 
 namespace qtcalculator {
 

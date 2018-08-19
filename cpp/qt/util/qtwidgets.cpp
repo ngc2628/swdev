@@ -1,8 +1,4 @@
 
-#include <auxx/auxx.h>
-#include <osix/xxstyle.h>
-#include <qt/util/qtutil.h>
-#include <qt/util/qtwidgets.h>
 #include <QtCore/QObject>
 #include <QtCore/QEvent>
 #include <QtCore/QRect>
@@ -13,6 +9,10 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QStyle>
+#include <qt/util/qtutil.h>
+#include <qt/util/qtwidgets.h>
+#include <auxx/auxx.h>
+#include <osix/xxstyle.h>
 
 namespace qtutil {
 
@@ -232,7 +232,7 @@ void ColorChooser::slotR() {
   QColor color;//=m_colortriangle->color();
   QString txt=m_editR->text();
   const char *str=qasciistr(&txt);
-  color.setRed((int)aux::a2ui(str));
+  color.setRed((int)mk_a2ui(str));
   //m_colortriangle->setColor(color);
   
 }
@@ -242,7 +242,7 @@ void ColorChooser::slotG() {
   QColor color;//=m_colortriangle->color();
   QString txt=m_editG->text();
   const char *str=qasciistr(&txt);
-  color.setGreen((int)aux::a2ui(str));
+  color.setGreen((int)mk_a2ui(str));
   //m_colortriangle->setColor(color);
 
 }
@@ -252,7 +252,7 @@ void ColorChooser::slotB() {
   QColor color;//=m_colortriangle->color();
   QString txt=m_editB->text();
   const char *str=qasciistr(&txt);
-  color.setBlue((int)aux::a2ui(str));
+  color.setBlue((int)mk_a2ui(str));
   //m_colortriangle->setColor(color);
 
 }
@@ -262,7 +262,7 @@ void ColorChooser::slotA() {
   QString txt=m_editA->text();
   const char *str=qasciistr(&txt);
   int base=-1;
-  aux::ulreal aa=aux::a2ui(str,&base);
+  mk_ulreal aa=mk_a2ui(str,&base);
   if (base<0 || aa>255) {
     aa=255;
     m_editA->setText("255");
@@ -279,7 +279,7 @@ void ColorChooser::slotColorChanged(const QColor &) {
   QString txt=m_editA->text();
   const char *str=qasciistr(&txt);
   int base=-1;
-  aux::lreal aa=aux::a2ui(str,&base);
+  mk_lreal aa=mk_a2ui(str,&base);
   if (base<0 || aa>255)
     aa=255;
   cc=osix::xxcolor(osix::xxred(cc),osix::xxgreen(cc),osix::xxblue(cc),aa);
@@ -300,7 +300,7 @@ void ColorChooser::sendValues() {
   QString txt=m_editA->text();
   const char *str=qasciistr(&txt);
   int base=-1;
-  aux::lreal aa=aux::a2ui(str,&base);
+  mk_lreal aa=mk_a2ui(str,&base);
   if (base<0 || aa>255)
     aa=255;
   cc=osix::xxcolor(osix::xxred(cc),osix::xxgreen(cc),osix::xxblue(cc),aa);

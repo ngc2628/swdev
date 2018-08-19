@@ -16,7 +16,7 @@ class NEllipse {
   public:
     Vector3 *m_points;
     unsigned short m_cnt;
-    NEllipse(unsigned short cnt,bool cmp=false) { 
+    NEllipse(unsigned short cnt,int cmp) { 
       m_cnt=cnt;
       if (m_cnt==0 || cmp) {
         m_points=0;
@@ -24,7 +24,7 @@ class NEllipse {
       }
       m_points=new Vector3[m_cnt];
       int ii=0,off=m_cnt/2;
-      double sc=2.*pi/(double)m_cnt;
+      double sc=2.*mk_pi/(double)m_cnt;
       for (ii=0;ii<m_cnt;ii++) {
         if (ii<=off)
           m_points[ii]=Vector3(cos(sc*(double)ii),sin(sc*(double)ii));
@@ -64,13 +64,13 @@ int Ellipse::eval(TVList<Vector3> *pointL,int npoints) {
       *pointL=m_points;
     return npoints; // cache
   }
-  NEllipse cel((unsigned short)npoints,true);
+  NEllipse cel((unsigned short)npoints,1);
   NEllipse *el=0;
   int ii=elL.find(&cel);
   if (ii>=0)
     el=elL.at(ii);
   else {
-    el=new NEllipse((unsigned short)npoints);
+    el=new NEllipse((unsigned short)npoints,0);
     elL.inSort(el);
   }
   m_points.clear();

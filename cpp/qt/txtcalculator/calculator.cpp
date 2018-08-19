@@ -1,14 +1,14 @@
 
-#include <osix/xxstyle.h>
-#include <osix/xxevent.h>
-#include <qt/util/qtutil.h>
-#include <qt/txtcalculator/calculator.h>
-#include <math.h>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QStyle>
 #include <QtGui/QKeyEvent>
 #include <QtX11Extras/QX11Info>
 #include <QtGui/QPainter>
+#include <math.h>
+#include <osix/xxstyle.h>
+#include <osix/xxevent.h>
+#include <qt/util/qtutil.h>
+#include <qt/txtcalculator/calculator.h>
 
 namespace qtcalculator {
 
@@ -246,7 +246,7 @@ unsigned int QtCalculator::delayedChgFmt(unsigned int chgfmt) {
   m_timer.m_infoL.clear();
   m_timer.m_infoL.append("chgfmt");
   m_timer.m_infoL.append("");
-  aux::ui2a((aux::ulreal)chgfmt,m_timer.m_infoL.at(1));
+  aux::ui2a((mk_ulreal)chgfmt,m_timer.m_infoL.at(1));
   m_timer.setSingleShot(true);
   m_timer.start(500);
   return chgfmt;
@@ -258,7 +258,7 @@ void QtCalculator::slotTimeout(qtutil::QtTimer *timer) {
   static aux::Asciistr reason_chgfmt("chgfmt");
   if (timer->m_infoL[0] == reason_chgfmt) {
     int fmt=(int)calculator::fmtDec;
-    unsigned int ff=(unsigned int)aux::a2ui((const char *)timer->m_infoL[1],&fmt);
+    unsigned int ff=(unsigned int)mk_a2ui((const char *)timer->m_infoL[1],&fmt);
     if (fmt >= 0) {
       chgFmt(ff);
       fmtgroup->blockSignals(true);

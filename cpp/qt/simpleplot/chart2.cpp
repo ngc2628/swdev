@@ -1,6 +1,4 @@
 
-#include <qt/simpleplot/chart2.h>
-#include <qt/simpleplot/controls.h>
 //#include <QtGui/QWindowsStyle>
 #include <QtGui/QFont>
 #include <QtGui/QFontMetrics>
@@ -9,6 +7,8 @@
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
 #include <QtX11Extras/QX11Info>
+#include <qt/simpleplot/chart2.h>
+#include <qt/simpleplot/controls.h>
 #include <graphic/charts/simpleplot/scale.h>
 #include <graphic/charts/simpleplot/axis.h>
 #include <graphic/charts/simpleplot/graph.h>

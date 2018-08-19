@@ -1,4 +1,6 @@
 
+#include <mkbase/defs.h>
+#include <mkbase/mkbase.h>
 #include <osix/xxshape.h>
 #include <graphic/charts/simpleplot/graph.h>
 #include <graphic/charts/simpleplot/axis.h>
@@ -21,8 +23,8 @@ int markshape2idx(const char *type) {
   if (len==0)
     return 0;
   int idx=nummarkshapes2d-1;
-  if (len>=aux::idlen)
-    len=aux::idlen-1;
+  if (len>=mk_idlen)
+    len=mk_idlen-1;
   for (ii=0;ii<nummarkshapes2d;ii++) {
     if (strncmp(type,markshapes2d[ii],(size_t)len)==0) {
       idx=ii;
@@ -153,9 +155,9 @@ int GraphData2::findBounds(int type,double *bmin,double *bmax) {
   if (type==0 || cnt==0 || (!bmin && !bmax))
     return cnt;
   if (bmin)
-    *bmin=aux::dinf;
+    *bmin=mk_dinf;
   if (bmax)
-    *bmax=aux::dsinf;
+    *bmax=mk_dsinf;
   if (m_data.sorted()>0 && type==m_sortype) {
     if (bmin)
       *bmin=(type==aux::typeX ? m_data.at(0)->x() : m_data.at(0)->y());
@@ -167,15 +169,15 @@ int GraphData2::findBounds(int type,double *bmin,double *bmax) {
     for (ii=0;ii<cnt;ii++) {
       vv=m_data.at(ii);
       if (bmin) {
-        if (type==aux::typeX && aux::dlt(vv->x(),*bmin))
+        if (type==aux::typeX && mk_dlt(vv->x(),*bmin))
           *bmin=vv->x();
-        else if (type==aux::typeY && aux::dlt(vv->y(),*bmin))
+        else if (type==aux::typeY && mk_dlt(vv->y(),*bmin))
           *bmin=vv->y();
       }
       if (bmax) {
-        if (type==aux::typeX && aux::dlt(*bmax,vv->x()))
+        if (type==aux::typeX && mk_dlt(*bmax,vv->x()))
           *bmax=vv->x();
-        else if (type==aux::typeY && aux::dlt(*bmin,vv->y()))
+        else if (type==aux::typeY && mk_dlt(*bmin,vv->y()))
           *bmax=vv->y();
       }
     }

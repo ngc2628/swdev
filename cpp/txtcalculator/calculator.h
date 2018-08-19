@@ -7,7 +7,7 @@
 //..end "Ifdef"
 
 #include <auxx/auxx.h>
-#include <auxx/txtcalc.h>
+#include <txtcalc/txtcalc.h>
 #include <osix/xxevent.h>
 #include <osix/xxpaint.h>
 #include <stdio.h>

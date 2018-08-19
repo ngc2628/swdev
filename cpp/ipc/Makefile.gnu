@@ -1,7 +1,7 @@
 
 ####### definitions #######
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = ipcutl
 DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
@@ -15,7 +15,7 @@ SOLN					= -shared
 
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
-vpath					%.cpp $(PRJROOT)/$(PRJ)
+vpath					%.cpp $(SWDIR)/cpp/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.cpp=.o))
 
 ####### compiler flags #######
@@ -27,7 +27,7 @@ WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-func
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
 CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(PRJROOT)
+IFLAGS				= -I$(SWDIR)/cpp
 LFLAGS				= -L$(LIBDIR) 
 LEXFLAGS      = 
 YACCFLAGS     = -d
@@ -50,9 +50,9 @@ MKDIR					= mkdir -p
 ####### targets #######
 
 all: $(OBJPRJ) $(TARGET)
-	cd $(CPPDIR)/ipc/server; make -f Makefile.gnu
-	cd $(CPPDIR)/ipc/client; make -f Makefile.gnu
-	cd $(CPPDIR)/ipc
+	cd $(SWDIR)/ipc/server; make -f Makefile.gnu
+	cd $(SWDIR)/ipc/client; make -f Makefile.gnu
+	cd $(SWDIR)/ipc
 	
 $(OBJPRJ):
 	-$(MKDIR) $(OBJPRJ)
@@ -73,8 +73,8 @@ $(TARGET):  $(OBJECTS)
 clean: 
 	$(RM) $(OBJPRJ) $(DESTDIR)/$(TARGET)
 	$(RM) *~ core *.core
-	cd $(CPPDIR)/ipc/server; make -f Makefile.gnu clean
-	cd $(CPPDIR)/ipc/client; make -f Makefile.gnu clean
-	cd $(CPPDIR)/ipc
+	cd $(SWDIR)/ipc/server; make -f Makefile.gnu clean
+	cd $(SWDIR)/ipc/client; make -f Makefile.gnu clean
+	cd $(SWDIR)/ipc
 
 

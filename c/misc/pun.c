@@ -54,7 +54,7 @@ int punchinelloDecrypt(const unsigned char *word) {
   }
   word2[jj]='\0';
 
-  if (strlen(word2)!=len)
+  if ((int)strlen(word2)!=len)
     return 1;
 
   for (ii=0;ii<len;ii++) {

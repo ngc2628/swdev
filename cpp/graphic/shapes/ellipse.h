@@ -45,7 +45,7 @@ class oswinexp Ellipse : public Shape2 {
     aux::Vector3 set(aux::Vector3 ab) {
       double *vab=m_ab.data();	
       if (vab[0]>vab[1])
-        aux::swap(&vab[0],&vab[1]);
+        mk_swapf(&vab[0],&vab[1]);
       m_ab=ab; 
       m_points.clear(); 
       return m_ab;
@@ -54,11 +54,11 @@ class oswinexp Ellipse : public Shape2 {
       return (sqrt(m_ab.x()*m_ab.x()-m_ab.y()*m_ab.y())/m_ab.x());
     }
     double area() const {
-      return (aux::pi*m_ab.x()*m_ab.y());
+      return (mk_pi*m_ab.x()*m_ab.y());
     }
     double circ() const { // circumference
       double l=(m_ab.x()-m_ab.y())/(m_ab.x()+m_ab.y());
-      return (aux::pi*(m_ab.x()+m_ab.y())*(1.+l*l/4.+l*l*l*l/64.+l*l*l*l*l*l/256.+25.*l*l*l*l*l*l*l*l/16384.));
+      return (mk_pi*(m_ab.x()+m_ab.y())*(1.+l*l/4.+l*l*l*l/64.+l*l*l*l*l*l/256.+25.*l*l*l*l*l*l*l*l/16384.));
     }
     double circradius() const {
       return (m_ab.x()>m_ab.y() ? m_ab.x() : m_ab.y());

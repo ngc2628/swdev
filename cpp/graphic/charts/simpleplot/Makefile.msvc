@@ -1,11 +1,11 @@
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = simpleplot
 DESTDIR       = $(LIBDIR)
 
 WFLAGS        = 
 LFLAGS        = /DLL /LIBPATH:"$(LIBDIR)"   
-INCPATH       = -I"$(PRJROOT)"
+INCPATH       = -I"$(SWDIR)\cpp"
 LIBS          = libshapes.lib libosix.lib libnumeric.lib libauxx.lib
 HEADER        = scale.h axis.h graph.h diagram.h
 SOURCES       = scale.cpp axis.cpp graph.cpp diagram.cpp

@@ -21,7 +21,7 @@ class oswinexp Tic {
     double m_val;
     unsigned char m_size,m_drawable;
     aux::Ucsstr m_str;
-    Tic(double val=aux::dnan,unsigned char sz=1,unsigned char drawable=1,
+    Tic(double val=mk_dnan,unsigned char sz=1,unsigned char drawable=1,
         aux::Ucsstr str=aux::Ucsstr()) :
       m_val(val),m_size(sz),m_drawable(drawable),m_str(str) {
     }
@@ -42,12 +42,12 @@ class oswinexp Tic {
     }
     bool operator==(const Tic &cmp) const {
       int cc=0;
-      aux::dbusted(m_val,cmp.m_val,&cc);
+      mk_dbusted(m_val,cmp.m_val,&cc);
       return (cc==0);
     }
     bool operator<(const Tic &cmp) const {
       int cc=0;
-      aux::dbusted(m_val,cmp.m_val,&cc);
+      mk_dbusted(m_val,cmp.m_val,&cc);
       return (cc<0);
     }
       

@@ -1,7 +1,7 @@
 
 ####### definitions #######
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = ipcserver
 DESTDIR       = $(BINDIR)
 TARGET        = $(PRJ)
@@ -15,7 +15,7 @@ SOLN					=
 
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
-vpath					%.cpp $(PRJROOT)/$(PRJ)
+vpath					%.cpp $(SWDIR)/cpp/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.cpp=.o))
 
 ####### compiler flags #######
@@ -27,7 +27,7 @@ WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-func
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
 CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(PRJROOT)
+IFLAGS				= -I$(SWDIR)/cpp
 LFLAGS				= -L$(LIBDIR) 
 LEXFLAGS      = 
 YACCFLAGS     = -d
@@ -43,7 +43,8 @@ AR            = ar cq
 RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-RM            = rm -rf
+RM            = rm -f
+RMDIR         = rm -rf
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
 
@@ -68,7 +69,8 @@ $(TARGET):  $(OBJECTS)
 	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(LIBS) 
 
 clean: 
-	$(RM) $(OBJPRJ) $(DESTDIR)/$(TARGET)
+	$(RMDIR) $(OBJPRJ)
+	$(RM) $(DESTDIR)/$(TARGET)
 	$(RM) *~ core *.core
 
 

@@ -1,0 +1,42 @@
+
+PRJROOT       = $(SWDIR)
+PRJ           = rgb2uint
+DESTDIR       = $(BINDIR)
+
+WFLAGS        = 
+LFLAGS        = /LIBPATH:"$(LIBDIR)"  
+INCPATH       = /I"$(SWDIR)\c"
+LIBS          = libmkbase.lib
+HEADER        = 
+SOURCES       = rgb2int.c 
+OBJECTS       = rgb2int.obj 
+TARGET        = $(PRJ).exe
+
+CC            = cl
+CXX           = cl
+LEX           = flex
+YACC          = yacc
+DEFINES       = 
+CFLAGS        = /D_CRT_SECURE_NO_WARNINGS /GR /FC /MD /MP2 /Wall $(WFLAGS) $(DEFINES) /c 
+CXXFLAGS      =  $(CFLAGS)
+LEXFLAGS      = 
+LINK          = link
+AR            = ar cq
+RANLIB        = ranlib -s
+COMPRESS      = zip 
+RM            = del
+
+all: $(TARGET)
+
+.c.obj:
+	$(CC) $(CFLAGS) $(INCPATH) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) /OUT:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+
+clean: 
+	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET)
+
+
+

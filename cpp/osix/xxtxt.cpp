@@ -34,7 +34,7 @@ void xxFnt::toString(aux::Asciistr *buf) const {
   buf->append((const char *)numbuf);
   numbuf=0;
   buf->append(" ; style=");
-  aux::i2a((aux::lreal)m_style,&numbuf);
+  aux::i2a((mk_lreal)m_style,&numbuf);
   buf->append((const char *)numbuf);
   buf->append(" ; ");
   m_metric.toString(&numbuf);

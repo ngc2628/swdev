@@ -1,12 +1,12 @@
 
-#include <qt/util/qtutil.h>
-#include <qt/spreadsheet/spreadsheet.h>
 #include <QtX11Extras/QX11Info>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QComboBox>
 #include <QtGui/QClipboard>
 #include <stdio.h>
+#include <qt/util/qtutil.h>
+#include <qt/spreadsheet/spreadsheet.h>
 //#include <sys/param.h>
 
 namespace qtspreadsheet {

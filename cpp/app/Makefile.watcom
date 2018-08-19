@@ -1,31 +1,27 @@
 all:
-	cd $(CPPDIR)\app\pun
+#	cd $(SWDIR)\cpp\app\qt\calculatorapp
+#	nmake /f Makefile.watcom
+#	cd $(SWDIR)\cpp\app\qt\spreadsheetapp
+#	nmake /f Makefile.watcom
+#	cd $(SWDIR)\cpp\app\qt\simpleplotapp
+#	nmake /f Makefile.watcom
+	cd $(SWDIR)\cpp\app\rgb2int
 	nmake /f Makefile.watcom
-#	cd $(CPPDIR)\app\qt\calculatorapp
-#	nmake /f Makefile.watcom
-#	cd $(CPPDIR)\app\qt\spreadsheetapp
-#	nmake /f Makefile.watcom
-#	cd $(CPPDIR)\app\qt\simpleplotapp
-#	nmake /f Makefile.watcom
-	cd $(CPPDIR)\app\rgb2int
-	nmake /f Makefile.watcom
-	cd $(CPPDIR)\app\txtcalc
+	cd $(SWDIR)\cpp\app\txtcalc
 	nmake /f Makefile.watcom
 	ls $(BINDIR)
-	cd $(CPPDIR)\app
+	cd $(SWDIR)\cpp\app
 clean:
-	cd $(CPPDIR)\app\pun
-	nmake /f Makefile.watcom clean
-#	cd $(CPPDIR)\app\qt\calculatorapp
+#	cd $(SWDIR)\cpp\app\qt\calculatorapp
 #	nmake /f Makefile.watcom clean
-#	cd $(CPPDIR)\app\qt\spreadsheetapp
+#	cd $(SWDIR)\cpp\app\qt\spreadsheetapp
 #	nmake /f Makefile.watcom clean
-#	cd $(CPPDIR)\app\qt\simpleplotapp
+#	cd $(SWDIR)\cpp\app\qt\simpleplotapp
 #	nmake /f Makefile.watcom clean
-	cd $(CPPDIR)\app\rgb2int
+	cd $(SWDIR)\cpp\app\rgb2int
 	nmake /f Makefile.watcom clean
-	cd $(CPPDIR)\app\txtcalc
+	cd $(SWDIR)\cpp\app\txtcalc
 	nmake /f Makefile.watcom clean
-	cd $(CPPDIR)\app
+	cd $(SWDIR)\cpp\app
 
 

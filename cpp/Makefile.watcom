@@ -1,45 +1,45 @@
 
 all:
-	cd $(CPPDIR)\auxx
+	cd $(SWDIR)\cpp\auxx
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)\numeric
+	cd $(SWDIR)\cpp\numeric
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)\osix
+	cd $(SWDIR)\cpp\osix
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)\graphic\shapes
+	cd $(SWDIR)\cpp\graphic\shapes
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)\graphic\charts\simpleplot
+	cd $(SWDIR)\cpp\graphic\charts\simpleplot
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)\spreadsheet
+	cd $(SWDIR)\cpp\spreadsheet
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)\calculator
+	cd $(SWDIR)\cpp\calculator
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)\txtcalculator
+	cd $(SWDIR)\cpp\txtcalculator
 	nmake -f Makefile.watcom
-#	cd $(CPPDIR)\qt
+#	cd $(SWDIR)\cpp\qt
 #	nmake -f Makefile.watcom
-	cd $(CPPDIR)\app
+	cd $(SWDIR)\cpp\app
 	nmake -f Makefile.watcom
-	cd $(CPPDIR)
+	cd $(SWDIR)\cpp
 clean:
-	cd $(CPPDIR)\app
+	cd $(SWDIR)\cpp\app
 	nmake -f Makefile.watcom clean
-#	cd $(CPPDIR)\qt
+#	cd $(SWDIR)\cpp\qt
 #	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)\txtcalculator
+	cd $(SWDIR)\cpp\txtcalculator
 	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)\calculator
+	cd $(SWDIR)\cpp\calculator
 	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)\spreadsheet
+	cd $(SWDIR)\cpp\spreadsheet
 	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)\graphic\charts\simpleplot
+	cd $(SWDIR)\cpp\graphic\charts\simpleplot
 	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)\graphic\shapes
+	cd $(SWDIR)\cpp\graphic\shapes
 	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)\osix
+	cd $(SWDIR)\cpp\osix
 	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)\auxx
+	cd $(SWDIR)\cpp\auxx
 	nmake -f Makefile.watcom clean
-	cd $(CPPDIR)
+	cd $(SWDIR)\cpp
 
 

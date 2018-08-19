@@ -1,6 +1,6 @@
 
-#include <app/qt/txtcalculatorapp/appframe.h>
 #include <QtWidgets/QMessageBox>
+#include <app/qt/txtcalculatorapp/appframe.h>
 
 namespace qtcalculator {
 

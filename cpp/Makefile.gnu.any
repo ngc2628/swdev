@@ -1,7 +1,7 @@
 
 ####### definitions #######
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = xxx
 # DESTDIR       = $(LIBDIR)
 # TARGET        = lib$(PRJ).so
@@ -17,7 +17,7 @@ LIBS          = -lxxx -lm -lz
 ####### names and locations #######
 
 OBJPRJ				= $(OBJDIR)/$(PRJ)
-VPATH					= $(PRJROOT)/$(PRJ)
+VPATH					= $(SWDIR)/cpp/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.cpp=.o))
 
 ####### compiler flags #######
@@ -29,7 +29,7 @@ WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-func
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
 CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(PRJROOT)
+IFLAGS				= -I$(SWDIR)
 LFLAGS				= -L$(LIBDIR) 
 LEXFLAGS      = 
 YACCFLAGS     = -d

@@ -1,12 +1,12 @@
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = osix
 DESTDIR       = $(LIBDIR)
 
 WFLAGS        = -w3
 LFLAGS        = -dll
-INCPATH       = -i"$(PRJROOT)"
-LIBS          = $(LIBDIR)\libnumeric.lib $(LIBDIR)\libauxx.lib 
+INCPATH       = -i"$(SWDIR)\cpp" -i"$(SWDIR)\c"
+LIBS          = $(LIBDIR)\libnumeric.lib $(LIBDIR)\libauxx.lib $(LIBDIR)\libmkbase.lib 
 HEADER        = xxkey.h xxmouse.h xxevent.h xxstyle.h xxshape.h xxtxt.h xxpaint.h
 SOURCES       = xxevent.cpp xxstyle.cpp xxshape.cpp xxtxt.cpp xxpaint.cpp
 OBJECTS       = xxevent.obj xxstyle.obj xxshape.obj xxtxt.obj xxpaint.obj
@@ -26,17 +26,31 @@ AR            = ar cq
 RANLIB        = ranlib -s
 COMPRESS      = zip 
 RM            = del
+MV            = move /Y 
+MD            = mkdir
+RD            = rmdir /S /Q 
 
-all: $(TARGET)
+
+all: PREMK $(TARGET) POSTMK
 
 .cpp.obj:
 	$(CC) $(CFLAGS) $(INCPATH) $<
 
+PREMK:
+	$(RM) $(DESTDIR)\$(TARGET) 2>nul || echo .
+	$(MV) $(OBJDIR)\$(PRJ)\*.obj . 2>nul || echo . 
+	$(RD) $(OBJDIR)\$(PRJ) 2>nul || echo .
+
 $(TARGET): $(OBJECTS)   
-	$(RM) $(DESTDIR)\$(TARGET) 
 	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
 
+POSTMK:
+	$(MD) $(OBJDIR)\$(PRJ)
+	$(MV) *.err $(OBJDIR)\$(PRJ) 
+	$(MV) *.obj $(OBJDIR)\$(PRJ) 
+
 clean: 
-	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB) *.err
+	$(RM) $(DESTDIR)\$(TARGET) $(DESTDIR)\$(TARGETLIB)
+	$(RD) $(OBJDIR)\$(PRJ) 2>nul || echo .
 
 

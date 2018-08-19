@@ -1,12 +1,12 @@
 
-#include <qt/simpleplot/controls.h>
-#include <math.h>
 #include <QtCore/QVariant>
 #include <QtWidgets/QGroupBox>
 #include <QtGui/QPainter>
+#include <math.h>
 #include <graphic/charts/simpleplot/graph.h>
 #include <graphic/charts/simpleplot/axis.h>
 #include <graphic/charts/simpleplot/scale.h>
+#include <qt/simpleplot/controls.h>
 
 namespace qtsimpleplot {
 
@@ -475,7 +475,7 @@ void GraphProps::sendValues() {
                 markstyleF(m_markcolorF,(short)m_combomarkstyleF->currentIndex(),1);
   qvval=m_editlinewidth->text();
   qtutil::fromQString(&qvval,&str);
-  linestyle.m_width=aux::a2d((const char *)str);
+  linestyle.m_width=mk_a2d((const char *)str);
   str=0;
   gr->m_linestyle=linestyle;
   shapes::Shape2 *grmark=(gr->m_graphdata ? gr->m_graphdata->mark(0) : 0);
@@ -487,8 +487,8 @@ void GraphProps::sendValues() {
       newmarkstyle=m_combomarkstyle->currentIndex();
   qvval=m_editmarkwidth->text();
   qtutil::fromQString(&qvval,&str);
-  double markwidth=(grmark ? aux::round2(grmark->circradius(),prec) : .0),
-         newmarkwidth=aux::round2(aux::a2d((const char *)str,&base),prec);
+  double markwidth=(grmark ? mk_round2(grmark->circradius(),prec) : .0),
+         newmarkwidth=mk_round2(mk_a2d((const char *)str,&base),prec);
   str=0;
   
   if (base<0 || newmarkwidth<.0) 
@@ -769,10 +769,10 @@ void AxisProps::slotSelected(int idx) {
   if (ax->scale()) 
     ax->scale()->effRange(&bb0,&bb1);
   aux::Asciistr numstr;
-  aux::d2a(bb0,&numstr,aux::mag(bb0)+15);
+  aux::d2a(bb0,&numstr,mk_mag(bb0)+15);
   m_editMin->setText((const char *)numstr);
   numstr=0;
-  aux::d2a(bb1,&numstr,aux::mag(bb0)+15);
+  aux::d2a(bb1,&numstr,mk_mag(bb0)+15);
   m_editMax->setText((const char *)numstr);
   if ((ax->scale()->rangeOption()&(simpleplot::typeBoundAutoMin|simpleplot::typeBoundAutoMax))>0) {
     m_buttonAutoscaleOn->toggle();
@@ -915,7 +915,7 @@ void AxisProps::sendValues() {
   ax->m_style.m_color=m_color;
   qvval=m_editwidth->text();
   qtutil::fromQString(&qvval,&str);
-  ax->m_style.m_width=aux::a2d((const char *)str);
+  ax->m_style.m_width=mk_a2d((const char *)str);
   qv=m_comboscaletype->itemData(m_comboscaletype->currentIndex());
   if (!ax->scale() || qv.toString()!=ax->scale()->type()) {
     qvval=qv.toString();

@@ -2,11 +2,6 @@
 #ifndef _chart2_h_
 #define _chart2_h_
 
-#include <auxx/auxx.h>
-#include <osix/xxshape.h>
-#include <graphic/charts/simpleplot/diagram.h>
-#include <qt/util/qtutil.h>
-#include <qt/util/qtwidgets.h>
 #include <QtCore/QObject>
 #include <QtCore/QEvent>
 #include <QtCore/QRect>
@@ -19,6 +14,11 @@
 #include <QtGui/QResizeEvent>
 #include <stdio.h>
 #include <stdlib.h>
+#include <auxx/auxx.h>
+#include <osix/xxshape.h>
+#include <graphic/charts/simpleplot/diagram.h>
+#include <qt/util/qtutil.h>
+#include <qt/util/qtwidgets.h>
 
 class QFont;
 

@@ -2,11 +2,11 @@
 #ifndef _APPFRAME_H_
 #define _APPFRAME_H_
 
-#include <auxx/auxx.h>
 #include <QtCore/QSize>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
+#include <auxx/auxx.h>
 
 class QMenu;
 class QMenuBar;

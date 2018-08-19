@@ -2,6 +2,7 @@
 #ifndef _xxshape_h_
 #define _xxshape_h_
 
+#include <mkbase/mkbase.h>
 #include <auxx/auxx.h>
 #include <auxx/vertex.h>
 
@@ -15,8 +16,8 @@ class oswinexp xxRectSize {
 
   public:
     xxRectSize(double w=.0,double h=.0) :
-      m_width(aux::dbusted(w) || w<.0 ? .0 : w),
-      m_height(aux::dbusted(h) || h<.0 ? .0 : h) {
+      m_width(mk_isBusted(w) || w<.0 ? .0 : w),
+      m_height(mk_isBusted(h) || h<.0 ? .0 : h) {
     }
     xxRectSize(const xxRectSize &ass) : m_width(ass.m_width),m_height(ass.m_height) {
     }
@@ -34,16 +35,16 @@ class oswinexp xxRectSize {
       return (m_width*m_height<cmp.m_width*cmp.m_height);
     }
     double setWidth(double w) {
-      m_width=(aux::dbusted(w)!=0 || w<0. ? 0. : w);
+      m_width=(mk_isBusted(w)!=0 || w<0. ? 0. : w);
       return m_width;
     }
     double setHeight(double h) {
-      m_height=(aux::dbusted(h)!=0 || h<0. ? 0. : h);
+      m_height=(mk_isBusted(h)!=0 || h<0. ? 0. : h);
       return m_height;
     }
     xxRectSize set(double w=.0,double h=.0) {
-      m_width=(aux::dbusted(w)!=0 || w<0. ? 0. : w);
-      m_height=(aux::dbusted(h)!=0 || h<0. ? 0. : h); 
+      m_width=(mk_isBusted(w)!=0 || w<0. ? 0. : w);
+      m_height=(mk_isBusted(h)!=0 || h<0. ? 0. : h); 
       return *this;
     }
     double width() const {
@@ -92,13 +93,13 @@ class oswinexp xxLine {
       return (m_l[0]==cmp.m_l[0] && m_l[1]==cmp.m_l[1]);
     }
     bool operator<(const xxLine &cmp) const {
-      return (aux::dlt(len(),cmp.len())==0 ? false : true);
+      return (mk_dlt(len(),cmp.len())==0 ? false : true);
     }
     aux::Vector3 &operator[](int idx) {
       return m_l[idx];
     }
     void set(aux::Vector3 p0=aux::Vector3(),aux::Vector3 p1=aux::Vector3()) {
-      if (aux::dlt(p1.x(),p0.x()))
+      if (mk_dlt(p1.x(),p0.x()))
         aux::swap(&p0,&p1);
       m_l[0]=p0; m_l[1]=p1;
     }
@@ -125,7 +126,7 @@ class oswinexp xxRect {
     double m_r[4]; // left,top,right,bottom
 
   public:
-    xxRect(double left=aux::dnan,double top=aux::dnan,double right=aux::dnan,double bottom=aux::dnan);
+    xxRect(double left=mk_dnan,double top=mk_dnan,double right=mk_dnan,double bottom=mk_dnan);
     xxRect(aux::Vector3,aux::Vector3);
     xxRect(double,double,xxRectSize);
     xxRect(aux::Vector3,xxRectSize);
@@ -147,7 +148,7 @@ class oswinexp xxRect {
     double *raw() {
       return &m_r[0];
     }
-    void set(double left=aux::dnan,double top=aux::dnan,double right=aux::dnan,double bottom=aux::dnan);
+    void set(double left=mk_dnan,double top=mk_dnan,double right=mk_dnan,double bottom=mk_dnan);
     void set(aux::Vector3,aux::Vector3);
     void set(double,double,xxRectSize);
     int busted() const;

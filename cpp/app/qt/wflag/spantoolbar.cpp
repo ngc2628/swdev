@@ -1,6 +1,12 @@
 #include <QMainWindow>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QX11Info>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <xcb/xcb.h>
 
 #include "spantoolbar.h"
 
@@ -202,6 +208,9 @@ void CSpanToolBar::slotButtonToggled( const CSpanToolButton * pSpanToolButton,
   pAppWin->resize(spanRect.size()- frame);
   pAppWin->move(spanRect.topLeft());
   qApp->processEvents();
+  unsigned int values[]={XCB_STACK_MODE_ABOVE};
+  xcb_configure_window(QX11Info::connection(),pAppWin->window()->winId(),XCB_CONFIG_WINDOW_STACK_MODE,values);
+  xcb_flush(QX11Info::connection());
 
   //Togglestatus angleichen
   m_bAcceptToggleSignal = false;

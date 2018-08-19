@@ -43,7 +43,8 @@ AR            = ar cq
 RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-RM            = rm -rf
+RM            = rm -f
+RMDIR         = rm -rf
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
 
@@ -68,6 +69,7 @@ $(TARGET):  $(OBJECTS)
 	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(LIBS)
 
 clean:
-	$(RM) $(OBJPRJ) $(DESTDIR)/$(TARGET)
+	$(RMDIR) $(OBJPRJ)
+	$(RM) $(DESTDIR)/$(TARGET)
 	$(RM) *~ core *.core
 

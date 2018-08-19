@@ -9,17 +9,17 @@ void xxEvent::clear() {
       
   m_type=m_mods=m_consumer=m_xxk=m_buttons=0;
 	m_xxsym=0;
-  m_pos=m_globalpos=m_lastpos=m_downpos=aux::Vector3(aux::dnan,aux::dnan,aux::dnan);
+  m_pos=m_globalpos=m_lastpos=m_downpos=aux::Vector3(mk_dnan,mk_dnan,mk_dnan);
   m_r=xxRect();
-  memset(&m_info[0][0],0,aux::k4len);
+  memset(&m_info[0][0],0,mk_k4len);
   
 }
 
 int xxEvent::setInfo(const char *info,int idx) {
 
-  if (idx<0 || idx>=(int)aux::qwlen) {
+  if (idx<0 || idx>=(int)mk_qwlen) {
     idx=-1;
-    while (idx<(int)aux::qwlen-1) {
+    while (idx<(int)mk_qwlen-1) {
       if (strlen(m_info[idx+1])==0) {
         idx++;
         break;
@@ -29,18 +29,18 @@ int xxEvent::setInfo(const char *info,int idx) {
   if (idx<0)
     return -1;
   else if (!info || strlen(info)==0)
-    memset(&m_info[idx],0,aux::qwlen);
+    memset(&m_info[idx],0,mk_qwlen);
   else if (info!=m_info[idx])
-    strncpy(m_info[idx],info,aux::qwlen-1);
+    strncpy(m_info[idx],info,mk_qwlen-1);
   return idx;   
 
 }
 
 int xxEvent::info(aux::Asciistr *str,int idx) const {
 
-  if (idx<0 || idx>=(int)aux::qwlen) {
+  if (idx<0 || idx>=(int)mk_qwlen) {
     idx=-1;
-    while (idx<(int)aux::qwlen-1) {
+    while (idx<(int)mk_qwlen-1) {
       if (strlen(m_info[idx+1])>0) {
         idx++;
         break;

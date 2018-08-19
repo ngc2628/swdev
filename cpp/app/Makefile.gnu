@@ -1,21 +1,9 @@
 all:
-	cd $(CPPDIR)/app/pun; make -f Makefile.gnu
-	cd $(CPPDIR)/app/qt/calculatorapp; make -f Makefile.gnu
-	cd $(CPPDIR)/app/qt/txtcalculatorapp; make -f Makefile.gnu
-	cd $(CPPDIR)/app/qt/spreadsheetapp; make -f Makefile.gnu
-	cd $(CPPDIR)/app/qt/simpleplotapp; make -f Makefile.gnu
-	cd $(CPPDIR)/app/rgb2int; make -f Makefile.gnu
-	cd $(CPPDIR)/app/txtcalc; make -f Makefile.gnu
+	cd $(SWDIR)/cpp/app/qt; make -f Makefile.gnu
 	ls -ltr $(BINDIR)
-	cd $(CPPDIR)/app
+	cd $(SWDIR)/cpp/app
 clean:
-	cd $(CPPDIR)/app/pun; make -f Makefile.gnu clean
-	cd $(CPPDIR)/app/qt/txtcalculatorapp; make -f Makefile.gnu clean
-	cd $(CPPDIR)/app/qt/calculatorapp; make -f Makefile.gnu clean
-	cd $(CPPDIR)/app/qt/spreadsheetapp; make -f Makefile.gnu clean
-	cd $(CPPDIR)/app/qt/simpleplotapp; make -f Makefile.gnu clean
-	cd $(CPPDIR)/app/rgb2int; make -f Makefile.gnu clean
-	cd $(CPPDIR)/app/txtcalc; make -f Makefile.gnu clean
-	cd $(CPPDIR)/app
+	cd $(SWDIR)/cpp/app/qt; make -f Makefile.gnu clean
+	cd $(SWDIR)/cpp/app
 
 

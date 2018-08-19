@@ -1,21 +1,21 @@
 
 ####### definitions #######
 
-PRJROOT       = $(CPPDIR)
+PRJROOT       = $(SWDIR)
 PRJ           = spreadsheet
 DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
 DEFINES       =
 HEADER        = spreadsheetdata.h spreadsheet.h
 SOURCES       = spreadsheetdata.cpp spreadsheet.cpp 
-LIBS          = -lnumeric -losix -lauxx -lz -lm 
+LIBS          = -lnumeric -losix -lauxx -lmkbase -lz -lm 
 SOLN					= -shared
 
 ####### names and locations #######
 
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
-vpath					%.cpp $(PRJROOT)/$(PRJ)
+vpath					%.cpp $(SWDIR)/cpp/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.cpp=.o))
 
 ####### compiler flags #######
@@ -27,7 +27,7 @@ WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-func
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
 CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(PRJROOT)
+IFLAGS				= -I$(SWDIR)/cpp -I$(SWDIR)/c
 LFLAGS				= -L$(LIBDIR) 
 LEXFLAGS      = 
 YACCFLAGS     = -d
@@ -43,7 +43,8 @@ AR            = ar cq
 RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-RM            = rm -rf
+RMDIR         = rm -rf
+RM            = rm -f
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
 
@@ -68,6 +69,7 @@ $(TARGET):  $(OBJECTS)
 	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(LIBS) 
 
 clean: 
-	$(RM) $(OBJPRJ) $(DESTDIR)/$(TARGET)
+	$(RMDIR) $(OBJPRJ)
+	$(RM) $(DESTDIR)/$(TARGET)
 	$(RM) *~ core *.core
 

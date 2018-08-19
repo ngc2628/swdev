@@ -2,10 +2,6 @@
 #ifndef _APPFRAME_H_
 #define _APPFRAME_H_
 
-#include <auxx/auxx.h>
-#include <qt/simpleplot/chart2.h> 
-#include <qt/simpleplot/controls.h>
-
 #include <QtWidgets/QApplication>
 #include <QtGui/QClipboard>
 #include <QtWidgets/QLayout>
@@ -30,6 +26,9 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QDialog>
+#include <auxx/auxx.h>
+#include <qt/simpleplot/chart2.h> 
+#include <qt/simpleplot/controls.h>
 
 namespace qtsimpleplot {
 

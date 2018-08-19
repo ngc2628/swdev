@@ -160,13 +160,14 @@ int SpreadsheetData::setIndexDescr(SpreadsheetIndex section) {
   if (!descr)
     return 0;
   descr->m_type=section.m_type;
-  if (!aux::dbusted(section.m_sz) && section.m_sz>.0)
+  if (!mk_isBusted(section.m_sz) && section.m_sz>.0)
     descr->m_sz=section.m_sz;
   descr->m_gridstyle=section.m_gridstyle;
   if ((section.isStatic() && descr->isStatic()) ||
       (!section.isStatic() && !descr->isStatic()))
     return 1;
-  int ii=0,cnt=((section.m_type&1)>0 ? m_data.rows() : m_data.cols()),firststatic=-1,laststatic=cnt,idx=section.m_idx;
+  int ii=0,cnt=((section.m_type&1)>0 ? m_data.rows() : m_data.cols());
+  int firststatic=-1,laststatic=cnt,idx=section.m_idx;
   SpreadsheetIndex *si=0;
   for (ii=0;ii<cnt;ii++) {
     section.m_idx=ii;
@@ -208,7 +209,7 @@ int SpreadsheetData::indexDescr(SpreadsheetIndex *descr) const {
   const SpreadsheetIndex *fnd=m_descr.at(m_descr.find(*descr));
   if (!fnd) {
     descr->m_type&=sectiontypeNoHeader;
-    descr->m_sz=aux::dnan;
+    descr->m_sz=mk_dnan;
     return -1;
   }
   descr->m_type=fnd->m_type;

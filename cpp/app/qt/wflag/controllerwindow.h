@@ -8,8 +8,17 @@
 #include <QGroupBox>
 #include <QCheckBox>
 #include <QLayout>
+#include <QAbstractNativeEventFilter>
 
 #include "previewwindow.h"
+
+class CNativeEventFilter : public QAbstractNativeEventFilter {
+  public:
+    QObject *m_app;
+    CNativeEventFilter(QObject *app=0) : m_app(app) {}
+    virtual ~CNativeEventFilter() {}
+    virtual bool  nativeEventFilter(const QByteArray &,void *,long *);
+};
 
 class ControllerWindow : public QWidget
 {

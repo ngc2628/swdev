@@ -125,7 +125,7 @@ class oswinexp SpreadsheetDataItem {
        return (this==&cmp);
     }
     bool operator<(const SpreadsheetDataItem &cmp) const {
-      return ((aux::ulreal)this<(aux::ulreal)&cmp);
+      return ((mk_ulreal)this<(mk_ulreal)&cmp);
     }
     virtual int draw(void *,osix::xxDrawable *,osix::xxGC *,int);
 
@@ -138,7 +138,7 @@ class oswinexp SpreadsheetIndex {
     int m_idx;
     double m_sz;
     osix::xxStyle m_gridstyle;
-    SpreadsheetIndex(int type=0,int idx=0,double sz=aux::dnan,osix::xxStyle gridstyle=defGridStyle) :
+    SpreadsheetIndex(int type=0,int idx=0,double sz=mk_dnan,osix::xxStyle gridstyle=defGridStyle) :
       m_type(type),m_idx(idx),m_sz(sz),m_gridstyle(gridstyle) {
     }
     SpreadsheetIndex(const SpreadsheetIndex &ass) :
@@ -166,7 +166,7 @@ class oswinexp SpreadsheetIndex {
     bool isStatic() const {
       return ((m_type&sectiontypeStatic)>0);
     }
-    int set(int type=0,int idx=0,double sz=aux::dnan,osix::xxStyle gridstyle=defGridStyle) {
+    int set(int type=0,int idx=0,double sz=mk_dnan,osix::xxStyle gridstyle=defGridStyle) {
       m_type=type;
       m_idx=idx;
       m_sz=sz;

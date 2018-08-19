@@ -1,8 +1,4 @@
 
-#include <app/qt/simpleplotapp/appframe.h>
-
-#include <math.h>
-
 #include <QtCore/QVariant>
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QTextCodec>
@@ -12,7 +8,7 @@
 //#include <QtGui/QCDEStyle>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QFontDialog>
-
+#include <math.h>
 #include <numeric/interpolation.h>
 #include <graphic/shapes/shape.h>
 #include <graphic/shapes/ellipse.h>
@@ -20,6 +16,7 @@
 #include <graphic/charts/simpleplot/scale.h>
 #include <graphic/charts/simpleplot/axis.h>
 #include <graphic/charts/simpleplot/graph.h>
+#include <app/qt/simpleplotapp/appframe.h>
 
 Q_DECLARE_METATYPE(aux::TypeId)
 
@@ -279,7 +276,7 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
   memset(&buf[0],0,256);
   char *tok=0;
   int cntx=0,cnty=0,cntplot=0;
-  double minx=aux::dnan,maxx=aux::dnan,miny=aux::dnan,maxy=aux::dnan;
+  double minx=mk_dnan,maxx=mk_dnan,miny=mk_dnan,maxy=mk_dnan;
 
   FILE *fp=fopen((const char *)m_datafile,"r");
   if (!fp)
@@ -409,7 +406,7 @@ void AppFrame::slotChart2Action() {
   graphdata->setSortype(0);
   aux::Vector3 v;
   for (i=0;i<cnttstdata;i++) {
-    v.setXY((double)(i*360/(cnttstdata-1)),100.*sin((double)(i*360/(cnttstdata-1))*aux::rad));
+    v.setXY((double)(i*360/(cnttstdata-1)),100.*sin((double)(i*360/(cnttstdata-1))*mk_rad));
     if (i==cnttstdata/2-1) 
       v.setY(v.y()-9.);
     j=graphdata->setData(-1,&v);
@@ -449,7 +446,7 @@ void AppFrame::slotChart2Action() {
   graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
   for (i=0;i<cnttstdata;i++) {
-    v.setXY((double)(i*360/(cnttstdata-1)),50.*cos((double)(i*360/(cnttstdata-1))*aux::rad));
+    v.setXY((double)(i*360/(cnttstdata-1)),50.*cos((double)(i*360/(cnttstdata-1))*mk_rad));
     j=graphdata->setData(-1,&v);
   }
   
@@ -493,7 +490,7 @@ void AppFrame::slotT1Action() {
   for (i=0;i<ngr;i++) {
     graph=grL.at(i);
     for (j=0;j<cnttstdata;j++) {
-      v.setXY((double)(t1cnt+j*360/(cnttstdata-1)),100.*(i%2==1 ? cos((double)(t1cnt+j*360/(cnttstdata-1))*aux::rad) : sin((double)(t1cnt+j*360/(cnttstdata-1))*aux::rad)));
+      v.setXY((double)(t1cnt+j*360/(cnttstdata-1)),100.*(i%2==1 ? cos((double)(t1cnt+j*360/(cnttstdata-1))*mk_rad) : sin((double)(t1cnt+j*360/(cnttstdata-1))*mk_rad)));
       if (t1cnt==20) {
         graph->setValue(j,&v,&modb);
         if (modb>modbounds) 

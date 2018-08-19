@@ -2,10 +2,6 @@
 #ifndef _QTWIDGETS_
 #define _QTWIDGETS_
 
-#include <auxx/auxx.h>
-#include <osix/xxevent.h>
-#include <osix/xxshape.h>
-#include <stdio.h>
 #include <QtCore/QObject>
 #include <QtCore/QMetaObject>
 #include <QtCore/QString>
@@ -18,6 +14,10 @@
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QLayout>
+#include <stdio.h>
+#include <auxx/auxx.h>
+#include <osix/xxevent.h>
+#include <osix/xxshape.h>
 //#include <qt/util/qtcolortriangle.h>
 
 namespace qtutil {

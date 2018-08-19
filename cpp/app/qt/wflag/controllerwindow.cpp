@@ -3,6 +3,22 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
+#include <QX11Info>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <xcb/xcb.h>
+
+bool CNativeEventFilter::nativeEventFilter(const QByteArray &type,void *msg,long *res) {
+
+  if (strlen(type.constData())==19 && 
+      strncmp(type.constData(),"xcb_generic_event_t",19)==0) {
+//printf ("%d [%d]\n",__LINE__,((xcb_generic_event_t*)msg)->response_type);
+  }
+  return false;
+}
+
 ControllerWindow::ControllerWindow()
 {
     //previewWindow = new PreviewWindow(this);
@@ -32,6 +48,9 @@ fprintf(stderr,"%d [%d] screens\n",__LINE__,noScreens);
     setWindowTitle(tr("Window Flags"));
     updatePreview();
     setWindowFlags(Qt::WindowStaysOnTopHint);
+
+    qApp->installNativeEventFilter(new CNativeEventFilter(this));
+
 }
 
 void ControllerWindow::updatePreview()

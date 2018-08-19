@@ -6,7 +6,7 @@ namespace aux {
 
 Vertex::Vertex() {
 
-  m_xyzw[0]=m_xyzw[1]=m_xyzw[2]=m_xyzw[3]=dnan;
+  m_xyzw[0]=m_xyzw[1]=m_xyzw[2]=m_xyzw[3]=mk_dnan;
 
 }
 
@@ -79,35 +79,39 @@ Vertex &Vertex::operator=(const Vertex &ass) {
 
 bool Vertex::operator==(const Vertex &cmp) const {
 
-  return (deq(m_xyzw[0],cmp.m_xyzw[0]) &&
-          deq(m_xyzw[1],cmp.m_xyzw[1]) &&
-          deq(m_xyzw[2],cmp.m_xyzw[2]) &&
-          deq(m_xyzw[3],cmp.m_xyzw[3]));
+  return (mk_deq(m_xyzw[0],cmp.m_xyzw[0]) &&
+          mk_deq(m_xyzw[1],cmp.m_xyzw[1]) &&
+          mk_deq(m_xyzw[2],cmp.m_xyzw[2]) &&
+          mk_deq(m_xyzw[3],cmp.m_xyzw[3]));
 
 }
 
 bool Vertex::operator<(const Vertex &cmp) const {
 
-  return (dlt(m_xyzw[0],cmp.m_xyzw[0]) || 
-          (deq(m_xyzw[0],cmp.m_xyzw[0]) && (dlt(m_xyzw[1],cmp.m_xyzw[1]) ||
-          (deq(m_xyzw[1],cmp.m_xyzw[1]) && (dlt(m_xyzw[2],cmp.m_xyzw[2]) ||
-          (deq(m_xyzw[2],cmp.m_xyzw[2]) && dlt(m_xyzw[3],cmp.m_xyzw[3])))))));
+  return (mk_dlt(m_xyzw[0],cmp.m_xyzw[0]) || 
+          (mk_deq(m_xyzw[0],cmp.m_xyzw[0]) && (mk_dlt(m_xyzw[1],cmp.m_xyzw[1]) ||
+          (mk_deq(m_xyzw[1],cmp.m_xyzw[1]) && (mk_dlt(m_xyzw[2],cmp.m_xyzw[2]) ||
+          (mk_deq(m_xyzw[2],cmp.m_xyzw[2]) && mk_dlt(m_xyzw[3],cmp.m_xyzw[3])))))));
 
 }
 
 double Vertex::operator[](int type) const {
 
-  return (type<0 || type>3 ? dnan : m_xyzw[type]);
+  return (type<0 || type>3 ? mk_dnan : m_xyzw[type]);
 
 }
 
 Vertex Vertex::operator+(const Vertex &other) const {
 
   return Vertex (
-    dbusted(m_xyzw[0])==0 && dbusted(other.m_xyzw[0])==0 ? m_xyzw[0]+other.m_xyzw[0] : dnan,
-    dbusted(m_xyzw[1])==0 && dbusted(other.m_xyzw[1])==0 ? m_xyzw[1]+other.m_xyzw[1] : dnan,
-    dbusted(m_xyzw[2])==0 && dbusted(other.m_xyzw[2])==0 ? m_xyzw[2]+other.m_xyzw[2] : dnan,
-    dbusted(m_xyzw[3])==0 && dbusted(other.m_xyzw[3])==0 ? m_xyzw[3]+other.m_xyzw[3] : dnan
+    mk_isBusted(m_xyzw[0])==0 && mk_isBusted(other.m_xyzw[0])==0 ? 
+      m_xyzw[0]+other.m_xyzw[0] : mk_dnan,
+    mk_isBusted(m_xyzw[1])==0 && mk_isBusted(other.m_xyzw[1])==0 ? 
+      m_xyzw[1]+other.m_xyzw[1] : mk_dnan,
+    mk_isBusted(m_xyzw[2])==0 && mk_isBusted(other.m_xyzw[2])==0 ? 
+      m_xyzw[2]+other.m_xyzw[2] : mk_dnan,
+    mk_isBusted(m_xyzw[3])==0 && mk_isBusted(other.m_xyzw[3])==0 ? 
+      m_xyzw[3]+other.m_xyzw[3] : mk_dnan
   );
 
 }
@@ -115,22 +119,26 @@ Vertex Vertex::operator+(const Vertex &other) const {
 Vertex Vertex::operator-(const Vertex &other) const {
 
   return Vertex (
-    dbusted(m_xyzw[0])==0 && dbusted(other.m_xyzw[0])==0 ? m_xyzw[0]-other.m_xyzw[0] : dnan,
-    dbusted(m_xyzw[1])==0 && dbusted(other.m_xyzw[1])==0 ? m_xyzw[1]-other.m_xyzw[1] : dnan,
-    dbusted(m_xyzw[2])==0 && dbusted(other.m_xyzw[2])==0 ? m_xyzw[2]-other.m_xyzw[2] : dnan,
-    dbusted(m_xyzw[3])==0 && dbusted(other.m_xyzw[3])==0 ? m_xyzw[3]-other.m_xyzw[3] : dnan
+    mk_isBusted(m_xyzw[0])==0 && mk_isBusted(other.m_xyzw[0])==0 ? 
+      m_xyzw[0]-other.m_xyzw[0] : mk_dnan,
+    mk_isBusted(m_xyzw[1])==0 && mk_isBusted(other.m_xyzw[1])==0 ? 
+      m_xyzw[1]-other.m_xyzw[1] : mk_dnan,
+    mk_isBusted(m_xyzw[2])==0 && mk_isBusted(other.m_xyzw[2])==0 ? 
+      m_xyzw[2]-other.m_xyzw[2] : mk_dnan,
+    mk_isBusted(m_xyzw[3])==0 && mk_isBusted(other.m_xyzw[3])==0 ? 
+      m_xyzw[3]-other.m_xyzw[3] : mk_dnan
   );
 
 }
 
 Vertex Vertex::operator*(double sc) const {
 
-  int bsc=dbusted(sc);
+  int bsc=mk_isBusted(sc);
   Vertex vsc(
-    dbusted(m_xyzw[0])==0 && bsc==0 ? m_xyzw[0]*sc : dnan,
-    dbusted(m_xyzw[1])==0 && bsc==0 ? m_xyzw[1]*sc : dnan,
-    dbusted(m_xyzw[2])==0 && bsc==0 ? m_xyzw[2]*sc : dnan,
-    dbusted(m_xyzw[3])==0 && bsc==0 ? m_xyzw[3]*sc : dnan
+    mk_isBusted(m_xyzw[0])==0 && bsc==0 ? m_xyzw[0]*sc : mk_dnan,
+    mk_isBusted(m_xyzw[1])==0 && bsc==0 ? m_xyzw[1]*sc : mk_dnan,
+    mk_isBusted(m_xyzw[2])==0 && bsc==0 ? m_xyzw[2]*sc : mk_dnan,
+    mk_isBusted(m_xyzw[3])==0 && bsc==0 ? m_xyzw[3]*sc : mk_dnan
   );
   return vsc;
 
@@ -138,12 +146,12 @@ Vertex Vertex::operator*(double sc) const {
 
 Vertex Vertex::operator/(double sc) const {
 
-  int bsc=dbusted(sc);
+  int bsc=mk_isBusted(sc);
   Vertex vsc(
-    dbusted(m_xyzw[0])==0 && bsc==0 && sc!=.0 ? m_xyzw[0]/sc : dnan,
-    dbusted(m_xyzw[1])==0 && bsc==0 && sc!=.0 ? m_xyzw[1]/sc : dnan,
-    dbusted(m_xyzw[2])==0 && bsc==0 && sc!=.0 ? m_xyzw[2]/sc : dnan,
-    dbusted(m_xyzw[3])==0 && bsc==0 && sc!=.0 ? m_xyzw[3]/sc : dnan
+    mk_isBusted(m_xyzw[0])==0 && bsc==0 && sc!=.0 ? m_xyzw[0]/sc : mk_dnan,
+    mk_isBusted(m_xyzw[1])==0 && bsc==0 && sc!=.0 ? m_xyzw[1]/sc : mk_dnan,
+    mk_isBusted(m_xyzw[2])==0 && bsc==0 && sc!=.0 ? m_xyzw[2]/sc : mk_dnan,
+    mk_isBusted(m_xyzw[3])==0 && bsc==0 && sc!=.0 ? m_xyzw[3]/sc : mk_dnan
   );
   return vsc;
 
@@ -154,19 +162,19 @@ int Vertex::busted(int type) const {
   type=(abs(type)&typeXYZW);
   int res=0;
   if ((type&typeX)>0) {
-    if (dbusted(m_xyzw[0])!=0)
+    if (mk_isBusted(m_xyzw[0])!=0)
       res|=typeX;
   }
   if ((type&typeY)>0) {
-    if (dbusted(m_xyzw[1])!=0)
+    if (mk_isBusted(m_xyzw[1])!=0)
       res|=typeY;
   }
   if ((type&typeZ)>0) {
-    if (dbusted(m_xyzw[2])!=0)
+    if (mk_isBusted(m_xyzw[2])!=0)
       res|=typeZ;
   }
   if ((type&typeW)>0) {
-    if (dbusted(m_xyzw[3])!=0)
+    if (mk_isBusted(m_xyzw[3])!=0)
       res|=typeW;
   }
   return res;
@@ -253,21 +261,21 @@ void Vertex::set(double x,double y,double z,double w) {
 
 double Vertex::len() const {
 
-  double p[3]={dbusted(m_xyzw[0])==0 ? m_xyzw[0] : .0,
-               dbusted(m_xyzw[1])==0 ? m_xyzw[1] : .0,
-               dbusted(m_xyzw[2])==0 ? m_xyzw[2] : .0};
+  double p[3]={mk_isBusted(m_xyzw[0])==0 ? m_xyzw[0] : .0,
+               mk_isBusted(m_xyzw[1])==0 ? m_xyzw[1] : .0,
+               mk_isBusted(m_xyzw[2])==0 ? m_xyzw[2] : .0};
   return sqrt(p[0]*p[0]+p[1]*p[1]+p[2]*p[2]);
 
 }
 
 double Vertex::dot(const Vector3 &other) const {
 
-  double p[2][3]={{dbusted(m_xyzw[0])==0 ? m_xyzw[0] : .0,
-                   dbusted(m_xyzw[1])==0 ? m_xyzw[1] : .0,
-                   dbusted(m_xyzw[2])==0 ? m_xyzw[2] : .0},
-                  {dbusted(other.m_xyzw[0])==0 ? other.m_xyzw[0] : .0,
-                   dbusted(other.m_xyzw[1])==0 ? other.m_xyzw[1] : .0,
-                   dbusted(other.m_xyzw[2])==0 ? other.m_xyzw[2] : .0}};
+  double p[2][3]={{mk_isBusted(m_xyzw[0])==0 ? m_xyzw[0] : .0,
+                   mk_isBusted(m_xyzw[1])==0 ? m_xyzw[1] : .0,
+                   mk_isBusted(m_xyzw[2])==0 ? m_xyzw[2] : .0},
+                  {mk_isBusted(other.m_xyzw[0])==0 ? other.m_xyzw[0] : .0,
+                   mk_isBusted(other.m_xyzw[1])==0 ? other.m_xyzw[1] : .0,
+                   mk_isBusted(other.m_xyzw[2])==0 ? other.m_xyzw[2] : .0}};
   return (p[0][0]*p[1][0]+p[0][1]*p[1][1]+p[0][2]*p[1][2]);
 
 }
@@ -275,24 +283,24 @@ double Vertex::dot(const Vector3 &other) const {
 Vertex Vertex::norm() const {
 
   double nn=len();
-  return Vertex((nn>.0 && dbusted(m_xyzw[0])==0) ? m_xyzw[0]/nn : dnan,
-                 (nn>.0 && dbusted(m_xyzw[1])==0) ? m_xyzw[1]/nn : dnan,
-                 (nn>.0 && dbusted(m_xyzw[2])==0) ? m_xyzw[2]/nn : dnan);
+  return Vertex((nn>.0 && mk_isBusted(m_xyzw[0])==0) ? m_xyzw[0]/nn : mk_dnan,
+                 (nn>.0 && mk_isBusted(m_xyzw[1])==0) ? m_xyzw[1]/nn : mk_dnan,
+                 (nn>.0 && mk_isBusted(m_xyzw[2])==0) ? m_xyzw[2]/nn : mk_dnan);
 
 }
 
 Vertex Vertex::cross(const Vertex &other) const {
 
   return Vertex(
-          ((dbusted(m_xyzw[1])==0 && dbusted(m_xyzw[2])==0 && 
-            dbusted(other.m_xyzw[1])==0 && dbusted(other.m_xyzw[2])==0) ?  
-           m_xyzw[1]*other.m_xyzw[2]-m_xyzw[2]*other.m_xyzw[1] : dnan),
-          ((dbusted(m_xyzw[0])==0 && dbusted(m_xyzw[2])==0 && 
-            dbusted(other.m_xyzw[0])==0 && dbusted(other.m_xyzw[2])==0) ?  
-           m_xyzw[2]*other.m_xyzw[0]-m_xyzw[0]*other.m_xyzw[2] : dnan),
-          ((dbusted(m_xyzw[0])==0 && dbusted(m_xyzw[1])==0 && 
-            dbusted(other.m_xyzw[0])==0 && dbusted(other.m_xyzw[1]))==0 ?  
-           m_xyzw[0]*other.m_xyzw[1]-m_xyzw[1]*other.m_xyzw[0] : dnan)
+          ((mk_isBusted(m_xyzw[1])==0 && mk_isBusted(m_xyzw[2])==0 && 
+            mk_isBusted(other.m_xyzw[1])==0 && mk_isBusted(other.m_xyzw[2])==0) ?  
+           m_xyzw[1]*other.m_xyzw[2]-m_xyzw[2]*other.m_xyzw[1] : mk_dnan),
+          ((mk_isBusted(m_xyzw[0])==0 && mk_isBusted(m_xyzw[2])==0 && 
+            mk_isBusted(other.m_xyzw[0])==0 && mk_isBusted(other.m_xyzw[2])==0) ?  
+           m_xyzw[2]*other.m_xyzw[0]-m_xyzw[0]*other.m_xyzw[2] : mk_dnan),
+          ((mk_isBusted(m_xyzw[0])==0 && mk_isBusted(m_xyzw[1])==0 && 
+            mk_isBusted(other.m_xyzw[0])==0 && mk_isBusted(other.m_xyzw[1]))==0 ?  
+           m_xyzw[0]*other.m_xyzw[1]-m_xyzw[1]*other.m_xyzw[0] : mk_dnan)
   );
 
 }
@@ -313,7 +321,7 @@ double Vertex::angdeg(const Vertex &other) const {
   if (den==.0)
     return .0;
   double arg=dot(other)/den;
-  return acos(arg)/rad;
+  return acos(arg)/mk_rad;
   //return atan2(sqrt(1.-arg*arg),arg)/rad;
 
 }
@@ -322,7 +330,7 @@ void Vertex::toString(Asciistr *str,int prec) const {
 
   if (!str)
     return;
-  char buf[1024];
+  char buf[mk_klen];
   Asciistr numstr;
   strcpy(buf,"Vertex : [");
   d2a(m_xyzw[0],&numstr,(short)prec);
@@ -355,7 +363,7 @@ double lineRot(Vertex l11,Vertex l12,Vertex l21,Vertex l22,Vertex *rotax) {
 double mindistpointplane(Vertex v1,Vertex v2,Vertex v3,Vertex v4,Vertex *vinter) {
   
   aux::Vertex vn=(v2-v1).cross(v3-v1);
-  double lvn=vn.len(),dist=(lvn==.0 ? aux::dnan : vn.dot(v4-v1)/lvn);
+  double lvn=vn.len(),dist=(lvn==.0 ? mk_dnan : vn.dot(v4-v1)/lvn);
   if (vinter)
     *vinter=(lvn==.0 ? Vertex() : v4-vn*(dist/lvn));
   return dist;
@@ -370,9 +378,9 @@ double mindistpointline(Vertex v1,Vertex v2,Vertex v3,Vertex *vinter) {
 
 int cmpVectorI(const void *v,const void *w,int i) {
 
-  if (dlt(((const Vertex*)v)->operator[](i),((const Vertex*)w)->operator[](i)))
+  if (mk_dlt(((const Vertex*)v)->operator[](i),((const Vertex*)w)->operator[](i)))
     return -1;
-  if (dlt(((const Vertex*)w)->operator[](i),((const Vertex*)v)->operator[](i)))
+  if (mk_dlt(((const Vertex*)w)->operator[](i),((const Vertex*)v)->operator[](i)))
     return 1;
   return 0;
 

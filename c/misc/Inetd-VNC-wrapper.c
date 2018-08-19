@@ -26,7 +26,7 @@ copyrighted by Björn Persson.
 
 typedef enum {false = 0, true = 1} boolean;
 
-// CheckDisplayNumber borrowed from vnc-3.3.6-unixsrc/Xvnc/programs/Xserver/hw/vnc/init.c
+/* CheckDisplayNumber borrowed from vnc-3.3.6-unixsrc/Xvnc/programs/Xserver/hw/vnc/init.c */
 static boolean CheckDisplayNumber(int n)
 {
    char fname[32];
