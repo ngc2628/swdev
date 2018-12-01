@@ -23,16 +23,16 @@
 
 namespace num {
 
-const int numinterpolationtypes=6;
+const int numinterpolationtypes=7;
 const char *const interpolationtypes[numinterpolationtypes]=
-{"none","const","linear","spline","polynomial","bezier"};
+{"none","const","linear","spline","polynomial","bezier","bicubic"};
 const int numinerpolationoptions=18;
 const char *const interpolationoptions[numinerpolationoptions]=
 {"notappl","steps","fwd","bwd","lin1","lin2","solve1st","solve2nd","parametric",
  "notaknot","nat","periodic","der1st","der2nd","monotonic","ctrl","eq","regr"};
 
 extern int numsmoothIntermediates;
-extern void oswinexp ellipse(int n,double *x,double *y);
+extern void oswinexp ellipse(int n,double *xx,double *yy);
 
 class oswinexp Interpolation {
 
@@ -50,7 +50,7 @@ class oswinexp Interpolation {
     void type(aux::Asciistr *) const;
     virtual int invalidate();
     virtual int clearCtrl();
-    virtual int setCtrl(int nctrl=0,double *x=0,double *y=0,double *z=0);
+    virtual int setCtrl(int nctrl=0,double *xx=0,double *yy=0,double *zz=0);
     virtual int setCtrl(aux::TVList<aux::Vector3> *);
     int nctrl() const;
     virtual int setup();
@@ -58,8 +58,8 @@ class oswinexp Interpolation {
 												 double start=mk_dnan,double end=mk_dnan);
     virtual int interpol(int,aux::TVList<aux::Vector3> *,
 												 double start=mk_dnan,double end=mk_dnan);
-    virtual double interp(double) const;
-    virtual double extrap(double) const;
+    virtual double interp(double,double yy=mk_dnan) const;
+    virtual double extrap(double,double yy=mk_dnan) const;
     int options(aux::TVList<aux::Asciistr> *optL=0) const;
     int setOptions(aux::TVList<aux::Asciistr> *optL=0,int clr=0);
 
@@ -82,13 +82,13 @@ extern int oswinexp numInterpolIntermediates(Interpolation *);
 class oswinexp InterpolationConst : public Interpolation {
 
   public:
-    InterpolationConst(int nctrl=0,double *x=0,double *y=0);
+    InterpolationConst(int nctrl=0,double *xx=0,double *yy=0);
     virtual ~InterpolationConst();
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
 								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
 								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double) const;
+    double interp(double,double yy=mk_dnan) const;
 
   protected:
     InterpolationConst(const InterpolationConst &) : Interpolation("none") {
@@ -102,13 +102,13 @@ class oswinexp InterpolationConst : public Interpolation {
 class oswinexp InterpolationLinear : public Interpolation {
 
   public:
-    InterpolationLinear(int nctrl=0,double *x=0,double *y=0);
+    InterpolationLinear(int nctrl=0,double *xx=0,double *yy=0);
     virtual ~InterpolationLinear();
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
 								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
 								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double) const;
+    double interp(double,double yy=mk_dnan) const;
 
   protected:
     InterpolationLinear(const InterpolationLinear &) : Interpolation("none") {
@@ -133,8 +133,8 @@ class oswinexp Spline : public Interpolation {
 								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
 								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double) const;
-    double extrap(double) const;
+    double interp(double,double yy=mk_dnan) const;
+    double extrap(double,double yy=mk_dnan) const;
 
     int makeSpline(double *der=0);
     int setSpline(double *der=0);
@@ -158,7 +158,7 @@ class oswinexp SplineP : public Interpolation {
     Spline *m_pYspl;
 
   public:
-    SplineP(int nctrl=0,double *x=0,double *y=0);
+    SplineP(int nctrl=0,double *xx=0,double *yy=0);
     virtual ~SplineP();
     int setup();
     int invalidate();
@@ -166,7 +166,7 @@ class oswinexp SplineP : public Interpolation {
 								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
 								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double) const;
+    double interp(double,double yy=mk_dnan) const;
 
     int makeSpline(double *der1=0,double *der2=0);
     int setSpline(double *der1=0,double *der2=0);
@@ -191,13 +191,13 @@ class oswinexp Polynomial : public Interpolation {
     Polynomial(aux::TVList<aux::Asciistr> *optL=0);
     virtual ~Polynomial();
     int invalidate();
-		int setCtrl(int nctrl=0,double *x=0,double *y=0,double *z=0);
+		int setCtrl(int nctrl=0,double *xx=0,double *yy=0,double *zz=0);
     int setCtrl(aux::TVList<aux::Vector3> *);
     int interpol(int,double *xint=0,double *yint=0,double *zint=0,
 								 double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
 								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double) const;
+    double interp(double,double yy=mk_dnan) const;
     int coeff(double,aux::TVList<double> *);
     int rootsBrute(double *,double,double,int *effdeg=0);
 
@@ -215,20 +215,48 @@ class oswinexp Polynomial : public Interpolation {
 class oswinexp Bezier : public Interpolation {
 
   public:
-    Bezier (int nctrl=0,double *x=0,double *y=0);
+    Bezier(int nctrl=0,double *xx=0,double *yy=0);
     virtual ~Bezier ();
     int interpol (int,double *xint=0, double *yint=0,double *zint=0,
 									double start=mk_dnan,double end=mk_dnan);
     int interpol(int,aux::TVList<aux::Vector3> *,
 								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double d) const {
-      return d;
+    double interp(double dd,double yy=mk_dnan) const {
+      return dd;
     }
 
   protected:
     Bezier(const Bezier &) : Interpolation("none") {
     }
     Bezier &operator=(const Bezier &) {
+      return *this;
+    }
+
+};
+
+class oswinexp BicubicPatch : public Interpolation {
+
+  protected:
+    double *m_derx;
+    double *m_dery;
+    double *m_derxy;
+    double **m_cij;
+
+  public:
+    BicubicPatch (double *xx=0,double *yy=0,double *zz=0);
+    virtual ~BicubicPatch ();
+    int setup();
+    int invalidate();
+    int interpol(int,double *xint=0, double *yint=0,double *zint=0,
+									double start=mk_dnan,double end=mk_dnan);
+    int interpol(int,aux::TVList<aux::Vector3> *,
+								 double start=mk_dnan,double end=mk_dnan);
+    double interp(double,double) const;
+
+  protected:
+    BicubicPatch(const BicubicPatch &) : Interpolation("none") {
+    }
+    BicubicPatch &operator=(const BicubicPatch &) {
       return *this;
     }
 

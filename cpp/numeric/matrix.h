@@ -28,14 +28,14 @@ class oswinexp Matrix {
     int cols() const;
     double **data(int *rows=0,int *cols=0);
     double m(int,int);
-    bool isIdentity();
+    bool isIdentity(double);
     virtual void clearCtrl();
     virtual int setCtrl(int,int,double **);
     virtual void invalidate();
     void reset(bool zero=false);
     int alter(int, int, double);
     void transpose();
-    Matrix &mult(const Matrix &);
+    int mult(Matrix *);
     void toString(aux::Asciistr *) const;
 
 };
@@ -84,12 +84,9 @@ class oswinexp TransformMatrix : public SquareMatrix {
     int shearXZ(double x=.0,double z=.0);
     int shearYZ(double y=.0,double z=.0);
     int transform(aux::Vertex *);
-    
-};
 
-extern int oswinexp ludecomposition(int, double **, double **, int *, double *);
-extern int oswinexp lubacksubstitution(int, double **, int *, double *, double *);
+};
 
 } // namespace
 
-#endif 
+#endif

@@ -41,7 +41,7 @@ int d2a(double d,Asciistr *str,int p,char fmt,int pad,const char *decSep,const c
 
 mk_ulreal nextT(Asciistr *str) {
 
-  mk_ulreal t=mk_nextT();
+  mk_ulreal t=mk_nextt();
   if (str)
     ui2a (t,str);
   return t;
@@ -804,7 +804,7 @@ TypeId::TypeId(const char *name,mk_ulreal idd) : m_idd(idd)  {
   if (name && strlen(name)>0)
     strncpy(&m_type[0],&name[0],mk_idlen-1);
   if (m_idd==0 && strlen(m_type)>0)
-    m_idd=mk_nextCnt();
+    m_idd=mk_nextcnt();
 
 }
 

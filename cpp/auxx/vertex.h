@@ -64,7 +64,7 @@ class oswinexp Vertex {
     Vertex cross(const Vertex &) const;
     double angrad(const Vertex &) const;
     double angdeg(const Vertex &) const;
-    void toString(Asciistr *,int prec=mk_ddPrec) const;
+    void toString(Asciistr *,int prec=mk_ddprec) const;
 
 };
 

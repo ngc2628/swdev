@@ -103,8 +103,8 @@ void xxLine::toString(aux::Asciistr *str) const {
 
 xxRect::xxRect(double left,double top,double right,double bottom) {
   
-  if (mk_isBusted(left)!=0 || mk_isBusted(top)!=0 || 
-      mk_isBusted(right)!=0 || mk_isBusted(bottom)!=0) {
+  if (mk_isbusted(left)!=0 || mk_isbusted(top)!=0 || 
+      mk_isbusted(right)!=0 || mk_isbusted(bottom)!=0) {
     set();
     return;
   }
@@ -134,7 +134,7 @@ xxRect::xxRect(aux::Vector3 lt,aux::Vector3 br) {
 
 xxRect::xxRect(double left,double top,xxRectSize size) {
 
-  if (mk_isBusted(left)!=0 || mk_isBusted(top)!=0) {
+  if (mk_isbusted(left)!=0 || mk_isbusted(top)!=0) {
     set();
     return;
   }
@@ -215,8 +215,8 @@ bool xxRect::operator<(const xxRect &cmp) const {
 
 int xxRect::busted() const {
       
-  return ((mk_isBusted(m_r[0])!=0 || mk_isBusted(m_r[1])!=0 || 
-          mk_isBusted(m_r[2])!=0 || mk_isBusted(m_r[3])!=0) ? 1 : 0);
+  return ((mk_isbusted(m_r[0])!=0 || mk_isbusted(m_r[1])!=0 || 
+          mk_isbusted(m_r[2])!=0 || mk_isbusted(m_r[3])!=0) ? 1 : 0);
    
 }
 
@@ -241,7 +241,7 @@ void xxRect::set(double left,double top,double right,double bottom) {
 
 void xxRect::set(double left,double top,xxRectSize sz) {
       
-  if (mk_isBusted(left)!=0 || mk_isBusted(top)!=0) {
+  if (mk_isbusted(left)!=0 || mk_isbusted(top)!=0) {
     set();
     return;
   }
@@ -267,7 +267,7 @@ void xxRect::set(aux::Vector3 lt,aux::Vector3 br) {
 
 double xxRect::setLeft(double left) {
 
-  if (mk_isBusted(left)!=0) {
+  if (mk_isbusted(left)!=0) {
     set();
     return mk_dnan;
   }
@@ -284,7 +284,7 @@ double xxRect::setLeft(double left) {
 
 double xxRect::setTop(double top) {
 
-  if (mk_isBusted(top)!=0) {
+  if (mk_isbusted(top)!=0) {
     set();
     return mk_dnan;
   }
@@ -301,7 +301,7 @@ double xxRect::setTop(double top) {
 
 double xxRect::setRight(double right) {
 
-  if (mk_isBusted(right)!=0) {
+  if (mk_isbusted(right)!=0) {
     set();
     return mk_dnan;
   }
@@ -318,7 +318,7 @@ double xxRect::setRight(double right) {
 
 double xxRect::setBottom(double bottom) {
 
-  if (mk_isBusted(bottom)!=0) {
+  if (mk_isbusted(bottom)!=0) {
     set();
     return mk_dnan;
   }
@@ -458,7 +458,7 @@ xxRectSize xxRect::resize(double w,double h,unsigned char type) {
      
   if (busted()!=0)
     return xxRectSize();
-  if (mk_isBusted(w)!=0 || mk_isBusted(h)!=0) {
+  if (mk_isbusted(w)!=0 || mk_isbusted(h)!=0) {
     set();
     return xxRectSize();
   }
@@ -492,7 +492,7 @@ aux::Vector3 xxRect::translate(double hor,double ver,unsigned char type) {
 
   if (busted()!=0)
     return aux::Vector3();
-  if (mk_isBusted(hor)!=0 || mk_isBusted(ver)!=0) {
+  if (mk_isbusted(hor)!=0 || mk_isbusted(ver)!=0) {
     set();
     return aux::Vector3();
   }
@@ -528,7 +528,7 @@ aux::Vector3 xxRect::translate(double hor,double ver,unsigned char type) {
 
 void xxRect::rotate(double rot,aux::Vector3 *lt,aux::Vector3 *rt,aux::Vector3 *lb,aux::Vector3 *rb) const {
 
-  if (busted()!=0 || mk_isBusted(rot)!=0) {
+  if (busted()!=0 || mk_isbusted(rot)!=0) {
     if (lt)
       *lt=aux::Vector3();
     if (rt)
@@ -567,7 +567,7 @@ double xxRect::scale(double sc,unsigned char type) {
 
   if (busted()!=0 || m_r[0]<=m_r[2] || m_r[1]<=m_r[3])
     return .0;
-  if (mk_isBusted(sc)!=0) {
+  if (mk_isbusted(sc)!=0) {
     set();
     return .0;
   }

@@ -481,7 +481,7 @@ xappendNumber(m_numfmt,num,m_input,&xinp);
     if (sgn==mk_asciiplus || sgn==mk_asciiminus)
       input.append(sgn);
     input.append(strexpa);
-    if (mk_isNan(mk_a2d((const char *)input))!=0)
+    if (mk_isnan(mk_a2d((const char *)input))!=0)
       return -1;
   }
   else {
@@ -502,7 +502,7 @@ xappendNumber(m_numfmt,num,m_input,&xinp);
       ok=(int)m_numfmt;
       mk_a2ui((const char *)input,&ok);
     }
-    else if (mk_isNan(mk_a2d((const char *)input))!=0)
+    else if (mk_isnan(mk_a2d((const char *)input))!=0)
       return -1;
   }
   setInput(input);
@@ -789,7 +789,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     nd2=(double)sgni2*double(nl2);
   else
     nd2=mk_a2d((const char *)num2.m_str,&prec2);
-  if (mk_isNan(nd1)!=0 || mk_isNan(nd2)!=0)
+  if (mk_isnan(nd1)!=0 || mk_isnan(nd2)!=0)
     return res;
   if (action==fn_plus)
     rd=nd1+nd2;
@@ -805,11 +805,11 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     rd=pow(nd1,1.0/nd2);
   else
     return res;
-  if (!mk_isFinite(rd))
+  if (!mk_isfinite(rd))
     return res;
   int magrd=mk_mag(rd);
   if (isintcalc && (
-    magrd>mk_ui64Mag ||
+    magrd>mk_ui64mag ||
     (action==fn_pow && sgni2<0) ||
      action==fn_invpow ||
      (action==fn_div && (nl1<nl2 || (nl1%nl2)!=0))))
@@ -822,7 +822,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     else if (iaction==fn_minus && sgni1!=sgni2)
       iaction=fn_plus;
     if (iaction==fn_plus) {
-      rl=mk_binAdd(nl1,nl2,&overflow);
+      rl=mk_binadd(nl1,nl2,&overflow);
       if (overflow&1)
         isintcalc=false;
       else if (sgni1<0)
@@ -841,7 +841,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
       }
     }
     else if (iaction==fn_mult) {
-      rl=mk_binMult(nl1,nl2,&overflow);
+      rl=mk_binmult(nl1,nl2,&overflow);
       if (overflow&1)
         isintcalc=false;
       else if ((sgni1<0 && sgni2>0) || (sgni1>0 && sgni2<0))
@@ -855,7 +855,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     else if (iaction==fn_pow) {
       rl=1;
       for (i=0;i<(int)nl2;i++) {
-        rl=mk_binMult(rl,nl1,&overflow);
+        rl=mk_binmult(rl,nl1,&overflow);
         if (overflow&1) {
           isintcalc=false;
           break;
@@ -864,7 +864,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
       if (sgni1<0 && nl2!=0 && nl2%2)
         sgnr=-1;
     }
-    if (isintcalc && rl>(mk_ulreal)mk_i64Limit && sgnr<0)
+    if (isintcalc && rl>(mk_ulreal)mk_i64limit && sgnr<0)
       isintcalc=false;
   }
   aux::Asciistr buf;
@@ -880,7 +880,7 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     if (action==fn_plus || action==fn_minus)
       aux::d2a(rd,&buf,prec1>prec2 ? prec1 : prec2,-1);
     else
-      aux::d2a(rd,&buf,-magrd+mk_dPrec,-1);
+      aux::d2a(rd,&buf,-magrd+mk_dprec,-1);
     res.m_str=buf;
     res.m_option=fmtDec;
     //doFmt(11);
@@ -930,7 +930,7 @@ Entry Calculator::calcUnary(Entry unop) {
     n=double(ni);
   else {
     n=mk_a2d((const char *)numstr.m_str,&prec);
-    if (mk_isNan(n)!=0) {
+    if (mk_isnan(n)!=0) {
       strDbg="err : cannot parse number ";
       strDbg.append((const char *)numstr.m_str);
       errComp(strDbg);
@@ -981,7 +981,7 @@ Entry Calculator::calcUnary(Entry unop) {
     n=log(n);
   }
   else if (unop==fn_powe) {
-    if (n>log(mk_dLimit)) {
+    if (n>log(mk_dlimit)) {
       errComp("err : input too large");
       return res;
     }
@@ -995,7 +995,7 @@ Entry Calculator::calcUnary(Entry unop) {
     n=log10(n);
   }
   else if (unop==fn_pow10) {
-    if (n>(double)mk_mag(mk_dLimit)) {
+    if (n>(double)mk_mag(mk_dlimit)) {
       errComp("err : input too large");
       return res;
     }
@@ -1035,7 +1035,7 @@ Entry Calculator::calcUnary(Entry unop) {
       else
         strmant.append(strexp);
       n=mk_a2d((const char *)strmant,&prec);
-      if (mk_isNan(n)!=0) {
+      if (mk_isnan(n)!=0) {
         errComp(0);
         return res;
       }
@@ -1046,7 +1046,7 @@ Entry Calculator::calcUnary(Entry unop) {
   if (isintcalc)
     aux::ui2a(ni,&buf,m_numfmt);
   else {
-    aux::d2a(n,&buf,-mk_mag(n)+mk_dPrec,-1);
+    aux::d2a(n,&buf,-mk_mag(n)+mk_dprec,-1);
     //doFmt(11);
   }
   numstr.m_str=buf;

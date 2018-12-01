@@ -12,6 +12,7 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 #include <mkbase/mkbase.h>
+#include <mkbase/mkla.h>
 
 namespace aux {
 
@@ -122,7 +123,7 @@ class oswinexp Rounded {
   public:
     double m_d;
     int m_a;
-    Rounded(double d=mk_dnan,int a=mk_sLimit) : m_d(d),m_a(a) {
+    Rounded(double d=mk_dnan,int a=mk_slimit) : m_d(d),m_a(a) {
     }
     Rounded(const Rounded &ass) : m_d(ass.m_d),m_a(ass.m_a) {
     }
@@ -654,7 +655,7 @@ template <class X> class TPArr {
   public:
     int m_autoGrow;
     TPArr(int sz=0) : 
-      m_sz(sz<0 ? 0 : (sz>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : sz)),
+      m_sz(sz<0 ? 0 : (sz>=(int)mk_ipow2(mk_maxarrsz) ? (int)mk_ipow2(mk_maxarrsz)-1 : sz)),
       m_last(-1),m_arr(0),m_autoGrow(1) {
       if (m_sz>0) {
         m_arr=new X*[(size_t)m_sz];
@@ -685,8 +686,8 @@ template <class X> class TPArr {
     int resize(int sz,int destr=0) {
       if (sz<0)
         sz=0;
-      else if (sz>=mk_ipow2(mk_maxArrSz))
-        sz=(int)mk_ipow2(mk_maxArrSz)-1;
+      else if (sz>=mk_ipow2(mk_maxarrsz))
+        sz=(int)mk_ipow2(mk_maxarrsz)-1;
       if (sz==m_sz)
         return m_sz;
       int ii=0;
@@ -777,7 +778,7 @@ template <class X> class TVArr {
   public:
     int m_autoGrow;
     TVArr(int sz=0) : 
-      m_sz(sz<0 ? 0 : (sz>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : sz)),
+      m_sz(sz<0 ? 0 : (sz>=(int)mk_ipow2(mk_maxarrsz) ? (int)mk_ipow2(mk_maxarrsz)-1 : sz)),
       m_last(-1),m_arr(0),dum(X()),m_autoGrow(true) {
       if (m_sz>0) {
         m_arr=new X[(size_t)m_sz];
@@ -831,8 +832,8 @@ template <class X> class TVArr {
     int resize(int sz) {
       if (sz<0)
         sz=0;
-      else if (sz>=mk_ipow2(mk_maxArrSz))
-        sz=(int)mk_ipow2(mk_maxArrSz)-1;
+      else if (sz>=mk_ipow2(mk_maxarrsz))
+        sz=(int)mk_ipow2(mk_maxarrsz)-1;
       if (sz==m_sz)
         return m_sz;
       X *arr=0;
@@ -893,7 +894,7 @@ template <class X> class TPList {
     int (*cmp)(const void *,const void *);
     TPList(int sz=0) : m_sz(0),m_cnt(0),m_idx(-1),m_sorted(0),m_list(0),m_autoGrow(1),cmp(0) {
       int ii=0;
-      while (ii<mk_maxArrSz && mk_ipow2(ii)<=sz)
+      while (ii<mk_maxarrsz && mk_ipow2(ii)<=sz)
         ii++;
       m_sz=(int)mk_ipow2(ii)-1;
       if (m_sz>0) {
@@ -944,7 +945,7 @@ template <class X> class TPList {
     }
     int resize(int sz,int destr=0) {
       int ii=0;
-      while (ii<mk_maxArrSz && mk_ipow2(ii)<=sz)
+      while (ii<mk_maxarrsz && mk_ipow2(ii)<=sz)
         ii++;
       sz=(int)mk_ipow2(ii)-1;
       if (sz==m_sz)
@@ -1536,8 +1537,8 @@ template <class X> class TPArr2d {
     TPArr2d(int rows=0,int cols=0) : m_rows(0),m_cols(0),m_arr(0),m_autoGrow(1) {
       int ii=0;
       if (rows>0 && cols>0) {
-        m_rows=(rows>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : rows);
-        m_cols=(cols>=(int)mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : cols);
+        m_rows=(rows>=(int)mk_ipow2(mk_maxarrsz) ? (int)mk_ipow2(mk_maxarrsz)-1 : rows);
+        m_cols=(cols>=(int)mk_ipow2(mk_maxarrsz) ? (int)mk_ipow2(mk_maxarrsz)-1 : cols);
         m_arr=new X**[(size_t)m_rows];
         for (ii=0;ii<m_rows;ii++) {
           m_arr[ii]=new X*[(size_t)m_cols];
@@ -1589,10 +1590,10 @@ template <class X> class TPArr2d {
     int resize(int r,int c,int destr=0) {
       if (r<=0 || c<=0)
         r=c=0;
-      if (r>=mk_ipow2(mk_maxArrSz))
-        r=(int)mk_ipow2(mk_maxArrSz)-1;
-      if (c>=mk_ipow2(mk_maxArrSz))
-        c=(int)mk_ipow2(mk_maxArrSz)-1;
+      if (r>=mk_ipow2(mk_maxarrsz))
+        r=(int)mk_ipow2(mk_maxarrsz)-1;
+      if (c>=mk_ipow2(mk_maxarrsz))
+        c=(int)mk_ipow2(mk_maxarrsz)-1;
       if (r==m_rows && c==m_cols)
         return m_rows*m_cols;
       int ii=0,jj=0;
@@ -1718,8 +1719,8 @@ template <class X> class TVArr2d {
       m_rows(0),m_cols(0),m_arr(0),dum(xdum),m_autoGrow(1) {
       int ii=0,jj=0;
       if (rows>0 && cols>0) {
-        m_rows=(rows>=mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : rows);
-        m_cols=(cols>=mk_ipow2(mk_maxArrSz) ? (int)mk_ipow2(mk_maxArrSz)-1 : cols);
+        m_rows=(rows>=mk_ipow2(mk_maxarrsz) ? (int)mk_ipow2(mk_maxarrsz)-1 : rows);
+        m_cols=(cols>=mk_ipow2(mk_maxarrsz) ? (int)mk_ipow2(mk_maxarrsz)-1 : cols);
         m_arr=new X*[m_rows];
         for (ii=0;ii<m_rows;ii++) {
           m_arr[ii]=new X[m_cols];
@@ -1798,10 +1799,10 @@ template <class X> class TVArr2d {
       dum=xdum;
       if (r<=0 || c<=0)
         r=c=0;
-      if (r>=mk_ipow2(mk_maxArrSz))
-        r=(int)mk_ipow2(mk_maxArrSz)-1;
-      if (c>=mk_ipow2(mk_maxArrSz))
-        c=(int)mk_ipow2(mk_maxArrSz)-1;
+      if (r>=mk_ipow2(mk_maxarrsz))
+        r=(int)mk_ipow2(mk_maxarrsz)-1;
+      if (c>=mk_ipow2(mk_maxarrsz))
+        c=(int)mk_ipow2(mk_maxarrsz)-1;
       if (r==m_rows && c==m_cols)
         return m_rows*m_cols;
       int ii=0,jj=0;

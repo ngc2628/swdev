@@ -1,5 +1,5 @@
 
-#include <xt/gl/tst11/globals.h>
+#include <xt/gl/tst11/statics.h>
 #include <xt/gl/tst11/form.h>
 #include <xt/gl/tst11/dialogs.h>
 #include <xt/gl/tst11/glw.h>
@@ -147,13 +147,13 @@ Widget createMainFrame(Widget parent) {
   XtSetValues(selectorbutton_w[0],xxargs,1);
   XtSetArg(xxargs[0],XmNminimum,-50);
   XtSetArg(xxargs[1],XmNmaximum,50);
-  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx].xyzw[0]);
+  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx][0]);
   XtSetValues(xmod_w,xxargs,3);
-  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx].xyzw[1]);
+  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx][1]);
   XtSetValues(ymod_w,xxargs,3);
   XtSetArg(xxargs[0],XmNminimum,-2500);
   XtSetArg(xxargs[1],XmNmaximum,10);
-  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx].xyzw[2]);
+  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx][2]);
   XtSetValues(zmod_w,xxargs,3);
 
   XtSetArg(xxargs[0],XtNbackground,bgchk);
@@ -172,7 +172,7 @@ Widget createMainFrame(Widget parent) {
 
 }
 
-void cbModSel(Widget ww,XtPointer,XtPointer data) {
+void cbModSel(Widget ww,XtPointer userdata,XtPointer data) {
 
   XmToggleButtonCallbackStruct *tbdata=(XmToggleButtonCallbackStruct*)data;
   //XmCR_VALUE_CHANGED
@@ -221,20 +221,20 @@ void cbModSel(Widget ww,XtPointer,XtPointer data) {
     XtSetArg(xxargs[1],XmNmaximum,100);
   }
 
-  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx].xyzw[0]);
+  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx][0]);
   XtSetValues(xmod_w,xxargs,3);
-  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx].xyzw[1]);
+  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx][1]);
   XtSetValues(ymod_w,xxargs,3);
   if (selectidx==idxtr) {
     XtSetArg(xxargs[0],XmNminimum,-2500);
     XtSetArg(xxargs[1],XmNmaximum,10);
   }
-  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx].xyzw[2]);
+  XtSetArg(xxargs[2],XmNvalue,transformV[selectidx][2]);
   XtSetValues(zmod_w,xxargs,3);
 
 }
 
-void cbModView(Widget ww,XtPointer,XtPointer data) {
+void cbModView(Widget ww,XtPointer userdata,XtPointer data) {
 
   XmScaleCallbackStruct *scdata=(XmScaleCallbackStruct*)data;
 
@@ -244,13 +244,13 @@ void cbModView(Widget ww,XtPointer,XtPointer data) {
     return;
 
   if (strcmp(XtName(ww),strX)==0) {
-    transformV[selectidx].xyzw[0]=(double)scdata->value;
+    transformV[selectidx][0]=(double)scdata->value;
   }
   else if (strcmp(XtName(ww),strY)==0) {
-    transformV[selectidx].xyzw[1]=(double)scdata->value;
+    transformV[selectidx][1]=(double)scdata->value;
   }
   else if (strcmp(XtName(ww),strZ)==0) {
-    transformV[selectidx].xyzw[2]=(double)scdata->value;
+    transformV[selectidx][2]=(double)scdata->value;
   }
 
   redrawGl(glwidget_w,(void*)0,(void*)0);

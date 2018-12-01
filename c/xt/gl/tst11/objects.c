@@ -7,47 +7,55 @@ static const float tstcolor[5][4]={
 {.5,.9,.7,1.},{.5,.7,.9,1.},{.4,.4,.4,1.},{.9,.7,.5,1.},{.9,.1,.6,1.}
 };
 
-struct mk_vertex sphere_vertex[12]=
-{ {{-sphere_dist[0],.0,sphere_dist[1],1.}},{{sphere_dist[0],.0,sphere_dist[1],1.}},
-  {{-sphere_dist[0],.0,-sphere_dist[1],1.}},{{sphere_dist[0],.0,-sphere_dist[1],1.}},
-  {{.0,sphere_dist[1],sphere_dist[0],1.}},{{.0,sphere_dist[1],-sphere_dist[0],1.}},
-  {{.0,-sphere_dist[1],sphere_dist[0],1.}},{{.0,-sphere_dist[1],-sphere_dist[0],1.}},
-  {{sphere_dist[1],sphere_dist[0],.0,1.}},{{-sphere_dist[1],sphere_dist[0],.0,1.}},
-  {{sphere_dist[1],-sphere_dist[0],.0,1.}},{{-sphere_dist[1],-sphere_dist[0],.0,1.}} };
+int sphere_index[sphere_n][3]={
+{0,4,1},{0,9,4},{9,5,4},{4,5,8},{4,8,1},
+{8,10,1},{8,3,10},{5,3,8},{5,2,3},{2,7,3},
+{7,10,3},{7,6,10},{7,11,6},{11,0,6},{0,1,6},
+{6,1,10},{9,0,11},{9,11,2},{9,2,5},{7,2,11} };
 
-struct mk_vertex cube_vertex[36]=
-  { {{-cube_dist,-cube_dist,-cube_dist,1.}},{{-cube_dist,-cube_dist,cube_dist,1.}},
-    {{-cube_dist,cube_dist,cube_dist,1.}},{{cube_dist,cube_dist,-cube_dist,1.}},
-    {{-cube_dist,-cube_dist,-cube_dist,1.}},{{-cube_dist,cube_dist,-cube_dist,1.}},
-    {{cube_dist,-cube_dist,cube_dist,1.}},{{-cube_dist,-cube_dist,-cube_dist,1.}},
-    {{cube_dist,-cube_dist,-cube_dist,1.}},{{cube_dist,cube_dist,-cube_dist,1.}},
-    {{cube_dist,-cube_dist,-cube_dist,1.}},{{-cube_dist,-cube_dist,-cube_dist,1.}},
-    {{-cube_dist,-cube_dist,-cube_dist,1.}},{{-cube_dist,cube_dist,cube_dist,1.}},
-    {{-cube_dist,cube_dist,-cube_dist,1.}},{{cube_dist,-cube_dist,cube_dist,1.}},
-    {{-cube_dist,-cube_dist,cube_dist,1.}},{{-cube_dist,-cube_dist,-cube_dist,1.}},
-    {{-cube_dist,cube_dist,cube_dist,1.}},{{-cube_dist,-cube_dist,cube_dist,1.}},
-    {{cube_dist,-cube_dist,cube_dist,1.}},{{cube_dist,cube_dist,cube_dist,1.}},
-    {{cube_dist,-cube_dist,-cube_dist,1.}},{{cube_dist,cube_dist,-cube_dist,1.}},
-    {{cube_dist,-cube_dist,-cube_dist,1.}},{{cube_dist,cube_dist,cube_dist,1.}},
-    {{cube_dist,-cube_dist,cube_dist,1.}},{{cube_dist,cube_dist,cube_dist,1.}},
-    {{cube_dist,cube_dist,-cube_dist,1.}},{{-cube_dist,cube_dist,-cube_dist,1.}},
-    {{cube_dist,cube_dist,cube_dist,1.}},{{-cube_dist,cube_dist,-cube_dist,1.}},
-    {{-cube_dist,cube_dist,cube_dist,1.}},{{cube_dist,cube_dist,cube_dist,1.}},
-    {{-cube_dist,cube_dist,cube_dist,1.}},{{cube_dist,-cube_dist,cube_dist,1.}} };
+mk_vertex sphere_vertex[spherevertex_n]={
+  {-sphere_dist_0,.0,sphere_dist_1},{sphere_dist_0,.0,sphere_dist_1},
+  {-sphere_dist_0,.0,-sphere_dist_1},{sphere_dist_0,.0,-sphere_dist_1},
+  {.0,sphere_dist_1,sphere_dist_0},{.0,sphere_dist_1,-sphere_dist_0},
+  {.0,-sphere_dist_1,sphere_dist_0},{.0,-sphere_dist_1,-sphere_dist_0},
+  {sphere_dist_1,sphere_dist_0,.0},{-sphere_dist_1,sphere_dist_0,.0},
+  {sphere_dist_1,-sphere_dist_0,.0},{-sphere_dist_1,-sphere_dist_0,.0}
+};
+
+mk_vertex cube_vertex[cube_n]={
+  {-cube_dist,-cube_dist,-cube_dist},{-cube_dist,-cube_dist,cube_dist},
+  {-cube_dist,cube_dist,cube_dist},{cube_dist,cube_dist,-cube_dist},
+  {-cube_dist,-cube_dist,-cube_dist},{-cube_dist,cube_dist,-cube_dist},
+  {cube_dist,-cube_dist,cube_dist},{-cube_dist,-cube_dist,-cube_dist},
+  {cube_dist,-cube_dist,-cube_dist},{cube_dist,cube_dist,-cube_dist},
+  {cube_dist,-cube_dist,-cube_dist},{-cube_dist,-cube_dist,-cube_dist},
+  {-cube_dist,-cube_dist,-cube_dist},{-cube_dist,cube_dist,cube_dist},
+  {-cube_dist,cube_dist,-cube_dist},{cube_dist,-cube_dist,cube_dist},
+  {-cube_dist,-cube_dist,cube_dist},{-cube_dist,-cube_dist,-cube_dist},
+  {-cube_dist,cube_dist,cube_dist},{-cube_dist,-cube_dist,cube_dist},
+  {cube_dist,-cube_dist,cube_dist},{cube_dist,cube_dist,cube_dist},
+  {cube_dist,-cube_dist,-cube_dist},{cube_dist,cube_dist,-cube_dist},
+  {cube_dist,-cube_dist,-cube_dist},{cube_dist,cube_dist,cube_dist},
+  {cube_dist,-cube_dist,cube_dist},{cube_dist,cube_dist,cube_dist},
+  {cube_dist,cube_dist,-cube_dist},{-cube_dist,cube_dist,-cube_dist},
+  {cube_dist,cube_dist,cube_dist},{-cube_dist,cube_dist,-cube_dist},
+  {-cube_dist,cube_dist,cube_dist},{cube_dist,cube_dist,cube_dist},
+  {-cube_dist,cube_dist,cube_dist},{cube_dist,-cube_dist,cube_dist}
+};
 
 int sphere_level=0,cube_level=0;
 
 static int trianglenormal(
-  struct mk_vertex *v1,struct mk_vertex *v2,struct mk_vertex *v3,
-  struct mk_vertex *trianglenormal,struct mk_vertex *trianglecenter) {
+  mk_vertex *v1,mk_vertex *v2,mk_vertex *v3,
+  mk_vertex *trianglenormal,mk_vertex *trianglecenter) {
 
   if (trianglecenter) {
-    trianglecenter->xyzw[0]=((v1->xyzw[0]+v2->xyzw[0]+v3->xyzw[0])/3.);
-    trianglecenter->xyzw[1]=((v1->xyzw[1]+v2->xyzw[1]+v3->xyzw[1])/3.);
-    trianglecenter->xyzw[2]=((v1->xyzw[2]+v2->xyzw[2]+v3->xyzw[2])/3.);
+    (*trianglecenter)[0]=(((*v1)[0]+(*v2)[0]+(*v3)[0])/3.);
+    (*trianglecenter)[1]=(((*v1)[1]+(*v2)[1]+(*v3)[1])/3.);
+    (*trianglecenter)[2]=(((*v1)[2]+(*v2)[2]+(*v3)[2])/3.);
   }
 
-  struct mk_vertex vv23;
+  mk_vertex vv23;
   mk_vertexcopy(trianglenormal,v1);
   mk_vertexsubs(trianglenormal,v2);
   mk_vertexcopy(&vv23,v2);
@@ -59,30 +67,29 @@ static int trianglenormal(
 }
 
 static void obj_trianglenormal(
-  struct mk_vertex *v1,struct mk_vertex *v2,struct mk_vertex *v3) {
+  mk_vertex *v1,mk_vertex *v2,mk_vertex *v3) {
 
-  struct mk_vertex normal,center;
+  mk_vertex normal,center;
   trianglenormal(v1,v2,v3,&normal,&center);
-  glVertex3dv(&center.xyzw[0]);
+  glVertex3dv(&center[0]);
   mk_vertexadd(&center,&normal);
-  glVertex3dv(&center.xyzw[0]);
+  glVertex3dv(&center[0]);
 
 }
 
 static void obj_triangle(
-  struct mk_vertex *v1,struct mk_vertex *v2,struct mk_vertex *v3) {
-
-  struct mk_vertex normal;
+  mk_vertex *v1,mk_vertex *v2,mk_vertex *v3) {
+  mk_vertex normal;
   trianglenormal(v1,v2,v3,&normal,0);
-  glNormal3dv(&normal.xyzw[0]);
-  glVertex3dv(&(v1->xyzw)[0]);
-  glVertex3dv(&(v2->xyzw[0]));
-  glVertex3dv(&(v3->xyzw[0]));
+  glNormal3dv(&normal[0]);
+  glVertex3dv(&((*v1)[0]));
+  glVertex3dv(&((*v2)[0]));
+  glVertex3dv(&((*v3)[0]));
 
 }
 
 static void subtriangle(
-  struct mk_vertex *v1,struct mk_vertex *v2,struct mk_vertex *v3,
+  mk_vertex *v1,mk_vertex *v2,mk_vertex *v3,
   int level,struct mk_vertices *vL) {
 
   if (level<0)
@@ -95,7 +102,7 @@ static void subtriangle(
     return;
   }
 
-  struct mk_vertex v12,v23,v31;
+  mk_vertex v12,v23,v31;
   mk_vertexcopy(&v12,v1);
   mk_vertexadd(&v12,v2);
   mk_vertexcopy(&v23,v2);
@@ -127,7 +134,7 @@ static void obj_sphere(int level) {
   glGetBooleanv(GL_LIGHTING,&ison[0]);
 
   int ii=0;
-  struct mk_vertices vL={0,0,4*20*(int)pow(4.,level)}; /* 4 : do not exhaust */
+  struct mk_vertices vL={4*20*(int)pow(4.,level),0,0}; /* 4 : do not exhaust */
   mk_verticesalloc(&vL);
   for (ii=0;ii<sphere_n;ii++) {
     subtriangle(
@@ -137,6 +144,7 @@ static void obj_sphere(int level) {
     );
   }
   int vcnt=vL.cnt;
+  mk_vertex *v1=0,*v2=0,*v3=0;
 
   glPushMatrix();
   glTranslated(-1.,0.,0.);
@@ -149,7 +157,10 @@ static void obj_sphere(int level) {
     for (ii=0;ii<vcnt;ii+=3) {
       if (ii==95*vcnt/100 && !ison[0])
         glColor4fv(tstcolor[3]);
-      obj_triangle(mk_verticesget(&vL,ii),mk_verticesget(&vL,ii+1),mk_verticesget(&vL,ii+2));
+      v1=mk_verticesget(&vL,ii);
+      v2=mk_verticesget(&vL,ii+1);
+      v3=mk_verticesget(&vL,ii+2);
+      obj_triangle(v1,v2,v3);
     }
     glEnd();
   }
@@ -175,6 +186,7 @@ static void obj_sphere(int level) {
   }
 
   glPopMatrix();
+  mk_verticesfree(&vL);
 
 }
 
@@ -239,7 +251,7 @@ static void obj_sphere20() {
   glGetBooleanv(GL_LIGHTING,&ison[0]);
 
   int ii=0,jj=0;
-  struct mk_vertex *vv=0;
+  mk_vertex *vv=0;
 
   glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
   if (!ison[0])
@@ -251,7 +263,7 @@ static void obj_sphere20() {
       glColor4fv(tstcolor[2]);
     for (jj=0;jj<3;jj++) {
       vv=&(sphere_vertex[sphere_index[ii][jj]]);
-      glVertex3d(vv->xyzw[0],vv->xyzw[1],vv->xyzw[2]);
+      glVertex3d((*vv)[0],(*vv)[1],(*vv)[2]);
     }
   }
   glEnd();
@@ -264,7 +276,7 @@ static void obj_sphere20() {
   for (ii=0;ii<sphere_n;ii++) {
     for (jj=0;jj<3;jj++) {
       vv=&(sphere_vertex[sphere_index[ii][jj]]);
-      glVertex3d(vv->xyzw[0],vv->xyzw[1],vv->xyzw[2]);
+      glVertex3d((*vv)[0],(*vv)[1],(*vv)[2]);
     }
   }
   glEnd();
@@ -275,12 +287,12 @@ static void obj_sphere20() {
 void draw_obj() {
 
   glTranslated(
-    transformV[idxtr].xyzw[0],transformV[idxtr].xyzw[1],transformV[idxtr].xyzw[2]);
-  glRotated(transformV[idxrot].xyzw[0],1.,.0,1.);
-  glRotated(transformV[idxrot].xyzw[1],.0,1.,1.);
-  glRotated(transformV[idxrot].xyzw[2],.0,.0,1.);
+    transformV[idxtr][0],transformV[idxtr][1],transformV[idxtr][2]);
+  glRotated(transformV[idxrot][0],1.,.0,1.);
+  glRotated(transformV[idxrot][1],.0,1.,1.);
+  glRotated(transformV[idxrot][2],.0,.0,1.);
   glScaled(
-    transformV[idxsc].xyzw[0],transformV[idxsc].xyzw[1],transformV[idxsc].xyzw[2]);
+    transformV[idxsc][0],transformV[idxsc][1],transformV[idxsc][2]);
 
   obj_sphere(sphere_level-1);
   obj_cube(cube_level-1);

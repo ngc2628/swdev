@@ -3,22 +3,23 @@
 #define OBJECTS_H
 
 #include <mkbase/mkbase.h>
+#include <mkbase/mkla.h>
 #include <GL/gl.h>
 
-const int sphere_n=20,cube_n=36;
-const double sphere_dist[2]={.525731112119133,.850650808352040};
-const double cube_dist=1.;
+#define sphere_n 20
+#define spherevertex_n 12
+#define cube_n 36
+#define sphere_dist_0 .525731112119133
+#define sphere_dist_1 .850650808352040
+#define cube_dist 1.
 
-const int sphere_index[sphere_n][3]={
-{0,4,1},{0,9,4},{9,5,4},{4,5,8},{4,8,1},
-{8,10,1},{8,3,10},{5,3,8},{5,2,3},{2,7,3},
-{7,10,3},{7,6,10},{7,11,6},{11,0,6},{0,1,6},
-{6,1,10},{9,0,11},{9,11,2},{9,2,5},{7,2,11} };
+extern int sphere_index[sphere_n][3];
 
-extern struct mk_vertex sphere_vertex[12];
-extern struct mk_vertex cube_vertex[36];
+extern mk_vertex sphere_vertex[spherevertex_n];
+extern mk_vertex cube_vertex[cube_n];
 
-extern int sphere_level,cube_level;
+extern int sphere_level;
+extern int cube_level;
 extern void draw_obj();
 
 #endif

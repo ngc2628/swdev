@@ -35,8 +35,8 @@
 
 #define mk_diff(...) mk_diff_(NARG4(__VA_ARGS__),__VA_ARGS__)
 #define mk_round2(...) mk_round2_(NARG3(__VA_ARGS__),__VA_ARGS__)
-#define mk_roundUp(...) mk_roundUp_(NARG3(__VA_ARGS__),__VA_ARGS__)
-#define mk_roundDown(...) mk_roundDown_(NARG3(__VA_ARGS__),__VA_ARGS__)
+#define mk_roundup(...) mk_roundup_(NARG3(__VA_ARGS__),__VA_ARGS__)
+#define mk_rounddown(...) mk_rounddown_(NARG3(__VA_ARGS__),__VA_ARGS__)
 #define mk_txtchknum(...) mk_txtchknum_(NARG3(__VA_ARGS__),__VA_ARGS__)
 #define mk_mag(...) mk_mag_(NARG2(__VA_ARGS__),__VA_ARGS__)
 #define mk_a2ui(...) mk_a2ui_(NARG4(__VA_ARGS__),__VA_ARGS__)

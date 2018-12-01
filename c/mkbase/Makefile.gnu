@@ -1,13 +1,13 @@
 
 ####### definitions #######
 
-PRJROOT       = $(SWDIR)
 PRJ           = mkbase
+#DESTDIR       = $(SWDIR)/c/$(PRJ)
 DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
 DEFINES       =
-HEADER        = defs.h exportdefs.h mkbase.h 
-SOURCES       = mkbase.c
+HEADER        = defs.h exportdefs.h mkbase.h mkla.h 
+SOURCES       = mkbase.c mkla.c
 LIBS          = -lz -lm
 SOLN		  = -shared
 
@@ -15,7 +15,7 @@ SOLN		  = -shared
 
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
-vpath					%.c $(SWDIR)/c/$(PRJ)
+vpath					%.c $(DESTDIR)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
 
 ####### compiler flags #######
@@ -23,7 +23,7 @@ OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
 WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type
 WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
 WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
-WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
+WFLAGS4				= -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
 CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
@@ -47,6 +47,7 @@ RM            = rm -f
 RMDIR         = rm -rf
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
+COPY				  = cp -p -u
 
 ####### targets #######
 
@@ -54,6 +55,13 @@ all: $(OBJPRJ) $(TARGET)
 
 $(OBJPRJ):
 	-$(MKDIR) $(OBJPRJ)
+
+install: all
+	-$(MKDIR) $(INCDIR)/$(PRJ)
+	$(COPY) $(HEADER) $(INCDIR)/$(PRJ)
+
+uninstall:
+	$(RMDIR) $(INCDIR)/$(PRJ)
 
 ####### suffix and pattern rules #######
 

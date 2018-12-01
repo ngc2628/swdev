@@ -13,8 +13,8 @@ Polygon2::Polygon2(int npoints) : Shape2("polygon2") {
 
   if (npoints<0)
     npoints=0;
-  else if(npoints>mk_sLimit)
-    npoints=mk_sLimit;
+  else if(npoints>mk_slimit)
+    npoints=mk_slimit;
   if (npoints>0)
     m_ppoints.resize(npoints);
 

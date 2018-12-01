@@ -12,7 +12,7 @@ struct MotifHints {
   unsigned int  status;
 };
 
-const int maxscreens=16;
+#define maxscreens 16
 struct xcbdesktop_t {
   xcb_screen_t *xcbscreen;
   xcb_drawable_t xcbmainwindow;

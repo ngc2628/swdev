@@ -16,7 +16,35 @@
 #include <netdb.h>
 #endif
 
-namespace ipc {
+int bufsz=4096;
+char *inbuf=0;
+char *outbuf=0;
+char *errbuf=0;
+char *hostbuf=0;
+char *linebuf=0;
+int dbgch=2;
+
+int allocbuf() {
+
+  if (!inbuf) 
+    inbuf=(char *)malloc(bufsz);
+  if (!outbuf) 
+    outbuf=(char *)malloc(bufsz);
+  if (!errbuf) 
+    errbuf=(char *)malloc(bufsz);
+  if (!hostbuf) 
+    hostbuf=(char *)malloc(bufsz);
+  if (!linebuf) 
+    linebuf=(char *)malloc(bufsz);
+  memset(&inbuf[0],0,bufsz);
+  memset(&outbuf[0],0,bufsz);
+  memset(&errbuf[0],0,bufsz);
+  memset(&hostbuf[0],0,bufsz);
+  memset(&linebuf[0],0,bufsz);
+
+  return 0;
+
+}
 
 static char basechar[17]={
   '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','0'
@@ -25,7 +53,7 @@ static char basechar[17]={
 static int bufpushint(int nn,int base,char *buf) {
   if (base!=2 && base!=8 && base!=16)
     base=10;
-  int sgn=(nn<0 ? 1 : 0),ii=0,jj=0,ll=strlen(buf),sp=ll+10,ep=sp;
+  int sgn=(nn<0 ? 1 : 0),ii=0,jj=0,ll=(int)strlen(buf),sp=ll+10,ep=sp;
   nn=abs(nn);
   do {
     buf[++ep]=basechar[(int)(nn%base)];
@@ -38,11 +66,6 @@ static int bufpushint(int nn,int base,char *buf) {
   memset(&buf[sp+1],0,ep-sp);
   return jj;
 }
-
-char inbuf[4096]={0};
-char outbuf[4096]={0};
-char errbuf[4096]={0};
-int dbgch=2;
 
 int msgwrite(int fd,char *buf) {
   if (fd>0) {
@@ -88,6 +111,10 @@ int closefd(int *fd) {
   if (strlen(errbuf)>0)
     msgwrite(2,&errbuf[0]);
   else {
+    if (!outbuf) {
+      outbuf=(char*)malloc(bufsz);
+      memset(&outbuf[0],0,bufsz);
+    }
     msgpushint(__LINE__,&outbuf[0]);
     strcat(&outbuf[0]," connection closed on [");
     msgpushint(*fd,&outbuf[0]);
@@ -118,7 +145,6 @@ unsigned short findnextport(unsigned short pp) {
 }
 
 char *xinet_ntoa(unsigned int host,const char *order) {
-  static char hostbuf[128];
   if (order && strlen(order)>0 && strncmp(order,"network",7)==0) {
     unsigned int hh=host;
     host=((hh>>24)&255);
@@ -126,7 +152,7 @@ char *xinet_ntoa(unsigned int host,const char *order) {
     host+=(((hh>>8)&255)<<16);
     host+=((hh&255)<<24);
   }
-  memset(&hostbuf[0],0,128);
+  memset(&hostbuf[0],0,bufsz);
   bufpushint((host>>24)&255,10,hostbuf);
   strcat(hostbuf,".");
   bufpushint((host>>16)&255,10,hostbuf);
@@ -135,6 +161,4 @@ char *xinet_ntoa(unsigned int host,const char *order) {
   strcat(hostbuf,".");
   bufpushint(host&255,10,hostbuf);
   return &hostbuf[0];
-}
-
 }

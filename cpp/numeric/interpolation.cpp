@@ -14,9 +14,9 @@ static double *ellipsey=0;
 static int ellipsen=0;
 int numsmoothIntermediates=500;
 
-void ellipse(int nn,double *x,double *y) {
+void ellipse(int nn,double *xx,double *yy) {
 
-  if (!x || !y || nn<=0)
+  if (!xx || !yy || nn<=0)
     return;
   if (!ellipsex || !ellipsey || ellipsen<=0 || nn!=ellipsen) {
     if (ellipsex)
@@ -39,8 +39,8 @@ void ellipse(int nn,double *x,double *y) {
     }
     ellipsen=nn;
   }
-  memcpy(x,ellipsex,ellipsen*sizeof(double));
-  memcpy(y,ellipsey,ellipsen*sizeof(double));
+  memcpy(xx,ellipsex,ellipsen*sizeof(double));
+  memcpy(yy,ellipsey,ellipsen*sizeof(double));
 
 }
 
@@ -144,17 +144,17 @@ int Interpolation::clearCtrl() {
 
 }
 
-int Interpolation::setCtrl(int nctrl,double *x,double *y,double *z) {
+int Interpolation::setCtrl(int nctrl,double *xx,double *yy,double *zz) {
 
   clearCtrl();
-  return setArr(nctrl,x,y,z);
+  return setArr(nctrl,xx,yy,zz);
 
 }
 
-int Interpolation::setCtrl(aux::TVList<aux::Vector3> *v) {
+int Interpolation::setCtrl(aux::TVList<aux::Vector3> *vv) {
 
   clearCtrl();
-  return setArr(v);
+  return setArr(vv);
 
 }
 
@@ -182,13 +182,13 @@ int Interpolation::interpol(int,aux::TVList<aux::Vector3> *,double,double) {
 
 }
 
-double Interpolation::interp(double val) const {
+double Interpolation::interp(double val,double) const {
 
   return val;
 
 }
 
-double Interpolation::extrap(double val) const {
+double Interpolation::extrap(double val,double) const {
 
   return val;
 
@@ -237,53 +237,53 @@ void Interpolation::clearArr() {
 
 }
 
-int Interpolation::setArr(int nctrl,double *x,double *y,double *z) {
+int Interpolation::setArr(int nctrl,double *xx,double *yy,double *zz) {
 
   clearArr();
-  if (nctrl<=1 || (!x && !y && !z))
+  if (nctrl<=1 || (!xx && !yy && !zz))
     return -1;
-  if (x)
+  if (xx)
     m_x=new double[(size_t)nctrl];
-  if (y)
+  if (yy)
     m_y=new double[(size_t)nctrl];
-  if (z)
+  if (zz)
     m_z=new double[(size_t)nctrl];
   int ii=0;
   for (ii=0;ii<nctrl;ii++) {
-    if (m_x && x)
-      m_x[ii]=x[ii];
-    if (m_y && y)
-      m_y[ii]=y[ii];
-    if (m_z && z)
-      m_z[ii]=z[ii];
+    if (m_x && xx)
+      m_x[ii]=xx[ii];
+    if (m_y && yy)
+      m_y[ii]=yy[ii];
+    if (m_z && zz)
+      m_z[ii]=zz[ii];
   }
   m_nctrl=nctrl;
   return 0;
 
 }
 
-int Interpolation::setArr(aux::TVList<aux::Vector3> *v) {
+int Interpolation::setArr(aux::TVList<aux::Vector3> *vv) {
 
   clearArr();
-  if (!v || v->count()==0)
+  if (!vv || vv->count()==0)
     return -1;
-  m_nctrl=v->count();
+  m_nctrl=vv->count();
   m_x=new double[(size_t)m_nctrl];
   m_y=new double[(size_t)m_nctrl];
   m_z=new double[(size_t)m_nctrl];
   int ii=0;
   for (ii=0;ii<m_nctrl;ii++) {
-    m_x[ii]=v->at(ii)->x();
-    m_y[ii]=v->at(ii)->y();
-    m_z[ii]=v->at(ii)->z();
+    m_x[ii]=vv->at(ii)->x();
+    m_y[ii]=vv->at(ii)->y();
+    m_z[ii]=vv->at(ii)->z();
   }
   return 0;
 
 }
 
-InterpolationConst::InterpolationConst(int nctrl,double *x,double *y) : Interpolation("const") {
+InterpolationConst::InterpolationConst(int nctrl,double *xx,double *yy) : Interpolation("const") {
 
-  setArr(nctrl,x,y,0);
+  setArr(nctrl,xx,yy,0);
 
 }
 
@@ -371,14 +371,14 @@ int InterpolationConst::interpol(int nint,aux::TVList<aux::Vector3> *vint,double
 
 }
 
-double InterpolationConst::interp(double x) const {
+double InterpolationConst::interp(double xx,double) const {
 
   if (m_nctrl<=0 || !m_x || !m_y)
     return mk_dnan;
   aux::Asciistr opt("bwd");
   int ii=0;
   for (ii=1;ii<m_nctrl;ii++) {
-    if (m_x[ii]>x) {
+    if (m_x[ii]>xx) {
       if (m_options.find(opt)>=0)
         return m_y[ii];
       else
@@ -389,10 +389,10 @@ double InterpolationConst::interp(double x) const {
 
 }
 
-InterpolationLinear::InterpolationLinear(int nctrl,double *x,double *y) : 
+InterpolationLinear::InterpolationLinear(int nctrl,double *xx,double *yy) : 
   Interpolation("linear") {
 
-  setArr(nctrl,x,y,0);
+  setArr(nctrl,xx,yy,0);
 
 }
 
@@ -430,7 +430,7 @@ int InterpolationLinear::interpol(int nint,double *xint,double *yint,double *zin
     for (jj=0;jj<chidx;jj++) {
       tmp=xl+(double)(jj+1)*(xh-xl)/(double)(chidx+1);
       xint[++kk]=tmp;
-      yint[kk]=mk_linEq(xl,xh,yl,yh,tmp);
+      yint[kk]=mk_lineq(xl,xh,yl,yh,tmp);
       if (zint)
         zint[ii]=(m_z ? m_z[ii*m_nctrl/nint] : mk_dnan);
     }
@@ -474,7 +474,7 @@ int InterpolationLinear::interpol(int nint,aux::TVList<aux::Vector3> *vint,doubl
     yh=m_y[ii];
     for (jj=0;jj<chidx;jj++) {
       tmp=xl+(double)(jj+1)*(xh-xl)/(double)(chidx+1);
-      vint->append(aux::Vector3(tmp,mk_linEq(xl,xh,yl,yh,tmp)));
+      vint->append(aux::Vector3(tmp,mk_lineq(xl,xh,yl,yh,tmp)));
       kk++;
     }
     vint->append(aux::Vector3(xh,yh));
@@ -486,14 +486,14 @@ int InterpolationLinear::interpol(int nint,aux::TVList<aux::Vector3> *vint,doubl
 
 }
 
-double InterpolationLinear::interp(double x) const {
+double InterpolationLinear::interp(double xx,double) const {
 
   if (m_nctrl<=0 || !m_x || !m_y)
     return mk_dnan;
   int ii=0;
   for (ii=1;ii<m_nctrl;ii++) {
-    if (m_x[ii]>x)
-      return ((x-m_x[ii-1])*(m_y[ii]-m_y[ii-1])/(m_x[ii]-m_x[ii-1]));
+    if (m_x[ii]>xx)
+      return ((xx-m_x[ii-1])*(m_y[ii]-m_y[ii-1])/(m_x[ii]-m_x[ii-1]));
   }
   return m_y[m_nctrl-1];
 
@@ -585,9 +585,9 @@ int Spline::interpol(int nint,double *xint,double *yint,double *zint,double from
     return 0;
   }
 
-  if (mk_isNan(from))
+  if (mk_isnan(from))
     from=m_x[0];
-  if (mk_isNan(to))
+  if (mk_isnan(to))
     to=m_x[m_nctrl-1];
   int startidx=0,endidx=m_nctrl-1;
   for (ii=0;ii<m_nctrl;ii++) {
@@ -633,9 +633,9 @@ int Spline::interpol(int nint,aux::TVList<aux::Vector3> *vint,double from,double
     return -1;
   }
 
-  if (mk_isNan(from))
+  if (mk_isnan(from))
     from=m_x[0];
-  if (mk_isNan(to))
+  if (mk_isnan(to))
     to=m_x[m_nctrl-1];
   int startidx=0,endidx=m_nctrl-1;
   for (ii=0;ii<m_nctrl;ii++) {
@@ -666,34 +666,37 @@ int Spline::interpol(int nint,aux::TVList<aux::Vector3> *vint,double from,double
 
 }
 
-double Spline::interp(double x) const {
+double Spline::interp(double xx,double) const {
 
   if (!m_der)
     return .0;
   int idxh=-1,idxl=m_nctrl;
-  if (!aux::binsearchInterval(&x,m_nctrl,m_x,&idxl,&idxh) || idxh<=idxl) {
+  if (!aux::binsearchInterval(&xx,m_nctrl,m_x,&idxl,&idxh) || idxh<=idxl) {
     return .0;
   }
-  double hx=m_x[idxh]-m_x[idxl],hy=m_y[idxh]-m_y[idxl],a=.0,b=.0;
+  double hx=m_x[idxh]-m_x[idxl],hy=m_y[idxh]-m_y[idxl],aa=.0,bb=.0;
   if(hx==.0) {
     return .0;
   }
   double res=.0;
   aux::Asciistr opt("solve1st");
   if (m_options.find(opt)>=0) {
-    double eval=(x-m_x[idxl]);
-    a=m_y[idxl];
-    b=m_der[idxl];
-    double d=(m_der[idxh]+m_der[idxl]-2.*hy/hx)/(hx*hx);
-    double c=(hy/hx-m_der[idxl])/hx-hx*d;
-    res=a+b*eval+c*eval*eval+d*eval*eval*eval;
+    double eval=(xx-m_x[idxl]);
+    aa=m_y[idxl];
+    bb=m_der[idxl];
+    double dd=(m_der[idxh]+m_der[idxl]-2.*hy/hx)/(hx*hx);
+    double cc=(hy/hx-m_der[idxl])/hx-hx*dd;
+    res=aa+bb*eval+cc*eval*eval+dd*eval*eval*eval;
   }
   else {
     opt="solve2nd";
     if (m_options.find(opt)>=0) {
-      a=(m_x[idxh]-x)/hx;
-      b=(x-m_x[idxl])/hx;
-      res=a*m_y[idxl]+b*m_y[idxh]+(a*a*a-a)*hx*hx*m_der[idxl]/6.0+(b*b*b-b)*hx*hx*m_der[idxh]/6.0;
+      aa=(m_x[idxh]-xx)/hx;
+      bb=(xx-m_x[idxl])/hx;
+      res=aa*m_y[idxl]+
+          bb*m_y[idxh]+
+          (aa*aa*aa-aa)*hx*hx*m_der[idxl]/6.0+
+          (bb*bb*bb-bb)*hx*hx*m_der[idxh]/6.0;
     }
   }
 
@@ -701,16 +704,16 @@ double Spline::interp(double x) const {
 
 }
 
-double Spline::extrap(double x) const {
+double Spline::extrap(double xx,double) const {
 
   if (!m_der)
     return .0;
 
-  if (x>=m_x[0] && x<=m_x[m_nctrl-1])
-    return interp(x);
+  if (xx>=m_x[0] && xx<=m_x[m_nctrl-1])
+    return interp(xx);
 
-  int idxl=(x<m_x[0] ? 0 : m_nctrl-2),
-      idxh=(x<m_x[0] ? 1 : m_nctrl-1);
+  int idxl=(xx<m_x[0] ? 0 : m_nctrl-2),
+      idxh=(xx<m_x[0] ? 1 : m_nctrl-1);
 
   double hx=m_x[idxh]-m_x[idxl],hy=m_y[idxh]-m_y[idxl];
   if (hx==.0) {
@@ -742,44 +745,44 @@ double Spline::extrap(double x) const {
     }
   }
 
-  return (c0+x*(c1+x*(c2+x*c3)));
+  return (c0+xx*(c1+xx*(c2+xx*c3)));
 
 }
 
-int Spline::coeff(double x,aux::TVList<double> *c) {
+int Spline::coeff(double xx,aux::TVList<double> *cc) {
 
   if (!m_der)
     return -1;
   int idxh=-1,idxl=m_nctrl;
-  if (!aux::binsearchInterval(&x,m_nctrl,m_x,&idxl,&idxh) ||
+  if (!aux::binsearchInterval(&xx,m_nctrl,m_x,&idxl,&idxh) ||
       idxl<0 || idxh<0 || m_nctrl<=idxl || m_nctrl<=idxh || idxh<=idxl)
     return -1;
-  c->resize(4);
-  c->clear();
+  cc->resize(4);
+  cc->clear();
   double hx=m_x[idxh]-m_x[idxl],hy=m_y[idxh]-m_y[idxl],tmp=.0;
   if (hx==.0)
     return -1;
   aux::Asciistr deropt("solve1st");
   if (m_options.find(deropt)>=0) {
-    c->append(m_y[idxl]);
-    c->append(m_der[idxl]);
+    cc->append(m_y[idxl]);
+    cc->append(m_der[idxl]);
     tmp=(m_der[idxh]+m_der[idxl]-2.*hy/hx)/(hx*hx);
-    c->append((hy/hx-m_der[idxl])/hx-hx*tmp);
-    c->append(tmp);
+    cc->append((hy/hx-m_der[idxl])/hx-hx*tmp);
+    cc->append(tmp);
     return 4;
   }
   deropt="solve2nd";
   if (m_options.find(deropt)>=0) {
     double dx=-hx,dx6=6.*dx;
-    c->append((6.*m_x[idxl]*m_y[idxh]+
+    cc->append((6.*m_x[idxl]*m_y[idxh]+
                m_x[idxh]*(-6.*m_y[idxl]+m_x[idxl]*(-m_x[idxh]*(2.*m_der[idxl]+m_der[idxh])+
                m_x[idxl]*(m_der[idxl]+2.*m_der[idxh]))))/dx6);
-    c->append((6.*(m_y[idxl]-m_y[idxh])+
+    cc->append((6.*(m_y[idxl]-m_y[idxh])+
                2.*m_x[idxl]*m_x[idxh]*(m_der[idxl]-m_der[idxh])+
                m_x[idxh]*m_x[idxh]*(2.*m_der[idxl]+m_der[idxh])-
                m_x[idxl]*m_x[idxl]*(m_der[idxl]+2*m_der[idxh]))/dx6);
-    c->append((m_x[idxl]*m_der[idxh]-m_x[idxh]*m_der[idxl])/(2.*dx));
-    c->append((m_der[idxl]-m_der[idxh])/dx6);
+    cc->append((m_x[idxl]*m_der[idxh]-m_x[idxh]*m_der[idxl])/(2.*dx));
+    cc->append((m_der[idxl]-m_der[idxh])/dx6);
     return 4;
   }
 
@@ -796,104 +799,104 @@ int Spline::makeSpline1st() {
   int ii=0,num=m_nctrl,pennum=num-1;
   double *hx=new double[(size_t)pennum];
   double *hy=new double[(size_t)pennum];
-  double *s=new double[(size_t)pennum];
+  double *ss=new double[(size_t)pennum];
   for (ii=0;ii<pennum;ii++) {
     hx[ii]=m_x[ii+1]-m_x[ii];
     hy[ii]=m_y[ii+1]-m_y[ii];
     if (hx[ii]==.0) {
       delete [] hx;
       delete [] hy;
-      delete [] s;
+      delete [] ss;
       return -1;
     }
-    s[ii]=hy[ii]/hx[ii];
+    ss[ii]=hy[ii]/hx[ii];
   }
 
   SquareMatrix mat(num);
-  double **m=mat.data();
-  double *r=new double[(size_t)num];
-  r[0]=r[pennum]=.0;
+  double **mm=mat.data();
+  double *rr=new double[(size_t)num];
+  rr[0]=rr[pennum]=.0;
   for (ii=1;ii<pennum;ii++)
-    r[ii]=3.*hx[ii-1]*s[ii]+3.*hx[ii]*s[ii-1];
+    rr[ii]=3.*hx[ii-1]*ss[ii]+3.*hx[ii]*ss[ii-1];
 
   aux::Asciistr optnotaknot("notaknot"),optder1st("der1st"),optnat("nat"),optmonotonic("monotonic");
   if (m_options.find(optnotaknot)>=0 && num>3) {
-    r[0]=s[0]*hx[1]*(2.*hx[1]+3.*hx[0])+s[1]*hx[0]*hx[0];
-    r[pennum]=-s[num-3]*hx[num-2]*hx[num-2]-s[num-2]*hx[num-3]*(3.*hx[num-2]+2.*hx[num-3]);
+    rr[0]=ss[0]*hx[1]*(2.*hx[1]+3.*hx[0])+ss[1]*hx[0]*hx[0];
+    rr[pennum]=-ss[num-3]*hx[num-2]*hx[num-2]-ss[num-2]*hx[num-3]*(3.*hx[num-2]+2.*hx[num-3]);
     double tmp=hx[0]+hx[1];
-    m[0][0]=hx[1]*tmp;
-    m[0][1]=tmp*tmp;
+    mm[0][0]=hx[1]*tmp;
+    mm[0][1]=tmp*tmp;
     tmp=hx[num-2]+hx[num-3];
-    m[pennum][pennum-1]=-tmp*tmp;
-    m[pennum][pennum]=-hx[num-3]*tmp;
+    mm[pennum][pennum-1]=-tmp*tmp;
+    mm[pennum][pennum]=-hx[num-3]*tmp;
   }
   else {
     if (m_options.find(optder1st)>=0) { // try der1st
-      r[0]=(m_nctrl>2 ? .0 : s[0]);
-      r[pennum]=(m_nctrl>2 ? .0 : s[0]);
-      m[0][0]=1.;
-      m[pennum][pennum]=1.;
+      rr[0]=(m_nctrl>2 ? .0 : ss[0]);
+      rr[pennum]=(m_nctrl>2 ? .0 : ss[0]);
+      mm[0][0]=1.;
+      mm[pennum][pennum]=1.;
     }
     else { // natural spline
-      r[0]=.0;
-      r[pennum]=.0;
-      m[0][0]=1.;
-      m[pennum][pennum]=1.;
+      rr[0]=.0;
+      rr[pennum]=.0;
+      mm[0][0]=1.;
+      mm[pennum][pennum]=1.;
     }
   }
 
   for (ii=1;ii<pennum;ii++) {
-    m[ii][ii-1]=hx[ii];
-    m[ii][ii]=2.*(hx[ii-1]+hx[ii]);
-    m[ii][ii+1]=hx[ii-1];
+    mm[ii][ii-1]=hx[ii];
+    mm[ii][ii]=2.*(hx[ii-1]+hx[ii]);
+    mm[ii][ii+1]=hx[ii-1];
   }
 
   m_der=new double[(size_t)num];
   memset(&m_der[0],0,num*sizeof(double));
   mat.invalidate();
-  int solved=mat.solveFor(num,r,m_der);
+  int solved=mat.solveFor(num,rr,m_der);
   delete [] hy;
-  delete [] r;
+  delete [] rr;
   if (solved!=0) {
     invalidate();
     delete [] hx;
-    delete [] s;
+    delete [] ss;
     return -1;
   }
   if (m_nctrl>2 && m_options.find(optmonotonic)>=0) {
     // apply hyman filter
-    double corr=.0,pm=.0,pu=.0,pd=.0,M=.0,deri=.0,fabsderi=.0;
+    double corr=.0,pm=.0,pu=.0,pd=.0,MM=.0,deri=.0,fabsderi=.0;
     for (ii=0;ii<num;ii++) {
       corr=.0;
       deri=m_der[ii];
       fabsderi=fabs(deri);
       if (ii==0) {
-        if (deri*s[ii]>.0)
-          corr=deri*MIN(fabsderi,fabs(3.*s[ii]))/fabsderi;
+        if (deri*ss[ii]>.0)
+          corr=deri*MIN(fabsderi,fabs(3.*ss[ii]))/fabsderi;
       }
       else if (ii==pennum) {
-        if (deri*s[ii-1]>.0)
-          corr=deri* MIN(fabsderi,fabs(3.*s[ii-1]))/fabsderi;
+        if (deri*ss[ii-1]>.0)
+          corr=deri* MIN(fabsderi,fabs(3.*ss[ii-1]))/fabsderi;
       }
       else {
-        pm=(s[ii-1]*hx[ii]+s[ii]*hx[ii-1])/(hx[ii-1]+hx[ii]);
-        M=3.*MIN(MIN(fabs(s[ii-1]),fabs(s[ii])),fabs(pm));
+        pm=(ss[ii-1]*hx[ii]+ss[ii]*hx[ii-1])/(hx[ii-1]+hx[ii]);
+        MM=3.*MIN(MIN(fabs(ss[ii-1]),fabs(ss[ii])),fabs(pm));
         if (ii>1) {
-          if ((s[ii-1]-s[ii-2])*(s[ii]-s[ii-1])>.0) {
-            pd=(s[ii-1]*(2.*hx[ii-1]+hx[ii-2])-s[ii-2]*hx[ii-1])/(hx[ii-2]+hx[ii-1]);
-            if (pm*pd>.0 && pm*(s[ii-1]-s[ii-2])>.0)
-              M=MAX(M,1.5*MIN(fabs(pm),fabs(pd)));
+          if ((ss[ii-1]-ss[ii-2])*(ss[ii]-ss[ii-1])>.0) {
+            pd=(ss[ii-1]*(2.*hx[ii-1]+hx[ii-2])-ss[ii-2]*hx[ii-1])/(hx[ii-2]+hx[ii-1]);
+            if (pm*pd>.0 && pm*(ss[ii-1]-ss[ii-2])>.0)
+              MM=MAX(MM,1.5*MIN(fabs(pm),fabs(pd)));
           }
         }
         if (ii<num-2) {
-          if ((s[ii]-s[ii-1])*(s[ii+1]-s[ii])>.0) {
-            pu=(s[ii]*(2.*hx[ii]+hx[ii+1])-s[ii+1]*hx[ii])/(hx[ii]+hx[ii+1]);
-            if (pm*pu>.0 && -pm*(s[ii]-s[ii-1])>.0)
-              M=MAX(M,1.5*MIN(fabs(pm),fabs(pu)));
+          if ((ss[ii]-ss[ii-1])*(ss[ii+1]-ss[ii])>.0) {
+            pu=(ss[ii]*(2.*hx[ii]+hx[ii+1])-ss[ii+1]*hx[ii])/(hx[ii]+hx[ii+1]);
+            if (pm*pu>.0 && -pm*(ss[ii]-ss[ii-1])>.0)
+              MM=MAX(MM,1.5*MIN(fabs(pm),fabs(pu)));
           }
         }
         if (deri*pm>.0)
-          corr=deri*MIN(fabsderi,M)/fabsderi;
+          corr=deri*MIN(fabsderi,MM)/fabsderi;
       }
       if (corr!=deri)
         m_der[ii]=corr;
@@ -902,7 +905,7 @@ int Spline::makeSpline1st() {
   }
 
   delete [] hx;
-  delete [] s;
+  delete [] ss;
   return solved;
 
 }
@@ -928,57 +931,59 @@ int Spline::makeSpline2nd() {
     }
   }
   SquareMatrix mat(num);
-  double **m=mat.data();
-  double *r=new double[(size_t)num];
-  r[0]=r[pennum]=0.0;
+  double **mm=mat.data();
+  double *rr=new double[(size_t)num];
+  rr[0]=rr[pennum]=0.0;
   for (ii=1;ii<pennum;ii++)
-    r[ii]=hy[ii+1]/hx[ii+1]-hy[ii]/hx[ii];
+    rr[ii]=hy[ii+1]/hx[ii+1]-hy[ii]/hx[ii];
 
   aux::Asciistr optnotaknot("notaknot"),optperiodic("periodic"),optnat("nat");
   if (m_options.find(optnotaknot)>=0  && num>3) {
-    m[0][0]=hx[2];
-    m[0][1]=-hx[1]-hx[2];
-    m[0][2]=hx[1];
-    m[pennum][pennum-2]=hx[pennum]; m[pennum][pennum-1]=-hx[pennum]-hx[pennum-1]; m[pennum][pennum]=hx[pennum-1];
+    mm[0][0]=hx[2];
+    mm[0][1]=-hx[1]-hx[2];
+    mm[0][2]=hx[1];
+    mm[pennum][pennum-2]=hx[pennum]; 
+    mm[pennum][pennum-1]=-hx[pennum]-hx[pennum-1]; 
+    mm[pennum][pennum]=hx[pennum-1];
   }
   else if (m_options.find(optperiodic)>=0) { // not implemented -> natural spline
-    m[0][0]=1.;
-    m[pennum][pennum]=1.;
+    mm[0][0]=1.;
+    mm[pennum][pennum]=1.;
   }
   else if (m_options.find(optnat)>=0) { // natural spline
-    m[0][0]=1.;
-    m[pennum][pennum]=1.;
+    mm[0][0]=1.;
+    mm[pennum][pennum]=1.;
   }
   else { // not implemented -> natural spline
-    m[0][0]=1.;
-    m[pennum][pennum]=1.;
+    mm[0][0]=1.;
+    mm[pennum][pennum]=1.;
   }
 
   for (ii=1;ii<pennum;ii++) {
-    m[ii][ii-1]=hx[ii]/6.0;
-    m[ii][ii]=(hx[ii+1]+hx[ii])/3.0;
-    m[ii][ii+1]=hx[ii+1]/6.0;
+    mm[ii][ii-1]=hx[ii]/6.0;
+    mm[ii][ii]=(hx[ii+1]+hx[ii])/3.0;
+    mm[ii][ii+1]=hx[ii+1]/6.0;
   }
 
   m_der=new double[(size_t)num];
   for (ii=0;ii<num;ii++)
     m_der[ii]=.0;
   mat.invalidate();
-  int solved=mat.solveFor(num,r,m_der);
+  int solved=mat.solveFor(num,rr,m_der);
   if (solved!=0)
     invalidate();
   delete [] hx;
   delete [] hy;
-  delete [] r;
+  delete [] rr;
 
   return solved;
 
 }
 
-SplineP::SplineP(int nctrl,double *x,double *y) :
+SplineP::SplineP(int nctrl,double *xx,double *yy) :
   Interpolation("spline"),m_pXspl(0),m_pYspl(0) {
 
-  setArr(nctrl,x,y,0);
+  setArr(nctrl,xx,yy,0);
 
 }
 
@@ -1110,7 +1115,7 @@ int SplineP::interpol(int nint,aux::TVList<aux::Vector3> *vint,double,double) {
 
 }
 
-double SplineP::interp(double) const {
+double SplineP::interp(double,double) const {
 
   return .0;
 
@@ -1141,6 +1146,7 @@ Polynomial::~Polynomial() {
 
 int Polynomial::invalidate() {
 
+  m_coeff.clear();
   int ii=0;
   if (m_c) {
     for (ii=0;ii<m_nctrl;ii++)
@@ -1159,9 +1165,9 @@ int Polynomial::invalidate() {
 
 }
 
-int Polynomial::setCtrl(int nctrl,double *x,double *y,double *z) {
+int Polynomial::setCtrl(int nctrl,double *xx,double *yy,double *zz) {
 
-  if (Interpolation::setCtrl(nctrl,x,y,z)!=0)
+  if (Interpolation::setCtrl(nctrl,xx,yy,zz)!=0)
     return -1;
 
   aux::Asciistr opteq("eq"),optregr("regr");
@@ -1186,9 +1192,9 @@ int Polynomial::setCtrl(int nctrl,double *x,double *y,double *z) {
 
 }
 
-int Polynomial::setCtrl(aux::TVList<aux::Vector3> *v) {
+int Polynomial::setCtrl(aux::TVList<aux::Vector3> *vv) {
 
-  if (Interpolation::setCtrl(v)!=0)
+  if (Interpolation::setCtrl(vv)!=0)
     return -1;
 
   aux::Asciistr opteq("eq"),optregr("regr");
@@ -1316,9 +1322,9 @@ int Polynomial::interpol(int nint,double *xint,double *yint,double *zint,double 
 
   aux::Asciistr opteq("eq"),optregr("regr");
   int ii=0,idxeq=m_options.find(opteq),idxregr=m_options.find(optregr);
-  if (mk_isNan(start))
+  if (mk_isnan(start))
     start=(idxeq>=0 ? .0 : m_x[0]);
-  if (mk_isNan(end))
+  if (mk_isnan(end))
     end=(idxeq>=0 ? 1. : m_x[m_nctrl-1]);
   double interval=(end-start)/(double)(nint-1);
 
@@ -1384,9 +1390,9 @@ int Polynomial::interpol(int nint,aux::TVList<aux::Vector3> *vint,double start,d
 
   aux::Asciistr opteq("eq"),optregr("regr");
   int ii=0,idxeq=m_options.find(opteq),idxregr=m_options.find(optregr);
-  if (mk_isNan(start))
+  if (mk_isnan(start))
     start=(idxeq>=0 ? .0 : m_x[0]);
-  if (mk_isNan(end))
+  if (mk_isnan(end))
     end=(idxeq>=0 ? 1. : m_x[m_nctrl-1]);
   double interval=(end-start)/(double)(nint-1);
 
@@ -1427,7 +1433,7 @@ int Polynomial::interpol(int nint,aux::TVList<aux::Vector3> *vint,double start,d
 
 }
 
-double Polynomial::interp(double x) const {
+double Polynomial::interp(double xx,double) const {
 
   aux::Asciistr opteq("eq"),optregr("regr");
   int ii=0,jj=0,idx=0,idxeq=m_options.find(opteq),idxregr=m_options.find(optregr);
@@ -1439,7 +1445,7 @@ double Polynomial::interp(double x) const {
       ncoeff--;
     for (ii=0;ii<ncoeff;ii++) {
       res+=m_coeff[ii]*tmp1;
-      tmp1*=x;
+      tmp1*=xx;
     }
     return res;
   }
@@ -1447,16 +1453,16 @@ double Polynomial::interp(double x) const {
   if (m_nctrl==0 || !m_y || !m_c || !m_d)
     return mk_dnan;
 
-  double tmp2=.0,tmp3=.0,tmp4=.0,tmp5=fabs(m_x[0]-x),tmp6=.0;
+  double tmp2=.0,tmp3=.0,tmp4=.0,tmp5=fabs(m_x[0]-xx),tmp6=.0;
   for (ii=1;ii<m_nctrl;ii++) {
-    tmp6=fabs(m_x[ii]-x);
+    tmp6=fabs(m_x[ii]-xx);
     if (tmp6<tmp5) {
       tmp5=tmp6;
       idx=ii;
     }
     for (jj=0;jj<(m_nctrl-ii);jj++) {
-      tmp1=m_x[jj]-x;
-      tmp2=m_x[jj+ii]-x;
+      tmp1=m_x[jj]-xx;
+      tmp2=m_x[jj+ii]-xx;
       tmp4=tmp1-tmp2;
       if (mk_deq(tmp4,.0))
         tmp3=.0;
@@ -1491,19 +1497,19 @@ double Polynomial::interp(double x) const {
 
 }
 
-int Polynomial::coeff(double,aux::TVList<double> *c) {
+int Polynomial::coeff(double,aux::TVList<double> *cc) {
 
-  if (!c)
+  if (!cc)
     return -1;
-  c->clear();
+  cc->clear();
   aux::Asciistr optctrl("ctrl"),opteq("eq"),optregr("regr");
   int ii=0,jj=0,kk=0,ll=0,idx=0,idxeq=m_options.find(opteq),idxregr=m_options.find(optregr);
 
   if (m_coeff.count()>0 && (idxeq>=0 || idxregr>=0)) {
-    if (c->size()<m_coeff.count())
-      c->resize(m_coeff.count());
+    if (cc->size()<m_coeff.count())
+      cc->resize(m_coeff.count());
     for (ii=0;ii<m_coeff.count();ii++)
-      c->append(m_coeff[ii]);
+      cc->append(m_coeff[ii]);
     return m_coeff.count();
   }
 
@@ -1513,45 +1519,47 @@ int Polynomial::coeff(double,aux::TVList<double> *c) {
     m_coeff.resize(m_nctrl);
   aux::TVList<aux::Asciistr> optL(1);
   optL.inSort(optctrl);
-  Polynomial p(&optL);
-  p.setCtrl(m_nctrl,m_x,m_y);
-  p.prepTable();
-  double min=mk_dLimit,ctmp=.0;
+  Polynomial pp(&optL);
+  pp.setCtrl(m_nctrl,m_x,m_y);
+  pp.prepTable();
+  double min=mk_dlimit,ctmp=.0;
   for (ii=0;ii<m_nctrl;ii++) {
-    ctmp=p.interp(.0);
+    ctmp=pp.interp(.0);
     m_coeff.append(ctmp);
-    min=mk_dLimit;
+    min=mk_dlimit;
     kk=0;
     for (jj=0;jj<m_nctrl-ii;jj++) {
-      if (fabs(p.m_x[jj])<min) {
-        min=fabs(p.m_x[jj]);
+      if (fabs(pp.m_x[jj])<min) {
+        min=fabs(pp.m_x[jj]);
         kk=jj;
       }
-      p.m_y[jj]=(p.m_y[jj]-ctmp)/p.m_x[jj];
+      // y=f(x)=a0+a1+x+a2*x*x+a3*x*x*x+a4*x*x*x*x .....
+      // -> (y-a0)/x=a1+a2*x+a3*x*x+a4*x*x*x ...
+      pp.m_y[jj]=(pp.m_y[jj]-ctmp)/pp.m_x[jj];
     }
     for (jj=kk+1;jj<m_nctrl-ii;jj++) {
-      p.m_x[jj-1]=p.m_x[jj];
-      p.m_y[jj-1]=p.m_y[jj];
+      pp.m_x[jj-1]=pp.m_x[jj];
+      pp.m_y[jj-1]=pp.m_y[jj];
     }
-    p.m_nctrl--;
-    //for (j=0;j<p.m_nctrl;j++) printf ("j=%d x=%f y=%f c=%f\n",j,p.m_x[j],p.m_y[j],c[i]);
-    //p.clearTable();
-    jj=p.m_nctrl;
-    for (kk=0;kk<p.m_nctrl;kk++) {
-      p.m_c[0][kk]=p.m_d[0][kk]=p.m_y[kk];
+    pp.m_nctrl--;
+    //for (j=0;j<pp.m_nctrl;j++) printf ("j=%d x=%f y=%f c=%f\n",j,pp.m_x[j],pp.m_y[j],c[i]);
+    //pp.clearTable();
+    jj=pp.m_nctrl;
+    for (kk=0;kk<pp.m_nctrl;kk++) {
+      pp.m_c[0][kk]=pp.m_d[0][kk]=pp.m_y[kk];
       if (kk>0) {
         for (ll=0;ll<jj;ll++)
-          p.m_c[kk][ll]=p.m_d[kk][ll]=.0;
+          pp.m_c[kk][ll]=pp.m_d[kk][ll]=.0;
       }
       jj--;
     }
   }
-  if (c->size()<m_coeff.count())
-    c->resize(m_coeff.count());
+  if (cc->size()<m_coeff.count())
+    cc->resize(m_coeff.count());
   for (ii=0;ii<m_coeff.count();ii++)
-    c->append(m_coeff[ii]);
+    cc->append(m_coeff[ii]);
 
-  p.m_nctrl=m_nctrl;
+  pp.m_nctrl=m_nctrl;
 
   return m_coeff.count();
 
@@ -1567,8 +1575,8 @@ int Polynomial::rootsBrute(double *roots,double min,double max,int *effdeg) {
     return 0;
 
   int ii=0,jj=0,kk=0,degree=m_nctrl-1;
-  for ( ii = m_nctrl - 1; ii>-1; ii-- )  {
-    if ( m_x[ii]==.0 ) {
+  for (ii=m_nctrl- 1;ii>-1;ii--)  {
+    if (m_x[ii]==.0) {
       degree=ii;
       break;
     }
@@ -1606,20 +1614,20 @@ int Polynomial::rootsBrute(double *roots,double min,double max,int *effdeg) {
     res=.0;
     tmp=1.;
     eval=min+(double)ii*intv;
-    for ( jj = 0; jj <=degree;jj++ ) {
-      res += m_x[jj] * tmp;
-      tmp *= eval;
+    for (jj=0;jj<=degree;jj++) {
+      res+=m_x[jj]*tmp;
+      tmp*=eval;
     }
     if (res==.0 || (res>.0 && lastres<.0) || (lastres>.0 && res<.0)) {
       roots[kk]=(res==.0 ? eval : eval/2.+lasteval/2.);
       if (kk++==degree)
         break;
     }
-    if (res<.0 && (mk_isBusted(minlres)!=0 || res>minlres)) {
+    if (res<.0 && (mk_isbusted(minlres)!=0 || res>minlres)) {
       minlres=res;
       minleval=eval;
     }
-    else if (res>.0 && (mk_isBusted(minhres)!=0 || res<minhres)) {
+    else if (res>.0 && (mk_isbusted(minhres)!=0 || res<minhres)) {
       minhres=res;
       minheval=eval;
     }
@@ -1627,24 +1635,24 @@ int Polynomial::rootsBrute(double *roots,double min,double max,int *effdeg) {
     lastres=res;
   }
   if (kk==0) {
-    if (mk_isBusted(minlres)==0) {
-      if (mk_isBusted(minhres)==0)
+    if (mk_isbusted(minlres)==0) {
+      if (mk_isbusted(minhres)==0)
         roots[kk++]=(minhres<fabs(minlres) ? minheval : minleval);
       else
         roots[kk++]=minleval;
     }
-    else if (mk_isBusted(minhres)==0)
+    else if (mk_isbusted(minhres)==0)
       roots[kk++]=minheval;
   }
   if (kk>1)
-    aux::heapsortv(kk, roots);
+    aux::heapsortv(kk,roots);
   return kk;
 
 }
 
-Bezier::Bezier(int nctrl,double *x,double *y) : Interpolation("bezier") {
+Bezier::Bezier(int nctrl,double *xx,double *yy) : Interpolation("bezier") {
 
-  setArr(nctrl,x,y,0);
+  setArr(nctrl,xx,yy,0);
 
 }
 
@@ -1666,6 +1674,7 @@ int Bezier::interpol(int nint,double *xint,double *yint, double *zint,double,dou
     xint[ii]=yint[ii]=.0;
     t1=(double)ii/(double)penint;
     t2=1.-t1;
+    // poly-degree=m_nctrl , accumulate bernstein polys
     for (jj=1;jj<m_nctrl;jj++) {
       fac1[jj]=fac1[jj-1]*t1;
       fac2[penctrl-jj]=fac2[penctrl-jj+1]*t2;
@@ -1718,6 +1727,189 @@ int Bezier::interpol(int nint,aux::TVList<aux::Vector3> *vint,double,double) {
   }
   delete [] fac1;
   delete [] fac2;
+  return 0;
+
+}
+
+/*
+single patch, four points z(x0,y0),z(x1,y1),z(x2,y2),z(x3,y3) lower left counterclockwise
+in : values, derivatives dz/dx, derivatives dz/dy, cross derivatives (dz/dx)*(dz/dy)
+
+using unit square without loss of information and dissection 0<t,u<1 
+t=(x-x(i))/(x(i+1)-x(i)) 
+u=(y-y(j))/(y(j+1)-y(j)) 
+
+reformulates result
+z=sum(0,3)sum(0,3) cij*(t**i)*(u**j)
+dz/dt=sum(0,3)sum(0,3) i*cij*(t**(i-1))*u
+dz/du=sum(0,3)sum(0,3) j*cij*t*(u**(j-1))
+d2z/dtdu=sum(0,3)sum(0,3) i*j*cij*(t**(i-1))*(u**(j-1))
+
+evalulate the 4 functions at the 4 grid points leads to the linear equation 
+system (0**0=!=1)  
+
+z(0,0)=c00
+z(1,0)=c00+c10+c20+c30
+z(1,1)=c00+c10+c20+c30+c01+c11+c12+c13+c02+c12+c22+c23+c03+c13+c23+c33
+z(0,1)=c00+c01+c02+c03
+dz/dt(0,0)=c10
+dz/dt(1,0)=c10+2*c20*3*c30
+dz/dt(1,1)=c10+c11+c12+c13+2*c20+2*c21+2*c22+2*c23+3*c30+3*c31+3*c32+3*c33
+dz/dt(0,1)=c10+c11+c12+c13
+dz/du(0,0)=c01
+dz/du(1,0)=c01+c11+c21+c31
+dz/du(1,1)=c01+2*c02+3*c03+c11+2*c12+3*c13+c21+2*c22+3*c23+c31+2*c32+3*c33
+dz/du(0,1)=c01+2*c02+3*c03
+d2z/dtdu(0,0)=c11
+d2z/dtdu(1,0)=c11+2*c21+3*c31
+d2z/dtdu(1,1)=c11+2*c12+3*c13+2*c21+4*c22+6*c23+3*c31+6*c32+9*c33
+d2z/dtdu(0,1)=c11+2*c12+3*c13
+
+reorganize to a matrix equation 
+static helper matrix multiplied by left hand side of equations yield cij 
+values and derivatives are provided in x,y (not t,u) 
+dz/dt=(dz/dx)*(x(i+1)-x(i))  
+dz/du=(dz/du)*(y(i+1)-y(i))  
+d2z/dtdu=(dz/dx)*(dz/dy)*(x(i+1)-x(i))*(y(i+1)-y(i))  
+
+lefthand (from input) =
+z(0,0)
+z(1,0)
+z(1,1)
+z(0,1)
+dz/dx(0,0)*(x1-x0)
+dz/dx(1,0)*(x1-x0)
+dz/dx(1,1)*(x1-x0)
+dz/dx(0,1)*(x1-x0)
+dz/dy(0,0)*(y1-y0)
+dz/dy(1,0)*(y1-y0)
+dz/dy(1,1)*(y1-y0)
+dz/dy(0,1)*(y1-y0)
+d2z/dxdy(0,0)*(x1-x0)*(y1-y0)
+d2z/dxdy(1,0)*(x1-x0)*(y1-y0)
+d2z/dxdy(1,1)*(x1-x0)*(y1-y0)
+d2z/dxdy(0,1)*(x1-x0)*(y1-y0)
+
+cij=(bicubic_helper**-1)*lefthand (helper matrix below is already inverted)
+
+with cij known a surface point and derivatives are calculated straight forward 
+from result equations and x0<x<x1, y0<y<y1 
+derivatives are then used to plug into the calculation of the next adjescent patch
+*/
+
+static const double bicubic_helper[16][16]={
+	{1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+  {0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+	{-3.,0. ,0. ,3. ,0. ,0. ,0. ,0. ,-2.,0. ,0. ,-1.,0. ,0. ,0. ,0. },
+	{2. ,0. ,0. ,-2.,0. ,0. ,0. ,0. ,1. ,0. ,0. ,1. ,0. ,0. ,0. ,0. },
+	{0. ,0. ,0. ,0. ,1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+	{0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,1. ,0. ,0. ,0. },
+	{0. ,0. ,0. ,0. ,-3.,0. ,0. ,3. ,0. ,0. ,0. ,0. ,-2.,0. ,0. ,-1.},
+	{0. ,0. ,0. ,0. ,2. ,0. ,0. ,-2.,0. ,0. ,0. ,0. ,1. ,0. ,0. ,1. },
+	{-3.,3. ,0. ,0. ,-2.,-1.,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+	{0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,-3.,3. ,0. ,0. ,-2.,-1.,0. ,0. },
+	{9. ,-9.,9. ,-9.,6. ,3. ,-3.,-6.,6. ,-6.,-3.,3. ,4. ,2. ,1. ,2. },
+	{-6.,6. ,-6.,6. ,-4.,-2.,2. ,4. ,-3.,3. ,3. ,-3.,-2.,-1.,-1.,-2.},
+	{2. ,-2.,0. ,0. ,1. ,1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+	{0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,2. ,-2.,0. ,0. ,1. ,1. ,0. ,0. },
+	{-6.,6. ,-6.,6. ,-3.,-3.,3. ,3. ,-4.,4. ,2. ,-2.,-2.,-2.,-1.,-1.},
+	{4. ,-4.,4. ,-4.,2. ,2. ,-2.,-2.,2. ,-2.,-2.,2. ,1. ,1. ,1. ,1. }
+};
+
+BicubicPatch::BicubicPatch(double *xx,double *yy,double *zz) : 
+  Interpolation("bicubic"),m_derx(0),m_dery(0),m_derxy(0),m_cij(0) {
+
+  setArr(4,xx,yy,zz);
+
+}
+
+BicubicPatch::~BicubicPatch() {
+
+  if (m_derx) {
+    delete [] m_derx;
+    m_derx=0;
+  }
+  if (m_dery) {
+    delete [] m_dery;
+    m_dery=0;
+  }
+  if (m_derxy) {
+    delete [] m_derxy;
+    m_derxy=0;
+  }
+  if (m_cij) {
+    int ii=0;
+    for (ii=0;ii<16;ii++) {
+      delete m_cij[ii];  
+      m_cij[ii]=0;
+    }
+    m_cij=0;
+  }
+
+}
+
+int BicubicPatch::invalidate() {
+
+  if (m_cij) {
+    int ii=0;
+    for (ii=0;ii<16;ii++) {
+      delete m_cij[ii];  
+      m_cij[ii]=0;
+    }
+    m_cij=0;
+  }
+  
+  return 0;
+
+}
+
+int BicubicPatch::setup() {
+
+  invalidate();
+  if (m_nctrl!=4 || !m_x || !m_y || !m_z)
+    return -1;
+
+  int ii=0,jj=0;
+
+  m_cij=new double *[16];
+  for (ii=0;ii<16;ii++) {
+    m_cij[ii]=new double[16];
+    for (jj=0;jj<16;jj++)
+      m_cij[ii][jj]=bicubic_helper[ii][jj];
+  }
+
+  return 0;
+
+}
+
+double BicubicPatch::interp(double xx,double yy) const {
+
+  num::SquareMatrix mm(16);
+	double **mmdata=mm.data();
+  int ii=0,jj=0;
+	for (ii=0;ii<16;ii++) {
+		for (jj=0;jj<16;jj++)
+		  mmdata[ii][jj]=bicubic_helper[ii][jj];
+	}
+
+  return mk_dnan;
+
+}
+
+int BicubicPatch::interpol(int nint,double *xint,double *yint, double *zint,double,double) {
+
+  if (m_nctrl<=0 || nint<=1 || !m_x || !m_y || !m_z)
+    return -1;
+  
+  return 0;
+
+}
+
+int BicubicPatch::interpol(int nint,aux::TVList<aux::Vector3> *vint,double,double) {
+
+  if (m_nctrl<=0 || nint<=1 || !m_x || !m_y || !m_z || !vint)
+    return -1;
+  
   return 0;
 
 }

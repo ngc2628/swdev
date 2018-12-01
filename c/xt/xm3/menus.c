@@ -18,6 +18,9 @@ static char strHelpentry[]="Help";
 static char strAboutentry[]="About";
 static char strSaveasdialog[]="saveasfile";
 
+unsigned int bgmain=(240<<16)|(250<<8)|240;
+unsigned int bgmenu=(240<<16)|(240<<8)|240;
+
 Widget menubar;
 Widget filebox;
 
@@ -61,7 +64,7 @@ void createHelpMenu() {
 
 }
 
-void cbOpen(Widget,XtPointer,XtPointer) {
+void cbOpen(Widget ww,XtPointer pp1,XtPointer pp2) {
 
   XtAppSetExitFlag(applContext);
 
@@ -81,13 +84,13 @@ void cbSave(Widget w,XtPointer client,XtPointer data) {
 
 }
 
-void cbQuit(Widget,XtPointer,XtPointer) {
+void cbQuit(Widget ww,XtPointer pp1,XtPointer pp2) {
 
   XtAppSetExitFlag(applContext);
 
 }
 
-void cbAbout(Widget,XtPointer,XtPointer) {
+void cbAbout(Widget ww,XtPointer pp1,XtPointer pp2) {
 
   XtAppSetExitFlag(applContext);
 

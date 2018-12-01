@@ -71,7 +71,7 @@ class TriangleEq : public Shape2 {
     double m_a;
 
   public:
-    TriangleEq(double a=.0) : Shape2("triangleeq"),m_a(mk_isFinite(a) ? a : 0.) { }
+    TriangleEq(double a=.0) : Shape2("triangleeq"),m_a(mk_isfinite(a) ? a : 0.) { }
     TriangleEq(const TriangleEq &ass) : Shape2((const Shape2 &)ass),m_a(ass.m_a) { }
     virtual ~TriangleEq() { }
     TriangleEq &operator=(const TriangleEq &ass) {
@@ -88,7 +88,7 @@ class TriangleEq : public Shape2 {
       return ((const Shape2*)this)->operator<((const Shape2&)cmp);
     }
     double set(double a) {
-      m_a=(mk_isFinite(a) ? a : 0.);
+      m_a=(mk_isfinite(a) ? a : 0.);
       m_points.clear();
       return m_a;
     }

@@ -5,8 +5,8 @@ PRJ           = gltst11
 DESTDIR       = $(BINDIR)
 TARGET        = $(PRJ)
 DEFINES       =
-HEADER        = globals.h objects.h desktop.h edit.h menus.h glw.h lights.h form.h dialogs.h
-SOURCES       = objects.c desktop.c dialogs.c edit.c menus.c glw.c lights.c form.c runloop.c main.c
+HEADER        = statics.h objects.h desktop.h edit.h menus.h glw.h lights.h form.h dialogs.h
+SOURCES       = statics.c objects.c desktop.c dialogs.c edit.c menus.c glw.c lights.c form.c runloop.c main.c
 LIBS          = -lmkbase -lGLU -lGL -lXm -lXext -lXt -lX11 -lz -lm
 SOLN					= 
 
@@ -19,13 +19,13 @@ OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
 
 ####### compiler flags #######
 
-WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreorder -Wreturn-type
+WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type
 WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
 WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable 
-WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
+WFLAGS4				= -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
-CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
+CFLAGS        = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
 IFLAGS				= -I$(SWDIR)/c
 LFLAGS				= -L$(LIBDIR) 
 LEXFLAGS      = 
@@ -34,7 +34,7 @@ YACCFLAGS     = -d
 ####### commands #######
 
 CC            = gcc
-CXX           = g++
+CXX           = gcc
 LEX           = flex
 YACC          = yacc
 LINK          = gcc $(SOLN)

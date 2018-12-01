@@ -19,10 +19,10 @@ OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
 
 ####### compiler flags #######
 
-WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreorder -Wreturn-type
+WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type
 WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
 WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable 
-WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
+WFLAGS4				= -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
 CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
@@ -34,7 +34,7 @@ YACCFLAGS     = -d
 ####### commands #######
 
 CC            = gcc
-CXX           = g++
+CXX           = gcc
 LEX           = flex
 YACC          = yacc
 LINK          = gcc $(SOLN)

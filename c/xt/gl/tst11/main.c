@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#include <xt/gl/tst11/globals.h>
+#include <xt/gl/tst11/statics.h>
 #include <xt/gl/tst11/desktop.h>
 
 static char strPrg[]="gltst11";
@@ -16,6 +16,8 @@ char strBuf2[1024];
 char strNum09[10][2]={{"0"},{"1"},{"2"},{"3"},{"4"},{"5"},{"6"},{"7"},{"8"},{"9"}};
 
 int main (int argc, char **argv) {
+
+  initialize_statics();
 
   XtSetArg(xxargs[0],XtNwidth,initialgeometry[2]);
   XtSetArg(xxargs[1],XtNheight,initialgeometry[3]);

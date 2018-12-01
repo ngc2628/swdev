@@ -117,7 +117,7 @@ int fromQPen(const QPen *qpen,osix::xxStyle *style) {
 
 int fromQBrush(const QBrush *qbrush,osix::xxStyle *style) {
 
-  style->set(qbrush ? (unsigned int)qbrush->color().rgba() : mk_uiLimit,
+  style->set(qbrush ? (unsigned int)qbrush->color().rgba() : mk_uilimit,
              qbrush ? (short)qbrush->style() : 1,.0);
   return 0;
 

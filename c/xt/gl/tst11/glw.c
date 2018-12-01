@@ -12,10 +12,11 @@ GLXContext glcontext;
 Colormap colormap;
 Widget glwidget_w;
 
-struct mk_vertex transformV[4]={
-  {{.0,.0,-50.,.0}},{{.0,.0,.0,.0}},{{5.,5.,5.,.0}},{{.0,.0,.0,.0}}
+mk_vertex transformV[4]={
+  {.0,.0,-50.,.0},{.0,.0,.0,.0},{5.,5.,5.,.0},{.0,.0,.0,.0}
 };
-unsigned int drawstyle=draw_fill|draw_wireframe;
+
+unsigned int drawstyle;
 
 int setupGl() {
 
@@ -51,7 +52,7 @@ static void clearGl() {
 
 }
 
-void redrawGl(Widget,XtPointer,XtPointer) {
+void redrawGl(Widget ww,XtPointer userdata,XtPointer data) {
 
   glEnable(GL_DEPTH_TEST);
   clearGl();
@@ -81,7 +82,7 @@ void realizeGl() {
 
 }
 
-void resizeGl(Widget ww,XtPointer,XtPointer) {
+void resizeGl(Widget ww,XtPointer userdata,XtPointer data) {
 
   Dimension width=0,height=0;
   XtSetArg(xxargs[0],XmNwidth,&width);

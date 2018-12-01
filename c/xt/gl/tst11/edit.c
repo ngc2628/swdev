@@ -1,5 +1,5 @@
 
-#include <xt/gl/tst11/globals.h>
+#include <xt/gl/tst11/statics.h>
 #include <xt/gl/tst11/edit.h>
 
 static char strEditor[]="editor";

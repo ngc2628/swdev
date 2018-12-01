@@ -16,8 +16,8 @@ class oswinexp xxRectSize {
 
   public:
     xxRectSize(double w=.0,double h=.0) :
-      m_width(mk_isBusted(w) || w<.0 ? .0 : w),
-      m_height(mk_isBusted(h) || h<.0 ? .0 : h) {
+      m_width(mk_isbusted(w) || w<.0 ? .0 : w),
+      m_height(mk_isbusted(h) || h<.0 ? .0 : h) {
     }
     xxRectSize(const xxRectSize &ass) : m_width(ass.m_width),m_height(ass.m_height) {
     }
@@ -35,16 +35,16 @@ class oswinexp xxRectSize {
       return (m_width*m_height<cmp.m_width*cmp.m_height);
     }
     double setWidth(double w) {
-      m_width=(mk_isBusted(w)!=0 || w<0. ? 0. : w);
+      m_width=(mk_isbusted(w)!=0 || w<0. ? 0. : w);
       return m_width;
     }
     double setHeight(double h) {
-      m_height=(mk_isBusted(h)!=0 || h<0. ? 0. : h);
+      m_height=(mk_isbusted(h)!=0 || h<0. ? 0. : h);
       return m_height;
     }
     xxRectSize set(double w=.0,double h=.0) {
-      m_width=(mk_isBusted(w)!=0 || w<0. ? 0. : w);
-      m_height=(mk_isBusted(h)!=0 || h<0. ? 0. : h); 
+      m_width=(mk_isbusted(w)!=0 || w<0. ? 0. : w);
+      m_height=(mk_isbusted(h)!=0 || h<0. ? 0. : h); 
       return *this;
     }
     double width() const {

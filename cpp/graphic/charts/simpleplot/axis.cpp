@@ -115,9 +115,9 @@ int Axis::findAutoBounds(int btype,double *min,double *max) {
   if (max)
     *max=xmax;
   int res=0;
-  if (!mk_isInf(xmin))
+  if (!mk_isinf(xmin))
     res|=typeBoundAutoMin;
-  if (!mk_isInf(xmax))
+  if (!mk_isinf(xmax))
     res|=typeBoundAutoMax;
 
   return res;
@@ -220,8 +220,8 @@ int Xaxis::sc2sz(aux::Vector3 *v) const {
   double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  v->setX(mk_linEq(min,max,0.,m_size.width(),v->x()));
-  return (mk_isNan(v->x())==0 ? 0 : -1);
+  v->setX(mk_lineq(min,max,0.,m_size.width(),v->x()));
+  return (mk_isnan(v->x())==0 ? 0 : -1);
 
 }
 
@@ -232,8 +232,8 @@ int Xaxis::sz2sc(aux::Vector3 *v) const {
   double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  v->setX(mk_linEq(0.,m_size.width(),min,max,v->x()));
-  return (mk_isNan(v->x())==0 ? 0 : -1);
+  v->setX(mk_lineq(0.,m_size.width(),min,max,v->x()));
+  return (mk_isnan(v->x())==0 ? 0 : -1);
 
 }
 
@@ -304,8 +304,8 @@ int Yaxis::sc2sz(aux::Vector3 *vv) const {
   double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  vv->setY(mk_linEq(min,max,0.,m_size.height(),vv->y()));
-  return (mk_isNan(vv->y())==0 ? 0 : -1);
+  vv->setY(mk_lineq(min,max,0.,m_size.height(),vv->y()));
+  return (mk_isnan(vv->y())==0 ? 0 : -1);
 
 }
 
@@ -316,8 +316,8 @@ int Yaxis::sz2sc(aux::Vector3 *vv) const {
   double min=mk_dnan,max=mk_dnan;
   if (m_scale)
     m_scale->effRange(&min,&max);
-  vv->setY(mk_linEq(0.,m_size.height(),min,max,vv->y()));
-  return (mk_isNan(vv->y())==0 ? 0 : -1);
+  vv->setY(mk_lineq(0.,m_size.height(),min,max,vv->y()));
+  return (mk_isnan(vv->y())==0 ? 0 : -1);
 
 }
 

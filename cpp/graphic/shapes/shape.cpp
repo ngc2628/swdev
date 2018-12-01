@@ -23,7 +23,7 @@ Shape2 &Shape2::operator=(const Shape2 &ass) {
 
 double Shape2::scale(double sc) {
 
-  if (mk_isBusted(sc)==0 && sc>.0)
+  if (mk_isbusted(sc)==0 && sc>.0)
     m_scale=sc;
   m_points.clear();
   return m_scale;
@@ -32,7 +32,7 @@ double Shape2::scale(double sc) {
 
 double Shape2::rotate(double rr) { 
       
-  if (mk_isBusted(rr)==0)
+  if (mk_isbusted(rr)==0)
     m_rotate=mk_dsign(rr)*fmod(fabs(rr),360.);
   m_points.clear(); 
   return m_rotate; 

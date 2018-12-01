@@ -1,6 +1,6 @@
 
 PRJROOT       = $(SWDIR)
-PRJ           = rgb2int
+PRJ           = misc
 DESTDIR       = $(BINDIR)
 
 WFLAGS        = -w3
@@ -8,9 +8,11 @@ LFLAGS        =
 INCPATH       = -i"$(SWDIR)\c"
 LIBS          = $(LIBDIR)\libmkbase.lib
 HEADER        = 
-SOURCES       = rgb2int.c
-OBJECTS       = rgb2int.obj
-TARGET        = $(PRJ).exe
+SOURCES       = rgb2int.c pun.c
+OBJECTS       = rgb2int.obj pun.obj
+TARGET        = misc
+TARGET1       = pun
+TARGET2       = rgb2int
 
 CC            = wpp386
 CXX           = wpp386
@@ -35,13 +37,16 @@ all: PREMK $(TARGET) POSTMK
 	$(CC) $(INCPATH) $(CFLAGS) $<
 
 PREMK:
-	$(RM) $(DESTDIR)\$(TARGET) 2>nul || echo .
+	$(RM) $(DESTDIR)\$(TARGET1) 2>nul || echo .
+	$(RM) $(DESTDIR)\$(TARGET2) 2>nul || echo .
 	$(MV) $(OBJDIR)\$(PRJ)\*.obj . 2>nul || echo . 
 	$(RD) $(OBJDIR)\$(PRJ) 2>nul || echo .
 
-$(TARGET): $(OBJECTS)   
-	$(RM) $(DESTDIR)\$(TARGET) 
-	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+$(TARGET): $(OBJECTS)  
+	$(RM) $(DESTDIR)\$(TARGET1)  
+	$(RM) $(DESTDIR)\$(TARGET2) 
+	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET1) $(TARGET1).obj $(LIBS) 
+	$(LINK) $(LFLAGS) -out:$(DESTDIR)\$(TARGET2) $(TARGET2).obj $(LIBS)
 
 POSTMK:
 	$(MD) $(OBJDIR)\$(PRJ)
@@ -49,7 +54,8 @@ POSTMK:
 	$(MV) *.obj $(OBJDIR)\$(PRJ) 
 
 clean: 
-	$(RM) $(DESTDIR)\$(TARGET)
+	$(RM) $(DESTDIR)\$(TARGET1)
+	$(RM) $(DESTDIR)\$(TARGET2)
 	$(RD) $(OBJDIR)\$(PRJ) 2>nul || echo .
 
 

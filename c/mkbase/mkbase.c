@@ -21,15 +21,15 @@ static const unsigned short _d0=3; /* little endian */
 static const unsigned short _d1=2;
 static const unsigned short _d2=1;
 static const unsigned short _d3=0;
-static const unsigned short dBias=1022;
-static const unsigned short dOff=4;
-static const unsigned short dFrac=15;
-static const unsigned short dMask11=32752;
+static const unsigned short dbias=1022;
+static const unsigned short doff=4;
+static const unsigned short dfrac=15;
+static const unsigned short dmask11=32752;
 static const unsigned short ndig=16;
 static mk_ulreal mk_globalcnt=0;
 
 /* ########## */
-mk_ulreal mk_nextCnt() {
+mk_ulreal mk_nextcnt() {
 #if defined (__MACH__)
   OSAtomicAdd32(1,&globalcnt);
 #else
@@ -39,7 +39,7 @@ mk_ulreal mk_nextCnt() {
 }
 
 /* ########## */
-mk_ulreal mk_nextT() {
+mk_ulreal mk_nextt() {
 
   mk_ulreal t=0;
 
@@ -428,7 +428,7 @@ double mk_ipow2(int n) {
 }
 
 /* ########## */
-static int strip4Ascii(char *str) {
+static int strip4ascii(char *str) {
 
   int ih=(str ? (int)strlen(str) : 0),il=0,ic=0;
   if (ih==0)
@@ -455,17 +455,17 @@ static int strip4Ascii(char *str) {
 }
 
 /* ########## */
-int mk_removeSeparators(char *numstr,const char * const decSep,const char * const groupSep) {
+int mk_removeseparators(char *numstr,const char * const decsep,const char * const groupsep) {
 
   int ii=0,jj=0,numlen=(numstr ? (int)strlen(numstr) : 0),skip=0,
-      declen=(decSep ? (int)strlen(decSep) : 0),grouplen=(groupSep ? (int)strlen(groupSep) : 0);
+      declen=(decsep ? (int)strlen(decsep) : 0),grouplen=(groupsep ? (int)strlen(groupsep) : 0);
   if (numlen<2)
     return 1;
-  if (declen>mk_maxSeparatorLen)
-    declen=mk_maxSeparatorLen;
-  if (grouplen>mk_maxSeparatorLen)
-    grouplen=mk_maxSeparatorLen;
-  if (grouplen==0 && (declen==0 || (declen==1 && decSep[0]==mk_asciidec)))
+  if (declen>mk_maxseparatorlen)
+    declen=mk_maxseparatorlen;
+  if (grouplen>mk_maxseparatorlen)
+    grouplen=mk_maxseparatorlen;
+  if (grouplen==0 && (declen==0 || (declen==1 && decsep[0]==mk_asciidec)))
     return 0;
 
   char *res=(char*)malloc(numlen+1);
@@ -473,12 +473,12 @@ int mk_removeSeparators(char *numstr,const char * const decSep,const char * cons
   char *substr=0;
   for (ii=0;ii<numlen;ii++) {
     substr=&numstr[ii];
-    if (declen>0 && (ii+declen)<numlen && strncmp(substr,decSep,declen)==0) {
+    if (declen>0 && (ii+declen)<numlen && strncmp(substr,decsep,declen)==0) {
       ii+=(declen-1);
       res[jj++]=mk_asciidec;
       skip=1;
     }
-    if (grouplen>0 && (ii+grouplen)<numlen && strncmp(substr,groupSep,grouplen)==0) {
+    if (grouplen>0 && (ii+grouplen)<numlen && strncmp(substr,groupsep,grouplen)==0) {
       ii+=(grouplen-1);
       skip=1;
     }
@@ -497,11 +497,11 @@ int mk_removeSeparators(char *numstr,const char * const decSep,const char * cons
 }
 
 /* ########## */
-int mk_insertSeparators(char *numstr,int maxlen,const char *const decSep,const char *const groupSep) {
+int mk_insertseparators(char *numstr,int maxlen,const char *const decsep,const char *const groupsep) {
 
   int ii=0,jj=0,kk=0,numlen=(numstr ? (int)strlen(numstr) : 0),decpos=-1,grouptrack=0,sgn=0,
-      declen=(decSep ? (int)strlen(decSep) : 0),grouplen=(groupSep ? (int)strlen(groupSep) : 0);
-  if (numlen<2 || mk_maxNumstrLen<numlen || maxlen<numlen)
+      declen=(decsep ? (int)strlen(decsep) : 0),grouplen=(groupsep ? (int)strlen(groupsep) : 0);
+  if (numlen<2 || mk_maxnumstrlen<numlen || maxlen<numlen)
     return 1;
   for (ii=numlen-1;ii>-1;ii--) {
     if (numstr[ii]==mk_asciie || numstr[ii]==mk_asciiE)
@@ -511,11 +511,11 @@ int mk_insertSeparators(char *numstr,int maxlen,const char *const decSep,const c
       break;
     }
   }
-  if (declen>mk_maxSeparatorLen)
-    declen=mk_maxSeparatorLen;
-  if (grouplen>mk_maxSeparatorLen)
-    grouplen=mk_maxSeparatorLen;
-  if (grouplen==0 && (decpos==0 || (declen==1 && decSep[0]==mk_asciidec)))
+  if (declen>mk_maxseparatorlen)
+    declen=mk_maxseparatorlen;
+  if (grouplen>mk_maxseparatorlen)
+    grouplen=mk_maxseparatorlen;
+  if (grouplen==0 && (decpos==0 || (declen==1 && decsep[0]==mk_asciidec)))
     return 0;
 
   sgn=(numstr[0]==mk_asciiminus ? -1 : (numstr[0]==mk_asciiplus ? 1 : 0));
@@ -538,7 +538,7 @@ int mk_insertSeparators(char *numstr,int maxlen,const char *const decSep,const c
         for (jj=0;jj<declen;jj++) {
           if (kk==0)
             goto lenfail;
-          res[kk--]=decSep[jj];
+          res[kk--]=decsep[jj];
         }
       }
       else {
@@ -554,11 +554,11 @@ int mk_insertSeparators(char *numstr,int maxlen,const char *const decSep,const c
         res[kk--]=numstr[ii];
       }
       else if (decpos<0 || (decpos>=0 && ii<decpos)) {
-        if (grouptrack==mk_separatorGroupLen) {
+        if (grouptrack==mk_separatorgrouplen) {
           for (jj=0;jj<grouplen;jj++) {
             if (kk==0)
               goto lenfail;
-            res[kk--]=groupSep[jj];
+            res[kk--]=groupsep[jj];
           }
           grouptrack=0;
         }
@@ -588,7 +588,7 @@ lenfail:
 int mk_exp2simple (char numstr[mk_klen]) {
 
   int numlen=(int)strlen(numstr);
-  if (numlen<4 || mk_maxNumstrLen<numlen)
+  if (numlen<4 || mk_maxnumstrlen<numlen)
     return 1;
   int ii=0,jj=1,expnum=0;
   char bufman[mk_klen];
@@ -615,7 +615,7 @@ int mk_exp2simple (char numstr[mk_klen]) {
         return 1;
       expnum+=jj*(bufexp[ii]-mk_asciizero);
       jj*=10;
-      if (expnum>mk_dMag)
+      if (expnum>mk_dmag)
         return 1;
     }
   }
@@ -708,7 +708,7 @@ int mk_exp2simple (char numstr[mk_klen]) {
 }
 
 /* ########## */
-mk_ulreal mk_parseInt(const char *estr,int *base,int *sgn,const char *group) {
+mk_ulreal mk_parseint(const char *estr,int *base,int *sgn,const char *group) {
 
   int ii=0,jj=0,kk=0,mysgn=1,len=(estr ? (int)strlen(estr) : 0);
   if (len==0) {
@@ -722,8 +722,8 @@ mk_ulreal mk_parseInt(const char *estr,int *base,int *sgn,const char *group) {
   char numstr[mk_klen];
   memset(&numstr[0],0,mk_klen);
   strncpy(numstr,estr,mk_klen-1);
-  strip4Ascii(numstr);
-  mk_removeSeparators(numstr,0,group);
+  strip4ascii(numstr);
+  mk_removeseparators(numstr,0,group);
   mk_exp2simple(numstr);
   len=(int)strlen(numstr);
   if (len==0) {
@@ -775,7 +775,7 @@ mk_ulreal mk_parseInt(const char *estr,int *base,int *sgn,const char *group) {
   for (ii=len-1,jj=0;ii>-1;ii--,jj++)
     numstr[jj]=tmpstr[ii];
   /* extra check */
-  static const char *ui64LimitStr[5]={ /* 2,8,10,16,37 */
+  static const char *ui64limitstr[5]={ /* 2,8,10,16,37 */
     "1111111111111111111111111111111111111111111111111111111111111111",
     "1777777777777777777777","18446744073709551615",
     "FFFFFFFFFFFFFFFF","2TP7TTSV9CSRB"
@@ -790,12 +790,12 @@ mk_ulreal mk_parseInt(const char *estr,int *base,int *sgn,const char *group) {
   else if (len==chklen[lchk]) {
     for (ii=0;ii<len;ii++) {
       c=numstr[ii];
-      if (c>ui64LimitStr[lchk][ii]) {
+      if (c>ui64limitstr[lchk][ii]) {
         if (base)
           *base=-1;
         return 0;
       }
-      else if (c<ui64LimitStr[lchk][ii])
+      else if (c<ui64limitstr[lchk][ii])
         break;
     }
   }
@@ -820,7 +820,7 @@ mk_ulreal mk_parseInt(const char *estr,int *base,int *sgn,const char *group) {
 
 /* ########## */
 /* type - 0:fail,1:int,2:double */
-double mk_parseFloat(const char *str,int *type,int *prec,const char *decsep,const char *groupsep) {
+double mk_parsefloat(const char *str,int *type,int *prec,const char *decsep,const char *groupsep) {
 
   if (prec)
     *prec=0;
@@ -832,7 +832,7 @@ double mk_parseFloat(const char *str,int *type,int *prec,const char *decsep,cons
   char estr[mk_klen];
   memset(&estr[0],0,mk_klen);
   strncpy(estr,str,mk_klen-1);
-  strip4Ascii(estr);
+  strip4ascii(estr);
   inplen=(int)strlen(estr);
   if (inplen==0)
     return mk_dnan;
@@ -851,7 +851,7 @@ double mk_parseFloat(const char *str,int *type,int *prec,const char *decsep,cons
     if (strcmp(estr,"-inf")==0)
       return mk_dsinf;
   }
-  mk_removeSeparators(estr,decsep,groupsep);
+  mk_removeseparators(estr,decsep,groupsep);
   inplen=(int)strlen(estr);
   if (inplen==0)
     return mk_dnan;
@@ -894,7 +894,7 @@ double mk_parseFloat(const char *str,int *type,int *prec,const char *decsep,cons
       jj*=10;
     }
   }
-  if (abs(expnum)>mk_dMag)
+  if (abs(expnum)>mk_dmag)
     return mk_dnan;
   /* now look for the radix in the mantissa */
   jj=0;
@@ -917,7 +917,7 @@ double mk_parseFloat(const char *str,int *type,int *prec,const char *decsep,cons
     }
     // ok found a digit - so append it to the mantissa number the right way
     if (radix==0) {
-      if (ii>=(mk_dMag-1) && bufman[ii]!=mk_asciizero)
+      if (ii>=(mk_dmag-1) && bufman[ii]!=mk_asciizero)
         return mk_dnan;
       numant=10.*numant+(double)(bufman[ii]-mk_asciizero);
       if (numant>.0) {
@@ -934,28 +934,28 @@ double mk_parseFloat(const char *str,int *type,int *prec,const char *decsep,cons
         mm++;
       else {
         mm++;
-        if (kk+mm<=mk_dPrec || (magnumant<0 && kk+mm<=mk_dPrec-magnumant))
+        if (kk+mm<=mk_dprec || (magnumant<0 && kk+mm<=mk_dprec-magnumant))
           kk+=mm;
         mm=0;
       }
       numant+=(double)(bufman[ii]-mk_asciizero)*mk_ipow10(-(++jj));
     }
   }
-  int acc=(magnumant<0 ? kk : (kk+ll>mk_dPrec ? mk_dPrec-ll : kk));
+  int acc=(magnumant<0 ? kk : (kk+ll>mk_dprec ? mk_dprec-ll : kk));
   /* if there is a decimal point or the number is too large we must admit it is a double value */
-  if (type && (radix==1 || fabs(numant)>(double)mk_iLimit))
+  if (type && (radix==1 || fabs(numant)>(double)mk_ilimit))
     *type=2;
   /* but we have not succeded yet - back again to the exponent */
-  if ((magnumant+expnum)>mk_dMag+1)
+  if ((magnumant+expnum)>mk_dmag+1)
     return mk_dnan;
-  else if ((magnumant+expnum)<((-1)*mk_dMag))
+  else if ((magnumant+expnum)<((-1)*mk_dmag))
     return .0;
-  double dNumber=numant*mk_ipow10(expnum)*(sgn<0 ? -1. : 1.);
+  double dnumber=numant*mk_ipow10(expnum)*(sgn<0 ? -1. : 1.);
   acc-=expnum;
-  if (mk_isBusted(dNumber)!=0)
+  if (mk_isbusted(dnumber)!=0)
     return mk_dnan;
-  if (fabs(dNumber)<=(double)mk_iLimit) {
-    if (mk_deq(fabs(dNumber),fabs((double)((int)dNumber))) && fabs(dNumber)>=1.) {
+  if (fabs(dnumber)<=(double)mk_ilimit) {
+    if (mk_deq(fabs(dnumber),fabs((double)((int)dnumber))) && fabs(dnumber)>=1.) {
       if (type)
         *type=1;
       acc=0;
@@ -968,7 +968,7 @@ double mk_parseFloat(const char *str,int *type,int *prec,const char *decsep,cons
   if (prec)
     *prec=acc;
 
-  return dNumber;
+  return dnumber;
 
 }
 
@@ -989,26 +989,26 @@ mk_ulreal mk_a2ui_(int cnt,...) {
   mk_ulreal unum=0;
   if (mybase<0) {
     mybase=10;
-    unum=mk_parseInt(str,&mybase,&sgn,group);
+    unum=mk_parseint(str,&mybase,&sgn,group);
     if (mybase<0) {
       mybase=2;
-      unum=mk_parseInt(str,&mybase,&sgn,0);
+      unum=mk_parseint(str,&mybase,&sgn,0);
     }
     if (mybase<0) {
       mybase=16;
-      unum=mk_parseInt(str,&mybase,&sgn,0);
+      unum=mk_parseint(str,&mybase,&sgn,0);
     }
     if (mybase<0) {
       mybase=8;
-      unum=mk_parseInt(str,&mybase,&sgn,0);
+      unum=mk_parseint(str,&mybase,&sgn,0);
     }
     if (mybase<0) {
       mybase=mk_maxintbase;
-      unum=mk_parseInt(str,&mybase,&sgn,0);
+      unum=mk_parseint(str,&mybase,&sgn,0);
     }
   }
   else
-    unum=mk_parseInt(str,&mybase,&sgn,group);
+    unum=mk_parseint(str,&mybase,&sgn,group);
   if (base)
     *base=mybase;
   if (sign)
@@ -1054,7 +1054,7 @@ int mk_ui2a(mk_ulreal number,char numstr[mk_klen],int base,int width,int fillzer
   for (ii=pos,jj=0;ii>-1;ii--,jj++)
     numstr[jj]=buf[ii];
   if (base==10 && group && strlen(group)>0)
-    mk_insertSeparators(&numstr[0],mk_klen,0,group);
+    mk_insertseparators(&numstr[0],mk_klen,0,group);
   return base;
 
 }
@@ -1063,7 +1063,7 @@ int mk_ui2a(mk_ulreal number,char numstr[mk_klen],int base,int width,int fillzer
 int mk_i2a(mk_lreal number,char numstr[mk_klen],int base,int width,int fillzero,const char *group) {
 
   int sgn=(int)(number>>63);
-  mk_ulreal unumber=(mk_ulreal)(number&mk_i64Limit);
+  mk_ulreal unumber=(mk_ulreal)(number&mk_i64limit);
   base=mk_ui2a(unumber,numstr,base,width,fillzero,group);
   if (sgn>0) {
     memmove(&numstr[1],&numstr[0],strlen(numstr));
@@ -1074,7 +1074,7 @@ int mk_i2a(mk_lreal number,char numstr[mk_klen],int base,int width,int fillzero,
 }
 
 /* ########## */
-mk_ulreal mk_binAdd(mk_ulreal n1,mk_ulreal n2,int *overflow) {
+mk_ulreal mk_binadd(mk_ulreal n1,mk_ulreal n2,int *overflow) {
 
   mk_ulreal res=0,sum=0;
   int ii=0,carry=0;
@@ -1090,13 +1090,13 @@ mk_ulreal mk_binAdd(mk_ulreal n1,mk_ulreal n2,int *overflow) {
 }
 
 /* ########## */
-mk_ulreal mk_binMult(mk_ulreal n1,mk_ulreal n2,int *overflow) {
+mk_ulreal mk_binmult(mk_ulreal n1,mk_ulreal n2,int *overflow) {
 
   mk_ulreal res=0,prod=0;
   int ii=0;
   for (ii=0;ii<64;ii++) {
     prod=((n2>>ii)&1)*n1;
-    res=mk_binAdd(res,prod<<ii,overflow);
+    res=mk_binadd(res,prod<<ii,overflow);
   }
   return res;
 
@@ -1114,7 +1114,7 @@ double mk_a2d_(int cnt,...) {
   va_end(valist);
 
   int type=0;
-  double res=mk_parseFloat(str,&type,prec,dec,group);
+  double res=mk_parsefloat(str,&type,prec,dec,group);
   return (type==0 ? mk_dnan : res);
 
 }
@@ -1124,9 +1124,9 @@ int failedcnt1=0,failedcnt2=0;
 int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
 
   memset(&str[0],0,mk_klen);
-  int db=mk_isBusted(d);
+  int db=mk_isbusted(d);
   if (db!=0) {
-    strcpy(str,(mk_isInf(d) ? (db<0 ? "-INF" : "INF") : (db<0 ? "-NaN" : "NaN")));
+    strcpy(str,(mk_isinf(d) ? (db<0 ? "-INF" : "INF") : (db<0 ? "-NaN" : "NaN")));
     return 0;
   }
   union tp_dpur {
@@ -1149,13 +1149,13 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
   union tp_ucur ur48l={{255,255,255,255,255,255,0,0}},ur16h={{0,0,0,0,0,0,255,255}};
   union tp_dpur tpddd={ddd};
   mk_ulreal ud=*(&tpddd.ur);
-  unsigned short optps=(unsigned short)((ud&ur16h.ur)>>48),sg=(optps&(mk_sLimit+1));
-  short xchar=((optps&dMask11)>>dOff);
-  optps=(((optps&~dMask11)|dBias<<dOff)&mk_sLimit);
+  unsigned short optps=(unsigned short)((ud&ur16h.ur)>>48),sg=(optps&(mk_slimit+1));
+  short xchar=((optps&dmask11)>>doff);
+  optps=(((optps&~dmask11)|dbias<<doff)&mk_slimit);
   tpddd.ur=((ud&ur48l.ur)|((mk_ulreal)optps<<48));
   ddd=*(&tpddd.d);
 
-  short bexp=(xchar==0 ? 0 : xchar-dBias);
+  short bexp=(xchar==0 ? 0 : xchar-dbias);
   double bexplog10=(double)bexp*mk_log210,tmp=1.,scl=.1,sch=10.,dsc=.0;
   short sc=(short)bexplog10,csc=sc;
   int kk=0;
@@ -1357,18 +1357,18 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
 }
 
 /* ########## */
-int mk_d2a(double d,char str[mk_klen],int p,char fmt,int pad,const char *decSep,const char *groupSep) {
+int mk_d2a(double d,char str[mk_klen],int p,char fmt,int pad,const char *decsep,const char *groupsep) {
 
   mk_dconvert(d,str,p,fmt,pad);
-  if ((decSep && strlen(decSep)>0 && strcmp(decSep,".")) ||
-      (fmt==0 && groupSep && strlen(groupSep)>0))
-    mk_insertSeparators(&str[0],mk_klen,decSep,groupSep);
+  if ((decsep && strlen(decsep)>0 && strcmp(decsep,".")) ||
+      (fmt==0 && groupsep && strlen(groupsep)>0))
+    mk_insertseparators(&str[0],mk_klen,decsep,groupsep);
   return 0;
 
 }
 
 /* ########## */
-int mk_isPrim(int ii) {
+int mk_isprim(int ii) {
 
   if (ii < 2)
     return(0);
@@ -1386,9 +1386,9 @@ int mk_isPrim(int ii) {
 }
 
 /* ########## */
-int mk_isPrim3(int ii) {
+int mk_isprim3(int ii) {
 
-  if (mk_isPrim(ii)==0) {
+  if (mk_isprim(ii)==0) {
     if (ii%2==0 || ii%3==0)
       return 0;
   }
@@ -1397,9 +1397,9 @@ int mk_isPrim3(int ii) {
 }
 
 /* ########## */
-int mk_nextLargerPrim(int ii) {
+int mk_nextlargerprim(int ii) {
 
-  while (mk_isPrim(ii) == 0)
+  while (mk_isprim(ii) == 0)
     ii++;
   return ii;
 
@@ -1424,14 +1424,14 @@ int mk_lcm(int i1, int i2) {
     return i2;
   if (i1==2)
     return 2*i2;
-  if (mk_isPrim(i1) || mk_isPrim(i2)) {
-    if ((double)i1*(double)i2>(double)mk_iLimit)
+  if (mk_isprim(i1) || mk_isprim(i2)) {
+    if ((double)i1*(double)i2>(double)mk_ilimit)
       return 0;
     return i1*i2;
   }
   int res=i2;
   while (res%i1) {
-    if ((double)res+(double)i2<(double)mk_iLimit)
+    if ((double)res+(double)i2<(double)mk_ilimit)
       return 0;
     res+=i2;
   }
@@ -1456,39 +1456,11 @@ int mk_gcd(int i1,int i2) {
 }
 
 /* ########## */
-double mk_doubleMod(double x,double y) {
+double mk_doublemod(double x,double y) {
 
-  if (mk_isBusted(x)!=0 || mk_isBusted(y)!=0 || mk_isBusted(x/y)!=0)
+  if (mk_isbusted(x)!=0 || mk_isbusted(y)!=0 || mk_isbusted(x/y)!=0)
     return 1.;
   return fmod(x,y);
-
-}
-
-/* ########## */
-double mk_factorial(int nn) {
-
-  if (nn>170 || nn<0)
-    return .0;
-  static double factab[171]={1.0 /*=0!*/,1.0 /*=1!*/,2.0 /*=2!*/,6.0 /*=3!*/,24.0 /*=4!*/,     120.0 /*=5!*/,720.0 /*=6!*/,5040.0 /*=7!*/,40320.0 /*=8!*/,
-        362880.0 /*=9!*/,3628800.0 /*=10!*/,39916800.0 /*=11!*/,
-        479001600.0 /*=12!*/,6227020800.0 /*=13!*/, 87178291200.0 /*=14!*/,
-        1307674368000.0 /*=15!*/,20922789888000.0 /*=16!*/,355687428096000.0 /*=17!*/};
-  static int calced=17;
-  if (nn<=calced)
-    return factab[nn];
-  int ii=0;
-  /* double ret=factab[calced]; */
-  for (ii=(calced+1);ii<(nn+1);ii++)
-    factab[ii]=(double)ii*factab[ii-1];
-  calced=nn;
-  return factab[calced];
-
-}
-
-/* ########## */
-double mk_binomialCoeff(int up,int down) {
-
-  return mk_factorial(up)/(mk_factorial(down)*mk_factorial(up-down));
 
 }
 
@@ -1501,15 +1473,15 @@ int mk_mag_(int cnt,...) {
   int incacc=(cnt>1 ? va_arg(valist,int) : 1);
   va_end(valist);
 
-  if (mk_isBusted(num)!=0)
-    return mk_dMag;
+  if (mk_isbusted(num)!=0)
+    return mk_dmag;
   if (num==.0)
     return 0;
   if (num<.0)
     num=-num;
   double lgnum=log10(num);
   if (incacc==1)
-    lgnum+=mk_ipow10((-1)*mk_dPrec);
+    lgnum+=mk_ipow10((-1)*mk_dprec);
   return (int)floor(lgnum);
 
 }
@@ -1518,14 +1490,14 @@ int mk_mag_(int cnt,...) {
 int mk_dbusted(double d1, double d2, int *cmp) {
 
   int sg1=mk_dsgn(d1),sg2=mk_dsgn(d2);
-  if (mk_isNan(d1)) {
+  if (mk_isnan(d1)) {
     if (cmp)
-      *cmp=(mk_isNan(d2) ? (sg1==sg2 ? 0 : (sg1<sg2 ? -1 : 1)) : sg1);
+      *cmp=(mk_isnan(d2) ? (sg1==sg2 ? 0 : (sg1<sg2 ? -1 : 1)) : sg1);
     return 1;
   }
-  if (mk_isNan(d2)) {
+  if (mk_isnan(d2)) {
     if (cmp)
-      *cmp=(mk_isNan(d1) ? (sg1==sg2 ? 0 : (sg1<sg2 ? -1 : 1)) : -sg2);
+      *cmp=(mk_isnan(d1) ? (sg1==sg2 ? 0 : (sg1<sg2 ? -1 : 1)) : -sg2);
     return 1;
   }
   if (cmp)
@@ -1570,18 +1542,18 @@ double mk_diff_(int cnt,...) {
   double num1=(cnt>0 ? va_arg(valist,double) : mk_dnan);
   double num2=(cnt>1 ? va_arg(valist,double) : mk_dnan);
   double eps=(cnt>2 ? va_arg(valist,double) : 1.e-15);
-  double tolerance=(cnt>3 ? va_arg(valist,double) : 1.e-6);
+  double tolerance=(cnt>3 ? va_arg(valist,double) : 1.e-6)*eps;
   va_end(valist);
 
-  int db1=mk_isBusted(num1),db2=mk_isBusted(num2);
+  int db1=mk_isbusted(num1),db2=mk_isbusted(num2);
   if (db1!=0)
     return (db1!=db2 ? (db1<0 ? mk_dsinf : mk_dinf) : .0);
   if (db2!=0)
     return (db2<0 ? mk_dinf : mk_dsinf);
   volatile double tmp=num1-num2;
-  if (mk_isBusted(tmp)!=0)
+  if (mk_isbusted(tmp)!=0)
     return (mk_dsgn(tmp) ? mk_dsinf : mk_dinf);
-  if (mk_isBusted(eps)!=0)
+  if (mk_isbusted(eps)!=0)
     return num1-(num1-tmp);
   if (fabs(tmp)<fabs(eps) && fabs(tmp)+tolerance<fabs(eps))
     return .0;
@@ -1593,10 +1565,10 @@ double mk_diff_(int cnt,...) {
 /* ########## */
 double mk_logm(double val,double base) {
 
-  if (mk_isFinite(base)==0)
-    base=mk_dLimit;
-  if (mk_isFinite(val)==0)
-    val=mk_dLimit;
+  if (mk_isfinite(base)==0)
+    base=mk_dlimit;
+  if (mk_isfinite(val)==0)
+    val=mk_dlimit;
   return log(val)/log(base);
 
 }
@@ -1604,8 +1576,8 @@ double mk_logm(double val,double base) {
 /* ########## */
 double mk_powrat(double _num,float exp) {
 
-  if (mk_isBusted(_num)!=0)
-    return mk_dLimit;
+  if (mk_isbusted(_num)!=0)
+    return mk_dlimit;
   double res=1.;
   if (mk_deq(exp,.0))
     return res;
@@ -1615,7 +1587,7 @@ double mk_powrat(double _num,float exp) {
   double calc=exp*log(num);
   double tmp1=1.;
   int ii=2,jj=0;
-  while (ii<mk_dMag) {
+  while (ii<mk_dmag) {
     for (jj=1;jj<ii;jj++)
       tmp1*=calc/(double)jj;
     res+=tmp1;
@@ -1626,49 +1598,6 @@ double mk_powrat(double _num,float exp) {
     return res;
   else
     return -res;
-
-}
-
-/* ########## */
-double mk_linEq(double xlow,double xhigh,double ylow,double yhigh,double xarg) {
-
-  int dfx=0,dbx=mk_dbusted(xhigh,xlow,&dfx),dfy=0,dby=mk_dbusted(yhigh,ylow,&dfy),
-      dfa=0,dba=mk_dbusted(xarg,xlow,&dfa),dbsgxl=mk_dsgn(xlow),dbsg=(dfx==0 ? dbsgxl : dfx);
-  dbsg*=((dfy==0 ? mk_dsgn(yhigh) : dfy)*(dfa==0 ? dbsgxl : dfa));
-  if (dfx==0 || dba!=0 || dby!=0)
-    return (dbsg<0 ? mk_dsnan : mk_dnan);
-  if (dbx!=0)
-    return ylow;
-  double res=ylow+(xarg-xlow)*(yhigh-ylow)/(xhigh-xlow);
-  dba=mk_isBusted(res);
-  return (dba==0 ? res : (mk_isInf(res) ? (dba<0 ? mk_dsinf : mk_dinf) : (dba<0 ? mk_dsnan : mk_dnan)));
-
-}
-
-/* ########## */
-double mk_lgEq(double xlow,double xhigh,double ylow, double yhigh,double xarg) {
-
-  if (mk_isBusted(xlow)!=0 || mk_isBusted(xhigh)!=0 || mk_isBusted(ylow)!=0 ||
-      mk_isBusted(yhigh)!=0 || mk_isBusted(xarg)!=0)
-    return mk_dnan;
-  double dy=yhigh-ylow;
-  if (xarg<=.0 || xlow<.0 || xhigh<.0 || dy==.0)
-    return mk_dnan;
-  int vv=0;
-  if (xhigh<xlow) {
-    mk_swapf(&xlow,&xhigh);
-    vv=1;
-  }
-  if (yhigh<ylow) {
-    mk_swapf(&ylow,&yhigh);
-    vv=~vv;
-  }
-  if (xlow<=.0)
-    xlow=mk_ipow10((-1)*mk_dPrec); /* i do not like this - but what would the left edge be otherwise ? */
-  double m=1.*pow(xhigh/xlow,1./(yhigh-ylow));
-  double n=ylow-mk_logm(xlow,m);
-  double res=mk_logm(xarg,m)+n;
-  return ((vv&1)>0 ? yhigh-res+ylow : res);
 
 }
 
@@ -1691,16 +1620,16 @@ double mk_round2_(int cnt,...) {
   double eps=(cnt>2 ? va_arg(valist,double) : 1.e-15);
   va_end(valist);
 
-  int db=mk_isBusted(num);
+  int db=mk_isbusted(num);
   if (db!=0)
-    return (mk_isInf(num) ? (db<0 ? mk_dsinf : mk_dinf) : (db<0 ? mk_dsnan : mk_dnan));
+    return (mk_isinf(num) ? (db<0 ? mk_dsinf : mk_dinf) : (db<0 ? mk_dsnan : mk_dnan));
   double res=fabs(num);
-  if (pos==0 && res<mk_uiLimit)
+  if (pos==0 && res<mk_uilimit)
     return mk_dsign(num)*(double)((unsigned int)(res+.5+eps));
-  if ((mk_mag(res,1)+pos)>mk_dPrec)
+  if ((mk_mag(res,1)+pos)>mk_dprec)
     return num;
   double sh=res*mk_ipow10(pos);
-  if (sh<mk_uiLimit)
+  if (sh<mk_uilimit)
     return mk_dsign(num)*(double)((unsigned int)(sh+.5+eps))*mk_ipow10(-pos);
   double expo=.0,mant=modf(sh,&expo),rderr=(double)((int)(mant+.5));
   if (rderr<1.)
@@ -1726,25 +1655,25 @@ double mk_roundUp_(int cnt,...) {
   va_list valist;
   va_start(valist,cnt);
   double num=(cnt>0 ? va_arg(valist,double) : mk_dnan);
-  int maxFractionDigits=(cnt>1 ? va_arg(valist,int) : 0);
-  int trailingDigits=(cnt>2 ? va_arg(valist,int) : 3);
+  int maxfractiondigits=(cnt>1 ? va_arg(valist,int) : 0);
+  int trailingdigits=(cnt>2 ? va_arg(valist,int) : 3);
   va_end(valist);
 
-  int db=mk_isBusted(num);
+  int db=mk_isbusted(num);
   if (db!=0)
-    return (mk_isInf(num) ? (db<0 ? mk_dsinf : mk_dinf) : (db<0 ? mk_dsnan : mk_dnan));
-  double df=mk_ipow10(-maxFractionDigits-trailingDigits),zdiff=mk_diff(num,.0,df,.0);
+    return (mk_isinf(num) ? (db<0 ? mk_dsinf : mk_dinf) : (db<0 ? mk_dsnan : mk_dnan));
+  double df=mk_ipow10(-maxfractiondigits-trailingdigits),zdiff=mk_diff(num,.0,df,.0);
   if (zdiff==.0)
-    return mk_ipow10(-maxFractionDigits); /* return num; ?? do not know why anymore ?? */
-  double temp=mk_round2(num,maxFractionDigits);
+    return mk_ipow10(-maxfractiondigits); /* return num; ?? do not know why anymore ?? */
+  double temp=mk_round2(num,maxfractiondigits);
   zdiff=mk_diff(num,temp,df);
   if (zdiff==.0)
     return temp;
   if (temp<num) {
-    num+=mk_ipow10(-maxFractionDigits);
+    num+=mk_ipow10(-maxfractiondigits);
     if (num>.0 && temp<.0)
       return .0; /* ref to -0.5 and resp. */
-    temp=mk_round2(num,maxFractionDigits);
+    temp=mk_round2(num,maxfractiondigits);
   }
   return temp;
 
@@ -1756,23 +1685,23 @@ double mk_roundDown_(int cnt,...) {
   va_list valist;
   va_start(valist,cnt);
   double num=(cnt>0 ? va_arg(valist,double) : mk_dnan);
-  int maxFractionDigits=(cnt>1 ? va_arg(valist,int) : 0);
-  int trailingDigits=(cnt>2 ? va_arg(valist,int) : 3);
+  int maxfractiondigits=(cnt>1 ? va_arg(valist,int) : 0);
+  int trailingdigits=(cnt>2 ? va_arg(valist,int) : 3);
   va_end(valist);
 
-  int db=mk_isBusted(num);
+  int db=mk_isbusted(num);
   if (db!=0)
-    return (mk_isInf(num) ? (db<0 ? mk_dsinf : mk_dinf) : (db<0 ? mk_dsnan : mk_dnan));
-  double df=mk_ipow10(-maxFractionDigits-trailingDigits),zdiff=mk_diff(num,.0,df);
+    return (mk_isinf(num) ? (db<0 ? mk_dsinf : mk_dinf) : (db<0 ? mk_dsnan : mk_dnan));
+  double df=mk_ipow10(-maxfractiondigits-trailingdigits),zdiff=mk_diff(num,.0,df);
   if (zdiff==.0)
     return num; /* return -1.0*pow(10.0,-maxFractionDigits); */
-  double temp=mk_round2(num,maxFractionDigits);
+  double temp=mk_round2(num,maxfractiondigits);
   zdiff=mk_diff(num,temp,df);
   if(zdiff==.0)
     return temp;
   if (temp>num) {
-    num-=mk_ipow10(-maxFractionDigits);
-    temp=mk_round2(num,maxFractionDigits);
+    num-=mk_ipow10(-maxfractiondigits);
+    temp=mk_round2(num,maxfractiondigits);
   }
   return temp;
 }
@@ -1797,7 +1726,7 @@ static int cmpFI(const void *a1, const void *a2) {
 }
 
 /* ########## */
-void mk_indextab1(int num,const double arr[],int indx[]) {
+void mk_indextab1(int num,double arr[],int indx[]) {
 
   int jj=0;
   struct strfi *tmp=(struct strfi*)malloc(num*sizeof(struct strfi));
@@ -1810,28 +1739,30 @@ void mk_indextab1(int num,const double arr[],int indx[]) {
     indx[tmp[jj].ii]=jj;
   free(tmp);
   /* or ...
-  int i=0,j=0,cnt=0;
-  bool *done=new bool[num];
-  for (i=0;i<num;i++) {
-    done[i]=false;
-    indx[i]=i;
+  int ii=0,jj=0,cnt=0;
+  char *done=(char *)malloc(num);
+  for (ii=0;ii<num;ii++) {
+    done[ii]=0;
+    indx[ii]=ii;
   }
-  for (j=0;j<num;j++) {
+  for (jj=0;jj<num;jj++) {
     cnt=0;
-    for (i=0;i<num;i++) {
-      if (i!=j && arr[j]>arr[i]) cnt++;
+    for (ii=0;ii<num;ii++) {
+      if (ii!=jj && arr[jj]>arr[ii]) 
+        cnt++;
     }
-    while(done[cnt]==true && cnt<num) cnt++;
-    indx[j]=cnt;
-    done[cnt]=true;
+    while(done[cnt]==1 && cnt<num) 
+      cnt++;
+    indx[jj]=cnt;
+    done[cnt]=1;
   }
-  delete [] done;
-  */
+  free(done);
+  ... */
 
 }
 
 /* ########## */
-void mk_indextab2(int num,const double arr[],int indx[]) {
+void mk_indextab2(int num,double arr[],int indx[]) {
 
   int ii=0;
   int *tmp=(int*)malloc(num*sizeof(int));
@@ -1839,286 +1770,6 @@ void mk_indextab2(int num,const double arr[],int indx[]) {
   for (ii=0;ii<num;ii++)
     indx[tmp[ii]]=ii;
   free(tmp);
-
-}
-
-/* ########## */
-void mk_intersectionpointsLineRect(double rl_,double rr_,double rb_,double rt_,
-                                double p1x_,double p1y_,double p2x_,double p2y_,
-                                double *piBx,double *piBy,
-                                double *piLx,double *piLy,
-                                double *piTx,double *piTy,
-                                double *piRx,double *piRy,
-                                int *cutsB,int *cutsL,int *cutsT,int *cutsR,int clip) {
-
-  double m=.0,rl=rl_,rr=rr_,rt=rt_,rb=rb_,p1x=p1x_,p1y=p1y_,p2x=p2x_,p2y=p2y_;
-  *piBx=*piBy=*piLx=*piLy=*piTx=*piTy=*piRx=*piRy=.0;
-  int isLineHor=0,isLineVer=0,isPdoubled=0;
-  *cutsB=1;*cutsL=1;*cutsT=1;*cutsR=1;
-  if (rl>rr)
-    mk_swapf(&rl,&rr);
-  if (rb>rt)
-    mk_swapf(&rb,&rt);
-  if (p1x>p2x) {
-    mk_swapf(&p1x,&p2x);
-    mk_swapf(&p1y,&p2y);
-  }
-  if (mk_deq(p2y,p1y))
-    isLineHor=1;
-  if (mk_deq(p2x,p1x))
-    isLineVer=1;
-  /* make line equation and calc intersection points for regular line */
-  if (isLineHor==0 && isLineVer==0) {
-    /* special values for infinite (non hor/ver) line */
-    if (p1x==-mk_dLimit)
-      p1x=rl;
-    else if (p1x==mk_dLimit)
-      p1x=rr;
-    if (p2x==-mk_dLimit)
-      p2x=rl;
-    else if (p2x==mk_dLimit)
-      p2x=rr;
-    if (p1y==-mk_dLimit)
-      p1y=rb;
-    else if (p1y==mk_dLimit)
-      p1y=rt;
-    if (p2y==-mk_dLimit)
-      p2y=rb;
-    else if (p2y==mk_dLimit)
-      p2y=rt;
-    m=(p2y-p1y)/(p2x-p1x);
-    *piTx=p1x+(rt-p1y)/m;
-    *piTy=rt;
-    *piBx=p1x+(rb-p1y)/m;
-    *piBy=rb;
-    *piLx=rl;
-    *piLy=p1y+m*(rl-p1x);
-    *piRx=rr;
-    *piRy=p1y+m*(rr-p1x);
-    if (*piRy<rb || *piRy>rt)
-      *cutsR=0;
-    if (*piLy<rb || *piLy>rt)
-      *cutsL=0;
-    if (*piBx<rl || *piBx>rr)
-      *cutsB=0;
-    if (*piTx<rl || *piTx>rr)
-      *cutsT=0;
-  }
-  else if(isLineHor==1) {
-    *piLx=rl;
-    *piLy=p1y;
-    *piRx=rr;
-    *piRy=p1y;
-    *cutsB=*cutsT=0;
-    if (*piLy<rb || *piLy>rt)
-      *cutsL=0;
-    if (*piRy<rb || *piRy>rt)
-      *cutsR=0;
-  }
-  else if(isLineVer==1) {
-    *piBx=p1x;
-    *piBy=rb;
-    *piTx=p1x;
-    *piTy=rt;
-    *cutsL=*cutsR=0;
-    if (*piBx<rl || *piBx>rr)
-      *cutsB=0;
-    if (*piTx<rl || *piTx>rr)
-      *cutsT=0;
-  }
-  else {
-    isPdoubled=1;
-    *cutsB=*cutsL=*cutsT=*cutsR=0;
-  }
-  if (clip==1) {
-    if ( (p1x<rl && p2x<rl) || (p1x>rr && p2x>rr) || (p1y<rb && p2y<rb) || (p1y>rt && p2y>rt) )
-      *cutsB=*cutsL=*cutsT=*cutsR=0;
-    if (*cutsL==1) {
-      if ( (*piLy<p1y && *piLy<p2y) || (*piLy>p1y && *piLy>p2y) || (*piLx<p1x && *piLx<p2x) )
-        *cutsL=0;
-    }
-    if (*cutsR==1) {
-      if ( (*piRy<p1y && *piRy<p2y) || (*piRy>p1y && *piRy>p2y) || (*piRx>p1x && *piRx>p2x) )
-        *cutsR=0;
-    }
-    if (*cutsT==1) {
-      if ( (*piTx<p1x && *piTx<p2x) || (*piTx>p1x && *piTx>p2x) || (*piTy>p1y && *piTy>p2y) )
-        *cutsT=0;
-    }
-    if (*cutsB==1) {
-      if ( (*piBx<p1x && *piBx<p2x) || (*piBx>p1x && *piBx>p2x) || (*piBy<p1y && *piBy<p2y) )
-        *cutsB=0;
-    }
-  }
-  if (*cutsB==1) {
-    if ( (mk_deq(rb,p1y)) || (mk_deq(rb,p2y)) )
-      *cutsB=0;
-  }
-  if (*cutsL==1) {
-    if ( (mk_deq(rl,p1x)) || (mk_deq(rl,p2x)) )
-      *cutsL=0;
-  }
-  if (*cutsT==1) {
-    if ( (mk_deq(rt,p1y)) || (mk_deq(rt,p2y)) )
-      *cutsT=0;
-  }
-  if (*cutsR==1) {
-    if ( (mk_deq(rr,p1x)) || (mk_deq(rr,p2x)) )
-      *cutsR=0;
-  }
-
-}
-
-/* ########## */
-int mk_polygonintersection(
-  int n1,double *poly1x,double *poly1y,
-  int n2,double *poly2x,double *poly2y,
-  double *interx,double *intery) {
-
-  double m1=.0,m2=.0,mdiff=.0,b1=.0,b2=.0;
-  int ii=0,jj=0,kk=0;
-  double p1x1=.0,p1x2=.0,p1y1=.0,p2x1=.0,p2y1=.0,p2x2=.0,xinter=.0;
-  /* line equation :
-   y=m*x+b
-   m=(y2-y1)/(x2-x1)
-   b=y1-m*x1
-   condition : m1x+b1==m2x+b2 ->
-   xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
-  for (ii=1;ii<n1;ii++) {
-    p1x1=poly1x[ii-1];
-    p1y1=poly1y[ii-1];
-    p1x2=poly1x[ii];
-    m1=(poly1y[ii]-p1y1)/(p1x2-p1x1);
-    b1=p1y1-m1*p1x1;
-    for (jj=1;jj<n2;jj++) {
-      p2x1=poly2x[jj-1];
-      p2y1=poly2y[jj-1];
-      p2x2=poly2x[jj];
-      m2=(poly2y[jj]-p2y1)/(p2x2-p2x1);
-      b2=p2y1-m2*p2x1;
-      if ((mdiff=mk_diff(m1,m2))==.0)
-        continue;
-      xinter=(b2-b1)/mdiff;
-      if (mk_isFinite(xinter)==0)
-        continue;
-      if (xinter<p1x1 || xinter>p1x2 || xinter<p2x1 || xinter>p2x2)
-        continue;
-      interx[kk]=xinter;
-      intery[kk++]=(b2*m1-b1*m2)/mdiff;
-    }
-  }
-  return kk;
-
-}
-
-/* ########## */
-int mk_linesintersection(double line1x1,double line1y1,double line1x2,double line1y2,
-                       double line2x1,double line2y1,double line2x2,double line2y2,
-                       double *interx,double *intery,int prec,int xbox,int ybox) {
-
-  /* line equation :
-   y=m*x+b
-   m=(y2-y1)/(x2-x1)
-   b=y1-m*x1
-   condition : m1x+b1==m2x+b2 ->
-   xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
-  double x11=line1x1,x12=line1x2,y11=line1y1,y12=line1y2,x21=line2x1,x22=line2x2,y21=line2y1,y22=line2y2;
-  double eps=mk_ipow10(-prec);
-  if (mk_diff(x11,x12,eps)>.0) {
-    mk_swapf(&x11,&x12);
-    mk_swapf(&y11,&y12);
-  }
-  if (mk_diff(x21,x22,eps)>.0) {
-    mk_swapf(&x21,&x22);
-    mk_swapf(&y21,&y22);
-  }
-  double m1=.0,m2=.0;
-  int vert1=0,vert2=0;
-  if (mk_diff(x11,x12,eps)==.0)
-    vert1=1;
-  else
-    m1=(y12-y11)/(x12-x11);
-  if (mk_isFinite(m1)==0) {
-    vert1=1;
-    m1=.0;
-  }
-  if (vert1==1 && mk_diff(y11,y12,eps)>.0)
-    mk_swapf(&y11,&y12);
-  if (mk_diff(x21,x22,eps)==.0)
-    vert2=1;
-  else
-    m2=(y22-y21)/(x22-x21);
-  if (mk_isFinite(m2)==0) {
-    vert2=1;
-    m2=.0;
-  }
-  if (vert2==1 && mk_diff(y21,y22,eps)>0.0)
-    mk_swapf(&y21,&y22);
-  double b1=y11-m1*x11,b2=y21-m2*x21,mdiff=mk_diff(m1,m2);
-  if (mdiff==.0) {
-    if (vert1==1 && vert2==0) {
-      *interx=x11;
-      *intery=y21;
-    }
-    else if (vert1==0 && vert2==1) {
-      *interx=x21;
-      *intery=y11;
-    }
-    else if ((vert1==1 && vert2==1 && mk_diff(x11,x21,eps)==.0) ||
-             (vert1==0 && vert2==0 && mk_diff(y11,y21,eps)==.0) ||
-             (y21==(b1+m1*x21))) {  //degenerated case (do not know .... to be precised)
-      *interx=x11;
-      *intery=y11;
-      if (xbox || ybox)
-        return 0;
-      return 1;
-    }
-    else {
-      *interx=0.0;
-      *intery=0.0;
-      return 0;
-    }
-  }
-  else {
-    if (vert1) {
-      *interx=x11;
-      *intery=b2+m2*x11;
-      if (mk_diff(y11,y12,eps)==.0) {
-        if (mk_diff(y11,m2*x11+b2,eps)==.0)
-          return 1;
-        return 0;
-      }
-    }
-    else if (vert2) {
-      *interx=x21;
-      *intery=b1+m1*x21;
-      if (mk_diff(y21,y22,eps)==.0) {
-        if (mk_diff(y21,m1*x21+b1,eps)==.0)
-          return 1;
-        return 0;
-      }
-    }
-    else {
-      *interx=(b2-b1)/mdiff;
-      *intery=(b2*m1-b1*m2)/mdiff;
-    }
-  }
-  if (xbox==1 && (mk_diff(*interx,x11,eps)<.0 || mk_diff(*interx,x21,eps)<.0 || mk_diff(*interx,x12,eps)>.0 || mk_diff(*interx,x22,eps)>.0))
-    return 0;
-  if (ybox==1) {
-    if (mdiff==.0) {
-      if (vert1==1 && vert2==0 && (mk_diff(*intery,y11,eps)<.0 || mk_diff(*intery,y12,eps)>.0))
-        return 0;
-      if (vert1==0 && vert2==1 && (mk_diff(*intery,y21,eps)<.0 || mk_diff(*intery,y22,eps)>.0))
-        return 0;
-      return 1;
-    }
-    if ((m1>.0 && (mk_diff(*intery,y11,eps)<.0 || mk_diff(*intery,y12,eps)>.0)) || (m1<.0 && (mk_diff(*intery,y11,eps)>.0 || mk_diff(*intery,y12,eps)<0.0)))
-      return 0;
-    if ((m2>.0 && (mk_diff(*intery,y21,eps)<.0 || mk_diff(*intery,y22,eps)>.0)) || (m2<.0 && (mk_diff(*intery,y21,eps)>.0 || mk_diff(*intery,y22,eps)<0.0)))
-      return 0;
-  }
-  return 1;
 
 }
 
@@ -2157,7 +1808,7 @@ void mk_heapsort(int nn,void **arr,int (*comp)(const void *itm1,const void *itm2
 }
 
 /* ########## */
-int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *x1,const void *x2),int guess) {
+int mk_binsearch(const void *xx,int cnt,const void **arr,int (*comp)(const void *x1,const void *x2),int guess) {
   if (!comp)
     return -1;
   int lb=-1,mb=0,ub=cnt,cmp=0,inc=1;
@@ -2166,7 +1817,7 @@ int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *
     while ((ub-lb>1)) {
       mb=(ub+lb)/2;
       tmp=arr[mb];
-      cmp=comp((const void*)tmp,(const void*)x);
+      cmp=comp((const void*)tmp,(const void*)xx);
       if (cmp==0)
         return mb;
       if (cmp<0)
@@ -2176,9 +1827,10 @@ int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *
     }
     return -1;
   }
+  /* if a guess is given, look neighbours or narrow the interval */ 
   mb=guess;
   tmp=arr[mb];
-  cmp=comp((const void*)tmp,(const void*)x);
+  cmp=comp((const void*)tmp,(const void*)xx);
   if (cmp==0)
     return mb;
   if (cmp<0) {
@@ -2186,7 +1838,7 @@ int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *
     while (mb<ub) {
       inc<<=1;
       tmp=arr[mb];
-      cmp=comp((const void*)tmp,(const void*)x);
+      cmp=comp((const void*)tmp,(const void*)xx);
       if (cmp==0)
         return mb;
       if (cmp<0) {
@@ -2203,7 +1855,7 @@ int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *
     mb-=inc;
     while (mb>lb) {
       tmp=arr[mb];
-      cmp=comp((const void*)tmp,(const void*)x);
+      cmp=comp((const void*)tmp,(const void*)xx);
       if (cmp==0)
         return mb;
       if (cmp>0) {
@@ -2220,7 +1872,7 @@ int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *
   while ((ub-lb>1)) {
     mb=(ub+lb)/2;
     tmp=arr[mb];
-    cmp=comp((const void*)tmp,(const void*)x);
+    cmp=comp((const void*)tmp,(const void*)xx);
     if (cmp==0)
       return mb;
     if (cmp<0)
@@ -2231,220 +1883,4 @@ int mk_binsearch(const void *x,int cnt,const void **arr,int (*comp)(const void *
   return -1;
 }
 
-/* ########## */
-int mk_vertexcopy(struct mk_vertex *vvto,struct mk_vertex *vvfrom) {
-
-  if (!vvto || !vvfrom)
-    return 1;
-  int ii=0;
-  for (ii=0;ii<4;ii++)
-    vvto->xyzw[ii]=vvfrom->xyzw[ii];
-  return 0;
-
-}
-
-double mk_vertexlen(struct mk_vertex *vertex) {
-
-  if (!vertex)
-    return .0;
-  double pp[3]={mk_isBusted(vertex->xyzw[0])==0 ? vertex->xyzw[0] : .0,
-                mk_isBusted(vertex->xyzw[1])==0 ? vertex->xyzw[1] : .0,
-                mk_isBusted(vertex->xyzw[2])==0 ? vertex->xyzw[2] : .0};
-  return sqrt(pp[0]*pp[0]+pp[1]*pp[1]+pp[2]*pp[2]);
-
-}
-
-/* ########## */
-int mk_vertexcmp(struct mk_vertex *cmp1,struct mk_vertex *cmp2) {
-
-  double ll1=mk_vertexlen(cmp1),ll2=mk_vertexlen(cmp2);
-  return (ll1<ll2 ? -1 : (ll2<ll1 ? 1 : 0));
-
-}
-
-/* ########## */
-int mk_vertexadd(struct mk_vertex *vertex,struct mk_vertex *addend) {
-
-  if (!vertex || !addend)
-    return 1;
-  int ii=0;
-  for (ii=0;ii<4;ii++) {
-    if (mk_isBusted(vertex->xyzw[ii])==0 && mk_isBusted(addend->xyzw[ii])==0)
-      vertex->xyzw[ii]+=addend->xyzw[ii];
-    else
-      vertex->xyzw[ii]=mk_dnan;
-  }
-  return 0;
-
-}
-
-/* ########## */
-int mk_vertexsubs(struct mk_vertex *vertex,struct mk_vertex *addend) {
-
-  if (!vertex || !addend)
-    return 1;
-  int ii=0;
-  for (ii=0;ii<4;ii++) {
-    if (mk_isBusted(vertex->xyzw[ii])==0 && mk_isBusted(addend->xyzw[ii])==0)
-      vertex->xyzw[ii]-=addend->xyzw[ii];
-    else
-      vertex->xyzw[ii]=mk_dnan;
-  }
-  return 0;
-
-}
-
-/* ########## */
-int mk_vertexmult(struct mk_vertex *vertex,double sc) {
-
-  if (!vertex)
-    return 1;
-  int bsc=mk_isBusted(sc),ii=0;
-  for (ii=0;ii<4;ii++) {
-    if (mk_isBusted(vertex->xyzw[ii])==0 && bsc==0)
-      vertex->xyzw[ii]*=sc;
-    else
-      vertex->xyzw[ii]=mk_dnan;
-  }
-  return 0;
-
-}
-
-/* ########## */
-int mk_vertexdiv(struct mk_vertex *vertex,double sc) {
-
-  if (!vertex)
-    return 1;
-  int bsc=(mk_isBusted(sc) && sc!=.0 ? 0 : 1),ii=0;
-  for (ii=0;ii<4;ii++) {
-    if (mk_isBusted(vertex->xyzw[ii])==0 && bsc==0)
-      vertex->xyzw[ii]/=sc;
-    else
-      vertex->xyzw[ii]=mk_dnan;
-  }
-  return 0;
-
-}
-
-/* ########## */
-double mk_vertexdot(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
-
-  if (!vertex1 || !vertex2)
-    return .0;
-  struct mk_vertex *vertex[2]={vertex1,vertex2};
-  double pp[2][3];
-  int ii=0,jj=0;
-  for (jj=0;jj<2;jj++) {
-    for (ii=0;ii<3;ii++) {
-      if (mk_isBusted(vertex[jj]->xyzw[ii])==0)
-        pp[jj][ii]=vertex[jj]->xyzw[ii];
-      else
-        pp[jj][ii]==mk_dnan;
-    }
-  }
-  return (pp[0][0]*pp[1][0]+pp[0][1]*pp[1][1]+pp[0][2]*pp[1][2]);
-
-}
-
-/* ########## */
-int mk_vertexnorm(struct mk_vertex *vertex) {
-
-  if (!vertex)
-    return 1;
-  double ll=mk_vertexlen(vertex);
-  int ii=0;
-  for (ii=0;ii<3;ii++) {
-    if (mk_isBusted(vertex->xyzw[ii])==0 && ll>.0)
-      vertex->xyzw[ii]/=ll;
-    else
-      vertex->xyzw[ii]=mk_dnan;
-  }
-  return 0;
-
-}
-
-/* ########## */
-int mk_vertexcross(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
-
-  if (!vertex1 || !vertex2)
-    return 1;
-  double pp[3]={mk_dnan,mk_dnan,mk_dnan};
-  if (mk_isBusted(vertex1->xyzw[1])==0 && mk_isBusted(vertex1->xyzw[2])==0 &&
-      mk_isBusted(vertex2->xyzw[1])==0 && mk_isBusted(vertex2->xyzw[2])==0)
-    pp[0]=vertex1->xyzw[1]*vertex2->xyzw[2]-vertex1->xyzw[2]*vertex2->xyzw[1];
-  if (mk_isBusted(vertex1->xyzw[0])==0 && mk_isBusted(vertex1->xyzw[2])==0 &&
-      mk_isBusted(vertex2->xyzw[0])==0 && mk_isBusted(vertex2->xyzw[2])==0)
-    pp[1]=vertex1->xyzw[2]*vertex2->xyzw[0]-vertex1->xyzw[0]*vertex2->xyzw[2];
-  if (mk_isBusted(vertex1->xyzw[0])==0 && mk_isBusted(vertex1->xyzw[1])==0 &&
-      mk_isBusted(vertex2->xyzw[0])==0 && mk_isBusted(vertex2->xyzw[1])==0)
-    pp[2]=vertex1->xyzw[0]*vertex2->xyzw[1]-vertex1->xyzw[1]*vertex2->xyzw[0];
-  int ii=0;
-  for (ii=0;ii<3;ii++)
-   vertex1->xyzw[ii]=pp[ii];
-  return 0;
-
-}
-
-/* ########## */
-double mk_vertexangrad(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
-
-  if (!vertex1 || !vertex2)
-    return .0;
-  double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
-  if (den==.0)
-    return .0;
-  return acos(mk_vertexdot(vertex1,vertex2)/den);
-
-}
-
-/* ########## */
-double mk_vertexangdeg(struct mk_vertex *vertex1,struct mk_vertex *vertex2) {
-
-  if (!vertex1 || !vertex2)
-    return .0;
-  double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
-  if (den==.0)
-    return .0;
-  double arg=mk_vertexdot(vertex1,vertex2)/den;
-  return acos(arg)/mk_rad;
-
-}
-
-/* ########## */
-int mk_verticesalloc(struct mk_vertices *vertices) {
-
-  if (!vertices)
-    return 1;
-  vertices->vertexL=(struct mk_vertex*)malloc(vertices->maxcnt*sizeof(struct mk_vertex));
-  int ii=0,jj=0;
-  for (ii=0;ii<vertices->maxcnt;ii++) {
-    for (jj=0;jj<4;jj++)
-      vertices->vertexL[ii].xyzw[jj]=mk_dnan;
-  }
-  vertices->cnt=0;
-  return 0;
-
-}
-
-/* ########## */
-struct mk_vertex *mk_verticesget(struct mk_vertices *vertices,int idx) {
-
-  if (!vertices || idx<0 || idx>=vertices->cnt)
-    return 0;
-  return &(vertices->vertexL[idx]);
-
-}
-
-/* ########## */
-int mk_verticesappend(struct mk_vertices *vertices,struct mk_vertex *vertex) {
-
-  if (!vertices || !vertex || vertices->maxcnt<=vertices->cnt)
-    return -1;
-  int jj=0;
-  for (jj=0;jj<4;jj++)
-    vertices->vertexL[vertices->cnt].xyzw[jj]=vertex->xyzw[jj];
-  vertices->cnt++;
-  return vertices->cnt-1;
-
-}
 

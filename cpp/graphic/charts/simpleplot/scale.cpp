@@ -7,7 +7,7 @@
 namespace simpleplot {
 
 Scale::Scale() : TypeId("linearscale"), 
-  m_interval(1.,mk_dPrec) {
+  m_interval(1.,mk_dprec) {
 
   m_range.resize(127);
   m_range.append(Range(.0,1.));
@@ -66,11 +66,11 @@ int Scale::effRange(double *min,double *max,int *option) const {
 
 double Scale::setRange(double min,double max,int option) {
 
-  if (mk_isBusted(min)!=0 && mk_isBusted(max)!=0)
+  if (mk_isbusted(min)!=0 && mk_isbusted(max)!=0)
     return mk_dnan;
-  if (mk_isBusted(min)!=0)
+  if (mk_isbusted(min)!=0)
     min=currRange()->m_min;
-  if (mk_isBusted(max)!=0)
+  if (mk_isbusted(max)!=0)
     max=currRange()->m_max;
   if (min>max)
     mk_swapf(&min,&max);
@@ -89,7 +89,7 @@ double Scale::setRange(double min,double max,int option) {
   int magmax=mk_mag(bamax),magmin=mk_mag(bamin),magdiff=mk_mag(valdiff),rdprec=-magmax;
   valdiff=mk_diff(valdiff,.0,mk_ipow10(magdiff-3));
   if (abs(magmax-magmin)>1 || (valdiff==.0 && sgn0!=sgn1)) {
-    bamax=mk_roundUp(bamax,rdprec);
+    bamax=mk_roundup(bamax,rdprec);
     if (sgn0==sgn1)
       bamin=.0;
     else
@@ -101,8 +101,8 @@ double Scale::setRange(double min,double max,int option) {
   }
   else {
     rdprec=-magdiff;
-    bamin=mk_roundDown(bamin,rdprec);
-    bamax=mk_roundUp(bamax,rdprec);
+    bamin=mk_rounddown(bamin,rdprec);
+    bamax=mk_roundup(bamax,rdprec);
   }
   if (sgns) {
     mk_swapf(&bamin,&bamax);
@@ -198,7 +198,7 @@ int Scale::calcTics(int maxtics,aux::TVList<Tic> *ticL) {
   int ii=0,idx=-1,ntics=0;
   double interval=calcInterval(maxtics,&ntics),pos=currRange()->m_cmin;
 
-  if (mk_isNan(interval) || maxtics<=2)
+  if (mk_isnan(interval) || maxtics<=2)
     return failsave(ticL);
   aux::Asciistr ticstr;
   for (ii=0;ii<ntics;ii++) {
@@ -333,14 +333,14 @@ double Scale::calcInterval(int maxtics,int *ntics) {
   if (db!=0 || 0<=cmp)
     return mk_dnan;
   double bdiff=currRange()->m_cmax-currRange()->m_cmin,interval=mk_ipow10(mk_mag(bdiff)-2);
-  int nntics=(int)mk_roundUp(bdiff/interval,0);
+  int nntics=(int)mk_roundup(bdiff/interval,0);
   while (nntics<maxtics) {
     interval/=10.;
-    nntics=(int)mk_roundUp(bdiff/interval,0)+1;
+    nntics=(int)mk_roundup(bdiff/interval,0)+1;
   }
   while (maxtics>2 && nntics>maxtics) {
     interval=growIntervalSize(interval);
-    nntics=(int)mk_roundUp(bdiff/interval,0)+1;
+    nntics=(int)mk_roundup(bdiff/interval,0)+1;
   }
   int prec=-mk_mag(interval);
   if (mk_round2(interval,prec)>interval)
@@ -372,14 +372,14 @@ void Scale::setMajTics () {
       tic->m_size=1;
       continue;
     }
-    if (mk_diff(mk_roundUp(val,-magintv-1),
-             mk_roundDown(val,-magintv-1),mk_ipow10(magintv))==.0) {
+    if (mk_diff(mk_roundup(val,-magintv-1),
+             mk_rounddown(val,-magintv-1),mk_ipow10(magintv))==.0) {
       idx=ii;
       break;
     }
     if (iinterval==10 &&
-        mk_diff(mk_roundUp(2.*val,-magintv-1),
-             mk_roundDown(2.*val,-magintv-1),mk_ipow10(magintv))==.0) {
+        mk_diff(mk_roundup(2.*val,-magintv-1),
+             mk_rounddown(2.*val,-magintv-1),mk_ipow10(magintv))==.0) {
       idx=ii;
       break;
     }
@@ -520,8 +520,8 @@ int Scale::failsave(aux::TVList<Tic> *ticL) {
     currRange()->m_max=1.;
   }
   else if (cmp==0) {
-    currRange()->m_min-=mk_ipow10(mk_mag(currRange()->m_min)-mk_dPrec);
-    currRange()->m_max+=mk_ipow10(mk_mag(currRange()->m_max)-mk_dPrec);
+    currRange()->m_min-=mk_ipow10(mk_mag(currRange()->m_min)-mk_dprec);
+    currRange()->m_max+=mk_ipow10(mk_mag(currRange()->m_max)-mk_dprec);
   }
   else if (0<cmp)
     aux::swap(&currRange()->m_min,&currRange()->m_max);

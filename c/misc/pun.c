@@ -22,7 +22,8 @@ static const int wordlen=128;
 
 int punchinelloDecrypt(const unsigned char *word) {
 
-  int ii=0,jj=0,len2=(word ? strlen(word) : 0),len=len2-2,idx1=0,idx2=0;
+  int ii=0,jj=0,len2=(word ? strlen((const char *)word) : 0),
+    len=len2-2,idx1=0,idx2=0;
   if(len2==0 || len<=0 || len2>=wordlen)
     return 1;
 
@@ -54,7 +55,7 @@ int punchinelloDecrypt(const unsigned char *word) {
   }
   word2[jj]='\0';
 
-  if ((int)strlen(word2)!=len)
+  if ((int)strlen((const char *)word2)!=len)
     return 1;
 
   for (ii=0;ii<len;ii++) {
@@ -73,7 +74,7 @@ int punchinelloDecrypt(const unsigned char *word) {
 
 int punchinelloCrypt(const unsigned char *word) {
 
-  int ii=0,jj=0,len=(word ? strlen(word) : 0),idx1=0,idx2=0;
+  int ii=0,jj=0,len=(word ? strlen((const char *)word) : 0),idx1=0,idx2=0;
   if(len==0 || len>wordlen-3)
     return 1;
 
@@ -82,7 +83,7 @@ int punchinelloCrypt(const unsigned char *word) {
   memset(word2,0,wordlen);
   memset(out,0,wordlen);
 
-  strncpy(word2,word,len);
+  strcpy((char *)word2,(const char *)word);
 
   for (ii=0;ii<scramlen;ii++) {
     jj=ii+len;
@@ -139,7 +140,7 @@ int main(int argc,char **argv) {
     }
   }
   else
-    strncpy(inp,argv[2],128);
+    strncpy((char *)inp,argv[2],128);
 
   int res=1;
   if (strcmp(argv[1],"-c")==0)

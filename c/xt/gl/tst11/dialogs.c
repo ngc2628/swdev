@@ -1,5 +1,5 @@
 
-#include <xt/gl/tst11/globals.h>
+#include <xt/gl/tst11/statics.h>
 #include <xt/gl/tst11/dialogs.h>
 #include <xt/gl/tst11/lights.h>
 #include <xt/gl/tst11/glw.h>
@@ -44,7 +44,7 @@ static void adjustRgba() {
 
 }
 
-static void cbLightDlgQuit(Widget ww,XtPointer userdata,XtPointer) {
+static void cbLightDlgQuit(Widget ww,XtPointer userdata,XtPointer data) {
 
   int lightidx=(int)((long)userdata);
   XtDestroyWidget(lightdlg_w[lightidx]);
@@ -65,7 +65,7 @@ static void cbLightDlgQuit(Widget ww,XtPointer userdata,XtPointer) {
 
 }
 
-static void cbLightDlgConfirm(Widget ww,XtPointer userdata,XtPointer) {
+static void cbLightDlgConfirm(Widget ww,XtPointer userdata,XtPointer data) {
 
   int lightidx=(int)((long)userdata);
   lightL[lightidx]=wrklightL[lightidx];
@@ -74,10 +74,10 @@ static void cbLightDlgConfirm(Widget ww,XtPointer userdata,XtPointer) {
 
 }
 
-static void cbLightOn(Widget,XtPointer userdata,XtPointer data) {
+static void cbLightOn(Widget ww,XtPointer userdata,XtPointer data) {
 
   int lightidx=(int)((long)userdata);
-  LightSource *lightsource=&(wrklightL[lightidx]);
+  struct LightSource *lightsource=&(wrklightL[lightidx]);
   XmToggleButtonCallbackStruct *tbdata=(XmToggleButtonCallbackStruct*)data;
   if (tbdata->set==1)
     lightsource->m_on|=light_on;
@@ -90,7 +90,7 @@ static void spinValue(int lightidx,Widget ww,double value) {
 
   if (lightidx<0 || lightidx>=light_n)
     return;
-  LightSource *lightsource=&(wrklightL[lightidx]);
+  struct LightSource *lightsource=&(wrklightL[lightidx]);
 
   char *str=XtName(XtParent(XtParent(ww)));
   memset(&strBuf1[0],0,buflen);
@@ -107,20 +107,20 @@ static void spinValue(int lightidx,Widget ww,double value) {
   strncpy(strBuf1,str,buflen-1);
   XmStringFree(xms);
 
-  LightSpec *rgba=
+  struct LightSpec *rgba=
     (cmpnat==0 ? find_nature(strBuf1,lightsource,0) : find_material(strBuf1,lightsource,0));
 
   if (!rgba)
     return;
 
   if (strcmp(XtName(ww),strAlpha)==0)
-    rgba->m_value.xyzw[3]=value;
+    rgba->m_value[3]=value;
   else if (strcmp(XtName(ww),strRed)==0)
-    rgba->m_value.xyzw[0]=value;
+    rgba->m_value[0]=value;
   else if (strcmp(XtName(ww),strGreen)==0)
-    rgba->m_value.xyzw[1]=value;
+    rgba->m_value[1]=value;
   else if (strcmp(XtName(ww),strBlue)==0)
-    rgba->m_value.xyzw[2]=value;
+    rgba->m_value[2]=value;
 
 }
 
@@ -172,13 +172,13 @@ static void cbComboSelect(Widget ww,XtPointer userdata,XtPointer data) {
   int lightidx=(int)((long)userdata);
   if (lightidx<0 || lightidx>=light_n)
     return;
-  LightSource *lightsource=&(wrklightL[lightidx]);
+  struct LightSource *lightsource=&(wrklightL[lightidx]);
   XmComboBoxCallbackStruct *cbdata=(XmComboBoxCallbackStruct *)data;
   char *str=0;
   XmStringGetLtoR(cbdata->item_or_text,XmSTRING_DEFAULT_CHARSET,&str);
   strncpy(strBuf1,str,buflen-1);
   int natmat=0;
-  LightSpec *specL=0;
+  struct LightSpec *specL=0;
   if (strcmp(XtName(ww),strNature)==0) {
     specL=&(lightsource->m_specL[0]);
     natmat=1;
@@ -217,10 +217,10 @@ static void cbComboSelect(Widget ww,XtPointer userdata,XtPointer data) {
 
   double wxyz[4]={1.,0.,0.,0.};
   if (newspecidx<0) {
-    wxyz[0]=specL[specidx].m_value.xyzw[3];
-    wxyz[1]=specL[specidx].m_value.xyzw[0];
-    wxyz[2]=specL[specidx].m_value.xyzw[1];
-    wxyz[3]=specL[specidx].m_value.xyzw[2];
+    wxyz[0]=specL[specidx].m_value[3];
+    wxyz[1]=specL[specidx].m_value[0];
+    wxyz[2]=specL[specidx].m_value[1];
+    wxyz[3]=specL[specidx].m_value[2];
   }
   else {
     strcpy(specL[newspecidx].m_snature,strBuf1);
@@ -255,12 +255,12 @@ void createLightDialog(Widget parent,int lightidx) {
 
   int ii=0;
   wrklightL[lightidx]=lightL[lightidx];
-  LightSource *lightsource=&(wrklightL[lightidx]);
-  LightSpec *lightspec=0;
+  struct LightSource *lightsource=&(wrklightL[lightidx]);
+  struct LightSpec *lightspec=0;
 
   lightdlg_w[lightidx]=XmCreateTemplateDialog(parent,strLightDlg,(Arg*)0,0);
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   XtSetArg(xxargs[1],XmNfractionBase,8);
   Widget lightframe_w=XmCreateForm(lightdlg_w[lightidx],strLightFrame,xxargs,2);
   XtManageChild(lightframe_w);
@@ -280,7 +280,7 @@ void createLightDialog(Widget parent,int lightidx) {
   XtSetValues(lighton_w[lightidx],xxargs,1);
   XtManageChild(lighton_w[lightidx]);
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   XtSetArg(xxargs[1],XmNorientation,XmVERTICAL);
   XtSetArg(xxargs[2],XmNleftOffset,5);
   XtSetArg(xxargs[3],XmNleftAttachment,XmATTACH_FORM);
@@ -340,7 +340,7 @@ void createLightDialog(Widget parent,int lightidx) {
     XmStringFree(xms);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   XtSetArg(xxargs[1],XmNtopOffset,5);
   XtSetArg(xxargs[2],XmNtopAttachment,XmATTACH_POSITION);
   XtSetArg(xxargs[3],XmNtopPosition,1);
@@ -350,7 +350,7 @@ void createLightDialog(Widget parent,int lightidx) {
   XtSetArg(xxargs[7],XmNrightAttachment,XmATTACH_FORM);
   naturecolor_w[lightidx]=XmCreateSpinBox(natureframe,strNatureColor,xxargs,8);
 
-  XtSetArg(xxargs[1],XmNeditable,true);
+  XtSetArg(xxargs[1],XmNeditable,1);
   XtSetArg(xxargs[2],XmNspinBoxChildType,XmNUMERIC);
   XtSetArg(xxargs[3],XmNminimumValue,-(int)simplepow10[spin_dec_off]);
   XtSetArg(xxargs[4],XmNmaximumValue,(int)simplepow10[spin_dec_off]);
@@ -362,37 +362,37 @@ void createLightDialog(Widget parent,int lightidx) {
   naturealpha_w[lightidx]=XmCreateTextField(naturecolor_w[lightidx],strAlpha,xxargs,9);
   XtManageChild(naturealpha_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[3]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[3]));
     XtSetValues(naturealpha_w[lightidx],xxargs,1);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   naturered_w[lightidx]=XmCreateTextField(naturecolor_w[lightidx],strRed,xxargs,9);
   XtManageChild(naturered_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[0]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[0]));
     XtSetValues(naturered_w[lightidx],xxargs,1);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   naturegreen_w[lightidx]=XmCreateTextField(naturecolor_w[lightidx],strGreen,xxargs,9);
   XtManageChild(naturegreen_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[1]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[1]));
     XtSetValues(naturegreen_w[lightidx],xxargs,1);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   natureblue_w[lightidx]=XmCreateTextField(naturecolor_w[lightidx],strBlue,xxargs,9);
   XtManageChild(natureblue_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[2]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[2]));
     XtSetValues(natureblue_w[lightidx],xxargs,1);
   }
 
   XtManageChild(naturecolor_w[lightidx]);
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   XtSetArg(xxargs[1],XmNorientation,XmVERTICAL);
   XtSetArg(xxargs[2],XmNleftOffset,5);
   XtSetArg(xxargs[3],XmNleftAttachment,XmATTACH_FORM);
@@ -454,7 +454,7 @@ void createLightDialog(Widget parent,int lightidx) {
     XmStringFree(xms);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   XtSetArg(xxargs[1],XmNtopAttachment,XmATTACH_POSITION);
   XtSetArg(xxargs[2],XmNtopPosition,1);
   XtSetArg(xxargs[3],XmNbottomAttachment,XmATTACH_POSITION);
@@ -463,7 +463,7 @@ void createLightDialog(Widget parent,int lightidx) {
   XtSetArg(xxargs[6],XmNrightAttachment,XmATTACH_FORM);
   materialcolor_w[lightidx]=XmCreateSpinBox(materialframe,strMaterialColor,xxargs,7);
 
-  XtSetArg(xxargs[1],XmNeditable,true);
+  XtSetArg(xxargs[1],XmNeditable,1);
   XtSetArg(xxargs[2],XmNspinBoxChildType,XmNUMERIC);
   XtSetArg(xxargs[3],XmNminimumValue,-(int)simplepow10[spin_dec_off]);
   XtSetArg(xxargs[4],XmNmaximumValue,(int)simplepow10[spin_dec_off]);
@@ -475,37 +475,37 @@ void createLightDialog(Widget parent,int lightidx) {
   materialalpha_w[lightidx]=XmCreateTextField(materialcolor_w[lightidx],strAlpha,xxargs,9);
   XtManageChild(materialalpha_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[3]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[3]));
     XtSetValues(materialalpha_w[lightidx],xxargs,1);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   materialred_w[lightidx]=XmCreateTextField(materialcolor_w[lightidx],strRed,xxargs,9);
   XtManageChild(materialred_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[0]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[0]));
     XtSetValues(materialred_w[lightidx],xxargs,1);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   materialgreen_w[lightidx]=XmCreateTextField(materialcolor_w[lightidx],strGreen,xxargs,9);
   XtManageChild(materialgreen_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[1]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[1]));
     XtSetValues(materialgreen_w[lightidx],xxargs,1);
   }
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   materialblue_w[lightidx]=XmCreateTextField(materialcolor_w[lightidx],strBlue,xxargs,9);
   XtManageChild(materialblue_w[lightidx]);
   if (lightspec) {
-    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value.xyzw[2]));
+    XtSetArg(xxargs[0],XmNposition,(int)(simplepow10[spin_dec_off]*lightspec->m_value[2]));
     XtSetValues(materialblue_w[lightidx],xxargs,1);
   }
 
   XtManageChild(materialcolor_w[lightidx]);
 
-  XtSetArg(xxargs[0],XmNresizable,true);
+  XtSetArg(xxargs[0],XmNresizable,1);
   XtSetArg(xxargs[1],XmNorientation,XmHORIZONTAL);
   XtSetArg(xxargs[2],XmNleftOffset,5);
   XtSetArg(xxargs[3],XmNleftAttachment,XmATTACH_FORM);

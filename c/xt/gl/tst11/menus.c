@@ -5,7 +5,7 @@
 #include <X11/Xm/ToggleB.h>
 #include <X11/Xm/FileSB.h>
 
-#include <xt/gl/tst11/globals.h>
+#include <xt/gl/tst11/statics.h>
 #include <xt/gl/tst11/desktop.h>
 #include <xt/gl/tst11/menus.h>
 #include <xt/gl/tst11/edit.h>
@@ -48,7 +48,7 @@ static char strHelpentry[]="Help";
 static char strAboutentry[]="About";
 
 
-static void cbOpen(Widget,XtPointer,XtPointer) {
+static void cbOpen(Widget ww,XtPointer userdata,XtPointer data) {
 
 
 }
@@ -66,7 +66,7 @@ static void cbSave(Widget ww,XtPointer clientdata,XtPointer data) {
 
 }
 
-static void cbQuit(Widget,XtPointer,XtPointer) {
+static void cbQuit(Widget ww,XtPointer userdata,XtPointer data) {
 
   run=0;
 
@@ -90,7 +90,7 @@ static void cbObjects(Widget ww,XtPointer userdata,XtPointer data) {
 
 }
 
-static void cbDrawstyle(Widget ww,XtPointer,XtPointer data) {
+static void cbDrawstyle(Widget ww,XtPointer userdata,XtPointer data) {
 
   XmToggleButtonCallbackStruct *tbdata=(XmToggleButtonCallbackStruct*)data;
 
@@ -118,7 +118,7 @@ static void cbDrawstyle(Widget ww,XtPointer,XtPointer data) {
 
 }
 
-static void cbLight(Widget ww,XtPointer,XtPointer data) {
+static void cbLight(Widget ww,XtPointer userdata,XtPointer data) {
 
   XmPushButtonCallbackStruct *pbdata=0;
   XmToggleButtonCallbackStruct *tbdata=0;
@@ -143,7 +143,7 @@ static void cbLight(Widget ww,XtPointer,XtPointer data) {
 
 }
 
-static void cbAbout(Widget,XtPointer,XtPointer) {
+static void cbAbout(Widget ww,XtPointer userdata,XtPointer data) {
 
 
 

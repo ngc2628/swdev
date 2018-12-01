@@ -160,7 +160,7 @@ int SpreadsheetData::setIndexDescr(SpreadsheetIndex section) {
   if (!descr)
     return 0;
   descr->m_type=section.m_type;
-  if (!mk_isBusted(section.m_sz) && section.m_sz>.0)
+  if (!mk_isbusted(section.m_sz) && section.m_sz>.0)
     descr->m_sz=section.m_sz;
   descr->m_gridstyle=section.m_gridstyle;
   if ((section.isStatic() && descr->isStatic()) ||

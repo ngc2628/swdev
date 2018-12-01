@@ -133,7 +133,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (ii=0;ii<cntrows;ii++) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defHeight;
 //printf ("r=%d h=%f static=%d\n",i,descr.m_sz,descr.m_static);
     m_rects[ii][0].m_rect.set(0.,tt,osix::xxRectSize(defWidth,descr.m_sz));
@@ -143,7 +143,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (ii=cntrows-1;ii>=0;ii--) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defHeight;
 //printf ("r=%d h=%f static=%d\n",i,descr.m_sz,descr.m_static);
     if (!descr.isStatic()) {
@@ -155,7 +155,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (ii=0;ii<cntrows;ii++) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defHeight;
 //printf ("r=%d h=%f static=%d\n",i,descr.m_sz,descr.m_static);
     if (!descr.isStatic())
@@ -170,7 +170,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (jj=ii;jj<backstatic;jj++) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defHeight;
 //printf ("r=%d h=%f static=%d\n",i,descr.m_sz,descr.m_static);
     tmpsz=descr.m_sz;
@@ -192,7 +192,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (ii=backstatic;ii<cntrows;ii++) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defHeight;
 //printf ("r=%d h=%f static=%d\n",i,descr.m_sz,descr.m_static);
     if (vrows>0)
@@ -210,7 +210,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
     for (jj=0;jj<cntcols;jj++) {
       descr.m_idx=ii;
       m_data->indexDescr(&descr);
-      if (mk_isBusted(descr.m_sz))
+      if (mk_isbusted(descr.m_sz))
         descr.m_sz=defWidth;
 //printf ("c=%d w=%f static=%d\n",i,descr.m_sz,descr.m_static);
       m_rects[ii][jj].m_rect.set(ll,tt,osix::xxRectSize(descr.m_sz,hh));
@@ -224,7 +224,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (ii=cntcols-1;ii>0;ii--) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defWidth;
 //printf ("c=%d w=%f static=%d\n",i,descr.m_sz,descr.m_static);
     if (!descr.isStatic()) {
@@ -236,7 +236,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (ii=0;ii<cntcols;ii++) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defWidth;
 //printf ("c=%d w=%f static=%d\n",i,descr.m_sz,descr.m_static);
     if (!descr.isStatic())
@@ -251,7 +251,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (jj=ii;jj<backstatic;jj++) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defWidth;
 //printf ("c=%d w=%f static=%d\n",i,descr.m_sz,descr.m_static);
     tmpsz=descr.m_sz;
@@ -273,7 +273,7 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
   for (ii=backstatic;ii<cntcols;ii++) {
     descr.m_idx=ii;
     m_data->indexDescr(&descr);
-    if (mk_isBusted(descr.m_sz))
+    if (mk_isbusted(descr.m_sz))
       descr.m_sz=defWidth;
 //printf ("c=%d w=%f static=%d\n",i,descr.m_sz,descr.m_static);
     if (vcols>0)

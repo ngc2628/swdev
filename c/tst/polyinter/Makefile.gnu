@@ -2,56 +2,57 @@
 ####### definitions #######
 
 PRJROOT       = $(SWDIR)
-PRJ           = ipcclient
+PRJ           = tstpolyinter
 DESTDIR       = $(BINDIR)
 TARGET        = $(PRJ)
 DEFINES       =
-HEADER        = client.h
-SOURCES       = client.cpp main.cpp 
-LIBS          = -lipcutl -lpthread
+HEADER        = 
+SOURCES       = main.c
+LIBS          = -lmkbase -lz -lm 
 SOLN					= 
 
 ####### names and locations #######
 
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
-vpath					%.cpp $(SWDIR)/cpp/$(PRJ)
-OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.cpp=.o))
+vpath					%.c $(SWDIR)/c/$(PRJ)
+OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
 
 ####### compiler flags #######
 
-WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreorder -Wreturn-type
+WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type
 WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
-WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable 
-WFLAGS4				= -Wmaybe-uninitialized -Wc++11-compat -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
+WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
+WFLAGS4				= -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
-CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(SWDIR)/cpp
+CFLAGS        = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
+IFLAGS				= -I$(SWDIR)/c 
 LFLAGS				= -L$(LIBDIR) 
-LEXFLAGS      = 
+LEXFLAGS      =
 YACCFLAGS     = -d
 
 ####### commands #######
 
 CC            = gcc
-CXX           = g++
+CXX           = gcc
 LEX           = flex
 YACC          = yacc
-LINK          = g++ $(SOLN)
+DEFINES       = 
+LINK          = gcc $(SOLN)
 AR            = ar cq
 RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-RM            = rm -f
 RMDIR         = rm -rf
+RM            = rm -f
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
 
 ####### targets #######
 
 all: $(OBJPRJ) $(TARGET)
-	
+
 $(OBJPRJ):
 	-$(MKDIR) $(OBJPRJ)
 
@@ -59,18 +60,17 @@ $(OBJPRJ):
 
 .SUFFIXES:
 
-$(OBJPRJ)/%.o : %.cpp
+$(OBJPRJ)/%.o : %.c
 	$(CXX) -c $(CXXFLAGS) $(IFLAGS) -o "$@" "$<"
 
 ####### build rules #######
 
-$(TARGET):  $(OBJECTS)   
-	-$(RM) $(DESTDIR)/$(TARGET) 
-	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(LIBS) 
+$(TARGET):  $(OBJECTS) 
+	-$(RM) $(DESTDIR)/$(TARGET)
+	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(LIBS)
 
-clean: 
+clean:
 	$(RMDIR) $(OBJPRJ)
 	$(RM) $(DESTDIR)/$(TARGET)
 	$(RM) *~ core *.core
-
 
