@@ -121,25 +121,25 @@ inline int oswinexp mk_isinf(double d) {
 #if defined (_MSC_VER)
   return (_fpclass(d)==_FPCLASS_NINF ? -1 : (_fpclass(d)==_FPCLASS_PINF ? 1 : 0));
 #else
-  return (finite(d) ? 0 : mk_dsgn(d));
+  return (isinf(d)>0 ? 1 : (isinf(d)<0 ? -1 : 0));
 #endif
 }
 
 /* in number , return 0 or -1,1 */
 inline int oswinexp mk_isnan(double d) {
 #if defined (_MSC_VER)
-  return (_isnan(d) ? mk_dsgn(d) : 0);
+  return (_isnan(d)==0 ? 0 : mk_dsgn(d));
 #else
-  return (isnan(d) ? mk_dsgn(d) : 0);
+  return (isnan(d)==0 ? 0 : mk_dsgn(d));
 #endif
 }
 
 /* in number , return 0 or -1,1 */
 inline int oswinexp mk_isfinite(double d) {
 #if defined (_MSC_VER)
-  return (_finite(d) ? mk_dsgn(d) : 0);
+  return (_finite(d)==0 ? 0 : mk_dsgn(d));
 #else
-  return (finite(d) ? mk_dsgn(d) : 0);
+  return (finite(d)==0 ? 0 : mk_dsgn(d));
 #endif
 }
 
