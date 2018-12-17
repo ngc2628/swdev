@@ -14,7 +14,7 @@ Shape2 &Shape2::operator=(const Shape2 &ass) {
   m_rotate=ass.m_rotate;
   m_translate=ass.m_translate;
   m_points=ass.m_points;
-  memcpy(&m_descr[0],&ass.m_descr[0],mk_idlen);
+  m_descr=ass.m_descr;
   m_styleO=ass.m_styleO;
   m_styleF=ass.m_styleF;
   return *this; 
@@ -50,9 +50,10 @@ aux::Vector3 Shape2::translate(aux::Vector3 tt) {
 
 void Shape2::setDescr(const char *descr) { 
 
-  memset(&m_descr[0],0,mk_idlen);
   if (descr)
-    strncpy(&m_descr[0],descr,mk_idlen-1);
+    m_descr=descr;
+  else
+    m_descr=(const char *)0;
   
 }	
 

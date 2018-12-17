@@ -29,6 +29,52 @@ static const unsigned short ndig=16;
 static mk_ulreal mk_globalcnt=0;
 
 /* ########## */
+int mk_dsgn(double dd) {
+  return (((((const unsigned char *)&dd)[7])>>7)>0 ? -1 : 1);
+} // little endian 0 -> 7
+
+/* ########## */
+double mk_dsign(double dd) {
+  return (double)mk_dsgn(dd);
+}
+
+/* ########## */
+int mk_isinf(double dd) {
+#if defined (_MSC_VER)
+  return (_fpclass(d)==_FPCLASS_NINF ? -1 : (_fpclass(d)==_FPCLASS_PINF ? 1 : 0));
+#else
+  return (isinf(dd)>0 ? 1 : (isinf(dd)<0 ? -1 : 0));
+#endif
+}
+
+/* ########## */
+int mk_isnan(double dd) {
+#if defined (_MSC_VER)
+  return (_isnan(dd)==0 ? 0 : mk_dsgn(dd));
+#else
+  return (isnan(dd)==0 ? 0 : mk_dsgn(dd));
+#endif
+}
+
+/* ########## */
+int mk_isfinite(double dd) {
+#if defined (_MSC_VER)
+  return (_finite(dd)==0 ? 0 : mk_dsgn(dd));
+#else
+  return (finite(dd)==0 ? 0 : mk_dsgn(dd));
+#endif
+}
+
+/* ########## */
+int mk_isbusted(double dd) {
+#if defined (_MSC_VER)
+  return (!_isnan(dd) && _finite(dd) ? 0 : mk_dsgn(dd));
+#else
+  return (!isnan(dd) && finite(dd) ? 0 : mk_dsgn(dd));
+#endif
+}
+
+/* ########## */
 mk_ulreal mk_nextcnt() {
 #if defined (__MACH__)
   OSAtomicAdd32(1,&globalcnt);
@@ -41,23 +87,23 @@ mk_ulreal mk_nextcnt() {
 /* ########## */
 mk_ulreal mk_nextt() {
 
-  mk_ulreal t=0;
+  mk_ulreal tt=0;
 
 #if defined (_MSC_VER)
   struct __timeb64 tsec;
   _ftime64(&tsec);
-  t=(mk_ulreal)1000000*tsec.time+tsec.millitm;
+  tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
 #elif defined (__WATCOMC__)
   struct timeb tsec;
   ftime(&tsec);
-  t=(mk_ulreal)1000000*tsec.time+tsec.millitm;
+  tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
 #else
   struct timezone tzp;
   struct timeval tsec;
   gettimeofday(&tsec,&tzp);
-  t=(mk_ulreal)1000000*tsec.tv_sec+tsec.tv_usec;
+  tt=(mk_ulreal)1000000*tsec.tv_sec+tsec.tv_usec;
 #endif
-  return t;
+  return tt;
 
 }
 
@@ -83,7 +129,7 @@ void mk_swapc(char **c1,char **c2) {
 }
 
 /* ########## */
-double mk_ipow10(int n) {
+double mk_ipow10(int nn) {
 
   static double powtablarge[309]={1.,1.e1,1.e2,1.e3,1.e4,1.e5,1.e6,1.e7,1.e8,1.e9,1.e10,
         1.e11,1.e12,1.e13,1.e14,1.e15,1.e16,1.e17,1.e18,1.e19,1.e20,
@@ -154,15 +200,15 @@ double mk_ipow10(int n) {
         1.e-308};
 #endif
 
-  if (n>=0)
-    return powtablarge[n>308 ? 308 : n];
+  if (nn>=0)
+    return powtablarge[nn>308 ? 308 : nn];
   else
-    return powtabtiny[n<-308 ? 308 : -n];
+    return powtabtiny[nn<-308 ? 308 : -nn];
 
 }
 
 /* ########## */
-double mk_ipow2(int n) {
+double mk_ipow2(int nn) {
   static double powtab[1025]={1.,
         2.000000000000000e+00,4.000000000000000e+00,8.000000000000000e+00,1.600000000000000e+01,
         3.200000000000000e+01,6.400000000000000e+01,1.280000000000000e+02,2.560000000000000e+02,
@@ -421,14 +467,14 @@ double mk_ipow2(int n) {
         1.404447761611184e+306,2.808895523222369e+306,5.617791046444737e+306,1.123558209288947e+307,
         2.247116418577895e+307,4.494232837155790e+307,8.988465674311580e+307,1.797693134862315e+308};
 
-  if (n>=0)
-    return powtab[n>1024 ? 1024 : n];
-  return 1./powtab[n<-1024 ? 1024 : -n];
+  if (nn>=0)
+    return powtab[nn>1024 ? 1024 : nn];
+  return 1./powtab[nn<-1024 ? 1024 : -nn];
 
 }
 
 /* ########## */
-static int strip4ascii(char *str) {
+static int mk_strip4ascii(char *str) {
 
   int ih=(str ? (int)strlen(str) : 0),il=0,ic=0;
   if (ih==0)
@@ -455,16 +501,25 @@ static int strip4ascii(char *str) {
 }
 
 /* ########## */
-int mk_removeseparators(char *numstr,const char * const decsep,const char * const groupsep) {
+static int mk_separators(char *decsep,int *declen,char *groupsep,int *grouplen) {
 
-  int ii=0,jj=0,numlen=(numstr ? (int)strlen(numstr) : 0),skip=0,
-      declen=(decsep ? (int)strlen(decsep) : 0),grouplen=(groupsep ? (int)strlen(groupsep) : 0);
+  *declen=(decsep ? (int)strlen(decsep) : 0);
+  *grouplen=(groupsep ? (int)strlen(groupsep) : 0);
+  while ((*declen)>3)
+    decsep[--(*declen)]=0;
+  while ((*grouplen)>3)
+    groupsep[--(*grouplen)]=0;
+  return 0;
+  
+}
+
+/* ########## */
+int mk_removeseparators(char *numstr,char *decsep,char *groupsep) {
+
+  int ii=0,jj=0,numlen=(numstr ? (int)strlen(numstr) : 0),skip=0,declen=0,grouplen=0;
   if (numlen<2)
     return 1;
-  if (declen>mk_maxseparatorlen)
-    declen=mk_maxseparatorlen;
-  if (grouplen>mk_maxseparatorlen)
-    grouplen=mk_maxseparatorlen;
+  mk_separators(decsep,&declen,groupsep,&grouplen);
   if (grouplen==0 && (declen==0 || (declen==1 && decsep[0]==mk_asciidec)))
     return 0;
 
@@ -497,12 +552,13 @@ int mk_removeseparators(char *numstr,const char * const decsep,const char * cons
 }
 
 /* ########## */
-int mk_insertseparators(char *numstr,int maxlen,const char *const decsep,const char *const groupsep) {
+int mk_insertseparators(char *numstr,char *decsep,char *groupsep) {
 
-  int ii=0,jj=0,kk=0,numlen=(numstr ? (int)strlen(numstr) : 0),decpos=-1,grouptrack=0,sgn=0,
-      declen=(decsep ? (int)strlen(decsep) : 0),grouplen=(groupsep ? (int)strlen(groupsep) : 0);
-  if (numlen<2 || mk_maxnumstrlen<numlen || maxlen<numlen)
+  int ii=0,jj=0,kk=0,numlen=(numstr ? (int)strlen(numstr) : 0),
+    decpos=-1,declen=0,grouplen=0,grouptrack=0,sgn=0;
+  if (numlen<2)
     return 1;
+  mk_separators(decsep,&declen,groupsep,&grouplen);
   for (ii=numlen-1;ii>-1;ii--) {
     if (numstr[ii]==mk_asciie || numstr[ii]==mk_asciiE)
       grouplen=0;
@@ -511,10 +567,6 @@ int mk_insertseparators(char *numstr,int maxlen,const char *const decsep,const c
       break;
     }
   }
-  if (declen>mk_maxseparatorlen)
-    declen=mk_maxseparatorlen;
-  if (grouplen>mk_maxseparatorlen)
-    grouplen=mk_maxseparatorlen;
   if (grouplen==0 && (decpos==0 || (declen==1 && decsep[0]==mk_asciidec)))
     return 0;
 
@@ -524,8 +576,8 @@ int mk_insertseparators(char *numstr,int maxlen,const char *const decsep,const c
     numstr[--numlen]=0;
     decpos--;
   }
-  char *res=(char*)malloc(maxlen+1);
-  memset(&res[0],0,maxlen+1);
+  mk_str1k(res);
+  int maxlen=mk_sz;
   kk=maxlen;
   for (ii=numlen-1;ii>-1;ii--) {
     if (decpos>=0 && ii>decpos) {
@@ -554,7 +606,7 @@ int mk_insertseparators(char *numstr,int maxlen,const char *const decsep,const c
         res[kk--]=numstr[ii];
       }
       else if (decpos<0 || (decpos>=0 && ii<decpos)) {
-        if (grouptrack==mk_separatorgrouplen) {
+        if (grouptrack==3) {
           for (jj=0;jj<grouplen;jj++) {
             if (kk==0)
               goto lenfail;
@@ -569,12 +621,10 @@ int mk_insertseparators(char *numstr,int maxlen,const char *const decsep,const c
       }
     }
   }
-
   memcpy(&numstr[0],&res[kk+1],maxlen-kk-1);
   memset(&numstr[maxlen-kk-1],0,kk+1);
 
 lenfail:
-  free(res);
   if (sgn<0) {
     memmove(&numstr[1],&numstr[0],numlen);
     numstr[0]=mk_asciiminus;
@@ -585,20 +635,18 @@ lenfail:
 }
 
 /* ########## */
-int mk_exp2simple (char numstr[mk_klen]) {
+int mk_exp2simple (char *numstr) {
 
   int numlen=(int)strlen(numstr);
-  if (numlen<4 || mk_maxnumstrlen<numlen)
+  if (numlen<4)
     return 1;
   int ii=0,jj=1,expnum=0;
-  char bufman[mk_klen];
-  memset(&bufman[0],0,mk_klen);
-  char bufexp[mk_klen];
-  memset(&bufexp[0],0,mk_klen);
+  mk_str1k(bufman);
+  mk_str1k(bufexp);
   for (ii=numlen-1;ii>-1;ii--) {
     if (numstr[ii]==mk_asciie || numstr[ii]==mk_asciiE) {
-      strncpy(&bufman[0],&numstr[0],ii);
-      strncpy(&bufexp[0],&numstr[ii+1],mk_klen);
+      strcpy(&bufman[0],&numstr[0]);
+      strcpy(&bufexp[0],&numstr[ii+1]);
       break;
     }
   }
@@ -621,7 +669,7 @@ int mk_exp2simple (char numstr[mk_klen]) {
   }
   if (expnum==0) {
     strcpy(numstr,bufman);
-    memset(&numstr[mantlen],0,mk_klen-mantlen);
+    numstr[mantlen]=0;
     return 0;
   }
   int decpos=-1,sgn=(bufman[0]==mk_asciiminus ? -1 : (bufman[0]==mk_asciiplus ? 1 : 0));
@@ -702,13 +750,13 @@ int mk_exp2simple (char numstr[mk_klen]) {
     mantlen++;
   }
   strcpy(numstr,bufman);
-  memset(&numstr[mantlen],0,mk_klen-mantlen);
+  numstr[mantlen]=0;
   return 0;
 
 }
 
 /* ########## */
-mk_ulreal mk_parseint(const char *estr,int *base,int *sgn,const char *group) {
+mk_ulreal mk_parseint(char *estr,int *base,int *sgn,char *group) {
 
   int ii=0,jj=0,kk=0,mysgn=1,len=(estr ? (int)strlen(estr) : 0);
   if (len==0) {
@@ -719,10 +767,9 @@ mk_ulreal mk_parseint(const char *estr,int *base,int *sgn,const char *group) {
   int mybase=(base ? *base : 10);
   if (mybase<2 || mybase>mk_maxintbase)
     mybase=10;
-  char numstr[mk_klen];
-  memset(&numstr[0],0,mk_klen);
-  strncpy(numstr,estr,mk_klen-1);
-  strip4ascii(numstr);
+  mk_str1k(numstr);
+  strcpy(numstr,estr);
+  mk_strip4ascii(numstr);
   mk_removeseparators(numstr,0,group);
   mk_exp2simple(numstr);
   len=(int)strlen(numstr);
@@ -731,8 +778,7 @@ mk_ulreal mk_parseint(const char *estr,int *base,int *sgn,const char *group) {
       *base=-1;
     return 0;
   }
-  char tmpstr[mk_klen];
-  memset(&tmpstr[0],0,mk_klen);
+  mk_str1k(tmpstr);
   int canparse=0;
   char c=0;
   ii=len-1;
@@ -771,9 +817,9 @@ mk_ulreal mk_parseint(const char *estr,int *base,int *sgn,const char *group) {
       *base=-1;
     return 0;
   }
-  memset(&numstr[0],0,mk_klen);
   for (ii=len-1,jj=0;ii>-1;ii--,jj++)
     numstr[jj]=tmpstr[ii];
+  numstr[jj]=0;
   /* extra check */
   static const char *ui64limitstr[5]={ /* 2,8,10,16,37 */
     "1111111111111111111111111111111111111111111111111111111111111111",
@@ -820,7 +866,7 @@ mk_ulreal mk_parseint(const char *estr,int *base,int *sgn,const char *group) {
 
 /* ########## */
 /* type - 0:fail,1:int,2:double */
-double mk_parsefloat(const char *str,int *type,int *prec,const char *decsep,const char *groupsep) {
+double mk_parsefloat(char *str,int *type,int *prec,char *decsep,char *groupsep) {
 
   if (prec)
     *prec=0;
@@ -829,10 +875,9 @@ double mk_parsefloat(const char *str,int *type,int *prec,const char *decsep,cons
   int ii=0,inplen=(str ? (int)strlen(str) : 0);
   if (inplen==0)
     return mk_dnan;
-  char estr[mk_klen];
-  memset(&estr[0],0,mk_klen);
-  strncpy(estr,str,mk_klen-1);
-  strip4ascii(estr);
+  mk_str1k(estr);
+  strcpy(estr,str);
+  mk_strip4ascii(estr);
   inplen=(int)strlen(estr);
   if (inplen==0)
     return mk_dnan;
@@ -863,9 +908,8 @@ double mk_parsefloat(const char *str,int *type,int *prec,const char *decsep,cons
     if (inplen==0)
       return mk_dnan;
   }
-  char bufman[mk_klen],bufexp[mk_klen];
-  memset(&bufman[0],0,mk_klen);
-  memset(&bufexp[0],0,mk_klen);
+  mk_str1k(bufman);
+  mk_str1k(bufexp);
   for (ii=inplen-1;ii>-1;ii--) {
     if (estr[ii]==mk_asciie) {
       strncpy(&bufman[0],&estr[0],ii);
@@ -977,10 +1021,10 @@ mk_ulreal mk_a2ui_(int cnt,...) {
 
   va_list valist;
   va_start(valist,cnt);
-  const char *str=(cnt>0 ? va_arg(valist,const char *) : 0);
+  char *str=(cnt>0 ? va_arg(valist,char *) : 0);
   int *base=(cnt>1 ? va_arg(valist,int *) : 0);
   int *sign=(cnt>2 ? va_arg(valist,int *) : 0);
-  const char *group=(cnt>3 ? va_arg(valist,const char *) : 0);
+  char *group=(cnt>3 ? va_arg(valist,char *) : 0);
   va_end(valist);
 
   int sgn=1,mybase=-1;
@@ -1018,24 +1062,30 @@ mk_ulreal mk_a2ui_(int cnt,...) {
 }
 
 /* ########## */
-mk_lreal mk_a2i(const char *str,int *base,const char *group) {
+mk_lreal mk_a2i_(int cnt,...) {
+
+  va_list valist;
+  va_start(valist,cnt);
+  char *str=(cnt>0 ? va_arg(valist,char *) : 0);
+  int *base=(cnt>1 ? va_arg(valist,int *) : 0);
+  char *group=(cnt>2 ? va_arg(valist,char *) : 0);
+  va_end(valist);
 
   int sgn=1;
-  mk_lreal res=(mk_lreal)mk_a2ui(str,base,&sgn,group);
+  mk_lreal res=(mk_lreal)mk_a2ui_(4,str,base,&sgn,group);
   return sgn*res;
 
 }
 
 /* ########## */
-int mk_ui2a(mk_ulreal number,char numstr[mk_klen],int base,int width,int fillzero,const char *group) {
+int mk_ui2str(mk_ulreal number,char *numstr,int base,int width,int fillzero,char *group) {
 
-  memset(&numstr[0],0,mk_klen);
+  numstr[0]=0;
   if (base<2 || base>mk_maxintbase)
     base=10;
   mk_ulreal num=number;
   int pos=-1;
-  char buf[mk_klen];
-  memset(&buf[0],0,mk_klen);
+  mk_str1k(buf);
   do {
     buf[++pos]=(char)mk_basechar[(int)(num%base)];
     num/=base;
@@ -1054,23 +1104,67 @@ int mk_ui2a(mk_ulreal number,char numstr[mk_klen],int base,int width,int fillzer
   for (ii=pos,jj=0;ii>-1;ii--,jj++)
     numstr[jj]=buf[ii];
   if (base==10 && group && strlen(group)>0)
-    mk_insertseparators(&numstr[0],mk_klen,0,group);
+    mk_insertseparators(&numstr[0],0,group);
   return base;
 
 }
 
 /* ########## */
-int mk_i2a(mk_lreal number,char numstr[mk_klen],int base,int width,int fillzero,const char *group) {
+char *mk_ui2a_(int cnt,...) {
+
+  va_list valist;
+  va_start(valist,cnt);
+  mk_ulreal number=(cnt>0 ? va_arg(valist,mk_ulreal) : 0);
+  int base=(cnt>1 ? va_arg(valist,int) : 10);
+  int width=(cnt>2 ? va_arg(valist,int) : 0);
+  int padzero=(cnt>3 ? va_arg(valist,int) : 1);
+  char *group=(cnt>4 ? va_arg(valist,char *) : 0);
+  va_end(valist);
+
+  mk_str1k(resx);
+  int resbase=mk_ui2str(number,&resx[0],base,width,padzero,group);
+  if (resbase==0)
+    return 0;
+  char *res=(char *)malloc((int)strlen(resx));
+  strcpy(res,resx);
+  return res;
+  
+}
+
+/* ########## */
+int mk_i2str(mk_lreal number,char *numstr,int base,int width,int fillzero,char *group) {
 
   int sgn=(int)(number>>63);
   mk_ulreal unumber=(mk_ulreal)(number&mk_i64limit);
-  base=mk_ui2a(unumber,numstr,base,width,fillzero,group);
+  base=mk_ui2str(unumber,numstr,base,width,fillzero,group);
   if (sgn>0) {
     memmove(&numstr[1],&numstr[0],strlen(numstr));
     numstr[0]=mk_asciiminus;
   }
   return base;
 
+}
+
+/* ########## */
+char *mk_i2a_(int cnt,...) {
+
+  va_list valist;
+  va_start(valist,cnt);
+  mk_lreal number=(cnt>0 ? va_arg(valist,mk_lreal) : 0);
+  int base=(cnt>1 ? va_arg(valist,int) : 10);
+  int width=(cnt>2 ? va_arg(valist,int) : 0);
+  int padzero=(cnt>3 ? va_arg(valist,int) : 1);
+  char *group=(cnt>4 ? va_arg(valist,char *) : 0);
+  va_end(valist);
+
+  mk_str1k(resx);
+  int resbase=mk_i2str(number,&resx[0],base,width,padzero,group);
+  if (resbase==0)
+    return 0;
+  char *res=(char *)malloc((int)strlen(resx));
+  strcpy(res,resx);
+  return res;
+  
 }
 
 /* ########## */
@@ -1107,10 +1201,10 @@ double mk_a2d_(int cnt,...) {
 
   va_list valist;
   va_start(valist,cnt);
-  const char *str=(cnt>0 ? va_arg(valist,const char *) : 0);
+  char *str=(cnt>0 ? va_arg(valist,char *) : 0);
   int *prec=(cnt>1 ? va_arg(valist,int*) : 0);
-  const char *dec=(cnt>2 ? va_arg(valist,const char *) : ".");
-  const char *group=(cnt>3 ? va_arg(valist,const char *) : 0);
+  char *dec=(cnt>2 ? va_arg(valist,char *) : ".");
+  char *group=(cnt>3 ? va_arg(valist,char *) : 0);
   va_end(valist);
 
   int type=0;
@@ -1121,9 +1215,9 @@ double mk_a2d_(int cnt,...) {
 
 int failedcnt1=0,failedcnt2=0;
 /* ########## */
-int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
+int mk_dconvert (double d,char *str,int p,char fmt,int pad) {
 
-  memset(&str[0],0,mk_klen);
+  str[0]=0;
   int db=mk_isbusted(d);
   if (db!=0) {
     strcpy(str,(mk_isinf(d) ? (db<0 ? "-INF" : "INF") : (db<0 ? "-NaN" : "NaN")));
@@ -1158,7 +1252,7 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
   short bexp=(xchar==0 ? 0 : xchar-dbias);
   double bexplog10=(double)bexp*mk_log210,tmp=1.,scl=.1,sch=10.,dsc=.0;
   short sc=(short)bexplog10,csc=sc;
-  int kk=0;
+  int maxlen=mk_sz,kk=0;
   double efrac=mk_log10e*(bexplog10-(double)sc);
   if (sc>=0 && efrac!=.0) {
     tmp=dsc=1.;
@@ -1203,14 +1297,12 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
     str[pos++]=mk_asciizero;
     if (0<pad) {
       str[pos++]=mk_asciidec;
-      if (mk_klen-1-pos<pad)
-        pad=mk_klen-1-pos;
       while (0<pad--)
         str[pos++]=mk_asciizero;
     }
     return 0;
   }
-  int ii=0,jj=-1,lastpos=mk_klen-2,decpos=ndig-sc,rdpos=decpos-p;
+  int ii=0,jj=-1,lastpos=maxlen-1,decpos=ndig-sc,rdpos=decpos-p;
   char c=0,co=0,lastc=0,carry=0;
   unsigned short ifrac[4]={frac,0,0,0};
   ifrac[3]=frac;
@@ -1233,9 +1325,10 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
   if (fmt<0)
     fmt=((sc<-6 || 6<sc) ? 1 : 0);
 
-  if (fmt==0)
+  if (fmt==0) {
     for (ii=ndig;ii<sc;ii++)
       str[lastpos--]=mk_asciizero;
+  }
   for (ii=0;ii<ndig;ii++) {
     if (ii>0 && (ii%4)==0)
       frac=ifrac[ii/4];
@@ -1276,8 +1369,6 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
     str[pos++]=mk_asciizero;
     if (0<pad) {
       str[pos++]=mk_asciidec;
-      if (mk_klen-1-pos<pad)
-        pad=mk_klen-1-pos;
       while (0<pad--)
         str[pos++]=mk_asciizero;
     }
@@ -1302,7 +1393,7 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
     }
     else sc--;
   }
-  memmove(&str[pos],&str[lastpos+1],(size_t)(mk_klen-lastpos-1));
+  memmove(&str[pos],&str[lastpos+1],(size_t)(maxlen-lastpos-1));
   pos=(unsigned short)strlen(str);
   if (0<pad) {
     for (ii=pos-1;ii>-1;ii--) {
@@ -1317,8 +1408,6 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
       else {
         if (jj<0)
           str[pos++]=mk_asciidec;
-        if (pad>mk_klen-1-pos)
-          pad=mk_klen-1-pos;
       }
     }
     else {
@@ -1357,13 +1446,36 @@ int mk_dconvert (double d,char str[mk_klen],int p,char fmt,int pad) {
 }
 
 /* ########## */
-int mk_d2a(double d,char str[mk_klen],int p,char fmt,int pad,const char *decsep,const char *groupsep) {
+int mk_d2str(double d,char *str,int p,char fmt,int pad,char *decsep,char *groupsep) {
 
   mk_dconvert(d,str,p,fmt,pad);
   if ((decsep && strlen(decsep)>0 && strcmp(decsep,".")) ||
       (fmt==0 && groupsep && strlen(groupsep)>0))
-    mk_insertseparators(&str[0],mk_klen,decsep,groupsep);
+    mk_insertseparators(&str[0],decsep,groupsep);
   return 0;
+
+}
+
+/* ########## */
+char *mk_d2a_(int cnt,...) {
+
+  va_list valist;
+  va_start(valist,cnt);
+  double number=(cnt>0 ? va_arg(valist,double) : mk_dnan);
+  int prec=(cnt>1 ? va_arg(valist,int) : 15);
+  int fmt=(cnt>2 ? va_arg(valist,int) : -1);
+  int pad=(cnt>3 ? va_arg(valist,int) : -1);
+  char *dec=(cnt>4 ? va_arg(valist,char *) : ".");
+  char *group=(cnt>5 ? va_arg(valist,char *) : 0);
+  va_end(valist);
+
+  mk_str1k(resx);
+  int restype=mk_d2str(number,&resx[0],prec,fmt,pad,dec,group);
+  if (restype!=0)
+    return 0;
+  char *res=(char *)malloc((int)strlen(resx));
+  strcpy(res,resx);
+  return res;
 
 }
 
@@ -1650,7 +1762,7 @@ that is  roundUp(1.54,0)=2.0   but  roundUp(1.54,1)=1.6
 (negative values for precision are allowed so is  roundUp(1.54,-2)=100.0 )
 ! there may be some rare pathological cases where the routine fails !
 -----------------------------------------------------------------------------*/
-double mk_roundUp_(int cnt,...) {
+double mk_roundup_(int cnt,...) {
 
   va_list valist;
   va_start(valist,cnt);
@@ -1680,7 +1792,7 @@ double mk_roundUp_(int cnt,...) {
 }
 
 /* ########## */
-double mk_roundDown_(int cnt,...) {
+double mk_rounddown_(int cnt,...) {
 
   va_list valist;
   va_start(valist,cnt);

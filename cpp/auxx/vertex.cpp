@@ -330,7 +330,7 @@ void Vertex::toString(Asciistr *str,int prec) const {
 
   if (!str)
     return;
-  char buf[mk_klen];
+  mk_str1k(buf);
   Asciistr numstr;
   strcpy(buf,"Vertex : [");
   d2a(m_xyzw[0],&numstr,(short)prec);

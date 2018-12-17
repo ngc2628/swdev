@@ -53,11 +53,14 @@ class oswinexp Asciistr {
 
 };
 
-extern int oswinexp ui2a(mk_ulreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
+extern int oswinexp ui2a(
+  mk_ulreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
 
-extern int oswinexp i2a(mk_lreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
+extern int oswinexp i2a(
+  mk_lreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
 
-extern int oswinexp d2a(double,Asciistr*,int prec=15,char fmt=-1,int pad=-1,const char *dec=".",const char *group=0);
+extern int oswinexp d2a(
+  double,Asciistr*,int prec=15,char fmt=-1,int pad=-1,const char *dec=".",const char *group=0);
 
 extern mk_ulreal oswinexp nextT(Asciistr *);
 
@@ -97,7 +100,7 @@ class oswinexp TypeId {
 
   protected:
     mk_ulreal m_idd;
-    char m_type[mk_idlen];
+    char m_type[mk_sz];
 
   public:
     TypeId(const char *name=0,mk_ulreal idd=0);
@@ -190,7 +193,8 @@ template <class X> inline void heapsortv(int nn, X arr[]) {
   }
 }
 
-template <class X> inline void heapsortvc(int nn, X arr[], int (*comp)(const void *itm1,const void *itm2)) {
+template <class X> inline void heapsortvc(
+  int nn, X arr[], int (*comp)(const void *itm1,const void *itm2)) {
   if (nn<2 || !arr || !comp)
     return;
   int ii=0,jj=0,ub=nn-1,mb=nn/2;
@@ -212,7 +216,8 @@ template <class X> inline void heapsortvc(int nn, X arr[], int (*comp)(const voi
         if (comp && comp((const void*)(&arr[jj]),(const void*)(&arr[jj+1]))<0)
           jj++;
       }
-      if (comp && comp((const void*)(&tmp),(const void*)(&arr[jj]))<0) {  // promote j-pos until it is better than auxillary ...
+      // promote j-pos until it is better than auxillary ...
+      if (comp && comp((const void*)(&tmp),(const void*)(&arr[jj]))<0) {  
         arr[ii]=arr[jj];
         ii=jj;
         jj+=(ii+1); // ... and make i=j as new knot with subknots from 2*j
@@ -256,7 +261,8 @@ template <class X> inline void heapsortp(int nn, X **arr) {
   }
 }
 
-template <class X> inline void heapsortpc(int nn, X **arr, int (*comp)(const void *itm1,const void *itm2)) {
+template <class X> inline void heapsortpc(
+  int nn, X **arr, int (*comp)(const void *itm1,const void *itm2)) {
   if (nn<2 || !arr || !comp)
     return;
   int ii=0,jj=0,ub=nn-1,mb=nn/2;
@@ -276,7 +282,8 @@ template <class X> inline void heapsortpc(int nn, X **arr, int (*comp)(const voi
     while(jj<=ub) {
       if (jj<ub && comp((const void *)arr[jj],(const void *)arr[jj+1])<0)
         jj++; // subknot is ok to its successor
-      if (comp((const void *)tmp,(const void *)arr[jj])<0) { // promote j-pos until it is better than auxillary ...
+      // promote j-pos until it is better than auxillary ...
+      if (comp((const void *)tmp,(const void *)arr[jj])<0) { 
         arr[ii]=arr[jj];
         ii=jj;
         jj+=(ii+1); // ... and make i=j as new knot with subknots from 2*j
@@ -363,7 +370,8 @@ template <class X> inline int binsearchv(const X *x,int cnt,const X arr[],int gu
   return -1;
 }
 
-template <class X> inline int binsearchvc(const X *x,int cnt,const X arr[],int (*comp)(const void *x1,const void *x2),int guess=-1) {
+template <class X> inline int binsearchvc(
+  const X *x,int cnt,const X arr[],int (*comp)(const void *x1,const void *x2),int guess=-1) {
   if (!comp)
     return -1;
   int lb=-1,mb=0,ub=cnt,cmp=0,inc=1;
@@ -504,7 +512,8 @@ template <class X> inline int binsearchp(const X *x,int cnt,const X **arr,int gu
   return -1;
 }
 
-template <class X> inline int binsearchpc(const X *x,int cnt,const X **arr,int (*comp)(const void *x1,const void *x2),int guess=-1) {
+template <class X> inline int binsearchpc(
+  const X *x,int cnt,const X **arr,int (*comp)(const void *x1,const void *x2),int guess=-1) {
   if (!comp)
     return -1;
   int lb=-1,mb=0,ub=cnt,cmp=0,inc=1;
@@ -578,7 +587,8 @@ template <class X> inline int binsearchpc(const X *x,int cnt,const X **arr,int (
   return -1;
 }
 
-template <class X> inline int binsearchInterval(const X *x,int cnt,const X arr[],int *idxl,int *idxh,int sortedrev=0) {
+template <class X> inline int binsearchInterval(
+  const X *x,int cnt,const X arr[],int *idxl,int *idxh,int sortedrev=0) {
 
   int ii=0,ih=cnt,il=-1;
   while ((ih-il)>1) {
@@ -609,7 +619,9 @@ template <class X> inline int binsearchInterval(const X *x,int cnt,const X arr[]
 
 }
 
-template <class X> inline int binsearchInterval(const X *x,int cnt,const X arr[],int (*comp)(const void *x1,const void *x2),int *idxl,int *idxh,int sortedrev=0) {
+template <class X> inline int binsearchInterval(
+  const X *x,int cnt,const X arr[],
+  int (*comp)(const void *x1,const void *x2),int *idxl,int *idxh,int sortedrev=0) {
 
   int ii=0,ih=cnt,il=-1,cmp=0;
   X *tmp=0;
@@ -811,10 +823,7 @@ template <class X> class TVArr {
         memcpy(&m_arr[0],&ass.m_arr[0],m_sz*sizeof(X));
       return *this;
     }
-    X operator[](int idx) {
-      return (idx<0 || idx>=m_sz ? dum : m_arr[idx]);
-    }
-    const X *operator[](int idx) const  {
+    X operator[](int idx) const {
       return (idx<0 || idx>=m_sz ? dum : m_arr[idx]);
     }
     X *at(int idx) {
@@ -1174,7 +1183,9 @@ template <class X> class TPList {
         return -1;
       }
       else
-        return (cmp ? binsearchpc(x,m_cnt,(const X**)m_list,cmp) : binsearchp(x,m_cnt,(const X**)m_list));
+        return (cmp ? 
+                binsearchpc(x,m_cnt,(const X**)m_list,cmp) : 
+                binsearchp(x,m_cnt,(const X**)m_list));
     }
     int findAll(const X *x,TVArr<int> *idxL) const {
       if (!x)
@@ -1301,7 +1312,8 @@ template <class X> class TPList {
     }
 
   protected:
-    TPList(const TPList &) : m_sz(0),m_cnt(0),m_idx(-1),m_sorted(0),m_list(0),m_autoGrow(1),cmp(0) {
+    TPList(const TPList &) : 
+      m_sz(0),m_cnt(0),m_idx(-1),m_sorted(0),m_list(0),m_autoGrow(1),cmp(0) {
     }
     TPList &operator=(const TPList &) {
       return *this;

@@ -53,9 +53,12 @@ aux::Vector3 Triangle::center() const {
   mm.translate(xm21,ym21);
   mm.transform(&n21);
   mm.reset();
-  double xs=mk_dnan,ys=mk_dnan;
-  mk_linesintersection(xm10,ym10,n10[0],n10[1],xm21,ym21,n21[0],n21[1],&xs,&ys,mk_ddprec,0,0);
-  return aux::Vector3(xs,ys);
+  mk_vertex 
+    vm1={xm10,ym10,mk_dnan,mk_dnan},n1={n10[0],n10[1],mk_dnan,mk_dnan},
+    vm2={xm21,ym21,mk_dnan,mk_dnan},n2={n21[0],n21[1],mk_dnan,mk_dnan},
+    ss={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
+  mk_linesintersection(vm1,n1,vm2,n2,ss,3,0);
+  return aux::Vector3(ss[0],ss[1]);
 
 }
 
@@ -83,12 +86,15 @@ int Triangle::eval(TVList<Vector3> *pointL,int npoints) {
   mm.translate(xm21,ym21);
   mm.transform(&n21);
   mm.reset();
-  double xs=mk_dnan,ys=mk_dnan;
-  mk_linesintersection(xm10,ym10,n10[0],n10[1],xm21,ym21,n21[0],n21[1],&xs,&ys,mk_ddprec,0,0);
-  mm.translate(-xs,-ys);
+  mk_vertex 
+    vm1={xm10,ym10,mk_dnan,mk_dnan},n1={n10[0],n10[1],mk_dnan,mk_dnan},
+    vm2={xm21,ym21,mk_dnan,mk_dnan},n2={n21[0],n21[1],mk_dnan,mk_dnan},
+    ss={mk_dnan,mk_dnan,mk_dnan,mk_dnan};  
+  mk_linesintersection(vm1,n1,vm2,n2,ss,3,0);
+  mm.translate(-ss[0],-ss[1]);
   mm.scale(m_scale,m_scale,1.);
   mm.rotateZ(m_rotate);
-  mm.translate(xs+m_translate[0],ys+m_translate[1]);
+  mm.translate(ss[0]+m_translate[0],ss[1]+m_translate[1]);
   mm.transform(&mt0);
   m_points.append(mt0);
   mm.transform(&mt1);

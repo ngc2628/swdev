@@ -213,27 +213,33 @@ int Xaxis::resize(osix::xxRectSize size) {
     
 }
 
-int Xaxis::sc2sz(aux::Vector3 *v) const {
+int Xaxis::sc2sz(aux::Vector3 *vv) const {
 
-  if (!v)
+  if (!vv)
     return -1;
-  double min=mk_dnan,max=mk_dnan;
+  mk_vertexnan(p1);
+  mk_vertexnan(p2);
+  p1[1]=.0;
+  p2[1]=(double)m_size.width();
   if (m_scale)
-    m_scale->effRange(&min,&max);
-  v->setX(mk_lineq(min,max,0.,m_size.width(),v->x()));
-  return (mk_isnan(v->x())==0 ? 0 : -1);
+    m_scale->effRange(&p1[0],&p2[0]);
+  vv->setX(mk_lineq(p1,p2,vv->x()));
+  return (mk_isnan(vv->x())==0 ? 0 : -1);
 
 }
 
-int Xaxis::sz2sc(aux::Vector3 *v) const {
+int Xaxis::sz2sc(aux::Vector3 *vv) const {
 
-  if (!v)
+  if (!vv)
     return -1;
-  double min=mk_dnan,max=mk_dnan;
+  mk_vertexnan(p1);
+  mk_vertexnan(p2);
+  p1[0]=.0;
+  p2[0]=(double)m_size.width();
   if (m_scale)
-    m_scale->effRange(&min,&max);
-  v->setX(mk_lineq(0.,m_size.width(),min,max,v->x()));
-  return (mk_isnan(v->x())==0 ? 0 : -1);
+    m_scale->effRange(&p1[1],&p2[1]);
+  vv->setX(mk_lineq(p1,p2,vv->x()));
+  return (mk_isnan(vv->x())==0 ? 0 : -1);
 
 }
 
@@ -301,10 +307,13 @@ int Yaxis::sc2sz(aux::Vector3 *vv) const {
 
   if (!vv)
     return -1;
-  double min=mk_dnan,max=mk_dnan;
+  mk_vertexnan(p1);
+  mk_vertexnan(p2);
+  p1[1]=.0;
+  p2[1]=(double)m_size.height();
   if (m_scale)
-    m_scale->effRange(&min,&max);
-  vv->setY(mk_lineq(min,max,0.,m_size.height(),vv->y()));
+    m_scale->effRange(&p1[0],&p2[0]);
+  vv->setY(mk_lineq(p1,p2,vv->y()));
   return (mk_isnan(vv->y())==0 ? 0 : -1);
 
 }
@@ -313,10 +322,13 @@ int Yaxis::sz2sc(aux::Vector3 *vv) const {
 
   if (!vv)
     return -1;
-  double min=mk_dnan,max=mk_dnan;
+  mk_vertexnan(p1);
+  mk_vertexnan(p2);
+  p1[0]=.0;
+  p2[0]=(double)m_size.height();
   if (m_scale)
-    m_scale->effRange(&min,&max);
-  vv->setY(mk_lineq(0.,m_size.height(),min,max,vv->y()));
+    m_scale->effRange(&p1[1],&p2[1]);
+  vv->setY(mk_lineq(p1,p2,vv->y()));
   return (mk_isnan(vv->y())==0 ? 0 : -1);
 
 }

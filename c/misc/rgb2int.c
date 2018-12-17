@@ -17,15 +17,15 @@ int main(int argc,char **argv) {
   char *tok=strtok(argv[1],",");
   if (!tok)
     return usage();
-  char str1[mk_klen];
-  char str2[mk_klen];
+  mk_str1k(str1);
+  mk_str1k(str2);
   int base=-1;
   mk_ulreal cc=mk_a2ui(tok,&base);
   unsigned short rr=0,gg=0,bb=0,aa=255;
   tok=strtok(0,",");
   if (!tok) {
-    mk_ui2a(cc,str1,10,0,1,0);
-    mk_ui2a(cc,str2,16,0,1,0);
+    mk_ui2str(cc,str1,10,0,1,0);
+    mk_ui2str(cc,str2,16,0,1,0);
     if ((cc>>24)>0)
       aa=(unsigned short)((cc>>24)&255);
     rr=(unsigned short)((cc>>16)&255);

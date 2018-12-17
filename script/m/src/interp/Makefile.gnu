@@ -31,7 +31,8 @@ RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 MV            = mv -f
-RM            = rm -rf
+RMDIR         = rm -rf
+RM            = rm -f
 SYMLINK       = ln -sf
 MKOCTFILE	  = $(OCTAVEDIR)/bin/mkoctfile
 

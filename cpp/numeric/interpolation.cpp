@@ -416,6 +416,8 @@ int InterpolationLinear::interpol(int nint,double *xint,double *yint,double *zin
   }
   int jj=0,kk=0,chidx=(nint-m_nctrl)/(m_nctrl-1);
   double xl=.0,xh=.0,yl=.0,yh=.0,tmp=.0;
+  mk_vertexnan(pl);
+  mk_vertexnan(ph);
   xint[kk]=m_x[kk];
   yint[kk]=m_y[kk];
   if (zint)
@@ -423,14 +425,14 @@ int InterpolationLinear::interpol(int nint,double *xint,double *yint,double *zin
   for (ii=1;ii<m_nctrl;ii++) {
     if (kk>=(nint-1))
       break;
-    xl=m_x[ii-1];
-    xh=m_x[ii];
-    yl=m_y[ii-1];
-    yh=m_y[ii];
+    pl[0]=m_x[ii-1];
+    pl[1]=m_y[ii-1];
+    ph[0]=m_x[ii];
+    ph[1]=m_y[ii];
     for (jj=0;jj<chidx;jj++) {
       tmp=xl+(double)(jj+1)*(xh-xl)/(double)(chidx+1);
       xint[++kk]=tmp;
-      yint[kk]=mk_lineq(xl,xh,yl,yh,tmp);
+      yint[kk]=mk_lineq(pl,ph,tmp);
       if (zint)
         zint[ii]=(m_z ? m_z[ii*m_nctrl/nint] : mk_dnan);
     }
@@ -463,21 +465,23 @@ int InterpolationLinear::interpol(int nint,aux::TVList<aux::Vector3> *vint,doubl
     return 0;
   }
   int jj=0,kk=0,chidx=(nint-m_nctrl)/(m_nctrl-1);
-  double xl=.0,xh=.0,yl=.0,yh=.0,tmp=.0;
+  mk_vertexnan(pl);
+  mk_vertexnan(ph);
+  double tmp=.0;
   vint->append(aux::Vector3(m_x[kk],m_y[kk]));
   for (ii=1;ii<m_nctrl;ii++) {
     if (kk>=(nint-1))
       break;
-    xl=m_x[ii-1];
-    xh=m_x[ii];
-    yl=m_y[ii-1];
-    yh=m_y[ii];
+    pl[0]=m_x[ii-1];
+    pl[1]=m_y[ii-1];
+    ph[0]=m_x[ii];
+    ph[1]=m_y[ii];
     for (jj=0;jj<chidx;jj++) {
-      tmp=xl+(double)(jj+1)*(xh-xl)/(double)(chidx+1);
-      vint->append(aux::Vector3(tmp,mk_lineq(xl,xh,yl,yh,tmp)));
+      tmp=pl[0]+(double)(jj+1)*(ph[0]-pl[0])/(double)(chidx+1);
+      vint->append(aux::Vector3(tmp,mk_lineq(pl,ph,tmp)));
       kk++;
     }
-    vint->append(aux::Vector3(xh,yh));
+    vint->append(aux::Vector3(ph[0],ph[1]));
     kk++;
   }
   for (ii=(kk+1);ii<nint;ii++)

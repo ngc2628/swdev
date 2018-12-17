@@ -76,12 +76,8 @@ static const unsigned short mk_dmag=308;
 static const unsigned short mk_i64mag=18;
 static const unsigned short mk_ui64mag=19;
 static const unsigned short mk_dprec=15;
-static const unsigned short mk_ddprec=3;
-static const unsigned short mk_separatorgrouplen=3;
-static const unsigned short mk_maxseparatorlen=6;
 static const unsigned short mk_maxarrsz=20;
 static const unsigned short mk_maxintbase=36;
-static const unsigned short mk_maxnumstrlen=316;
 static const unsigned int mk_maxstrlen=1073741824;
 static const unsigned char mk_basechar[]={
   '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M',
@@ -106,56 +102,28 @@ static const unsigned char mk_asciii=105;
 static const unsigned char mk_asciix=120;
 static const unsigned char mk_asciidel=127;
 
-/* get sign , in number , return -1,1 */
-inline int oswinexp mk_dsgn(double d) {
-  return (((((const unsigned char *)&d)[7])>>7)>0 ? -1 : 1);
-} // little endian 0 -> 7
-
-/* get sign , in number , return -1,1 */
-inline double oswinexp mk_dsign(double d) {
-  return (double)mk_dsgn(d);
-}
-
-/* in number , return 0 or -1,1 */
-inline int oswinexp mk_isinf(double d) {
-#if defined (_MSC_VER)
-  return (_fpclass(d)==_FPCLASS_NINF ? -1 : (_fpclass(d)==_FPCLASS_PINF ? 1 : 0));
-#else
-  return (isinf(d)>0 ? 1 : (isinf(d)<0 ? -1 : 0));
-#endif
-}
-
-/* in number , return 0 or -1,1 */
-inline int oswinexp mk_isnan(double d) {
-#if defined (_MSC_VER)
-  return (_isnan(d)==0 ? 0 : mk_dsgn(d));
-#else
-  return (isnan(d)==0 ? 0 : mk_dsgn(d));
-#endif
-}
-
-/* in number , return 0 or -1,1 */
-inline int oswinexp mk_isfinite(double d) {
-#if defined (_MSC_VER)
-  return (_finite(d)==0 ? 0 : mk_dsgn(d));
-#else
-  return (finite(d)==0 ? 0 : mk_dsgn(d));
-#endif
-}
-
-/* is or not a regular number , in number , return 0 or -1,1 */
-inline int oswinexp mk_isbusted(double d) {
-#if defined (_MSC_VER)
-  return (!_isnan(d) && _finite(d) ? 0 : mk_dsgn(d));
-#else
-  return (!isnan(d) && finite(d) ? 0 : mk_dsgn(d));
-#endif
-}
-
 #ifdef __cplusplus
 /* #pragma message "cplusplus" */
 extern "C" {
 #endif
+
+/* get sign , in number , return -1,1 */
+xtern int oswinexp mk_dsgn(double);
+
+/* get sign , in number , return -1,1 */
+xtern double oswinexp mk_dsign(double);
+
+/* in number , return 0 or -1,1 */
+xtern int oswinexp mk_isinf(double);
+
+/* in number , return 0 or -1,1 */
+xtern int oswinexp mk_isnan(double);
+
+/* in number , return 0 or -1,1 */
+xtern int oswinexp mk_isfinite(double);
+
+/* is or not a regular number , in number , return 0 or -1,1 */
+xtern int oswinexp mk_isbusted(double);
 
 /* return global-cnt */
 xtern mk_ulreal oswinexp mk_nextcnt();
@@ -179,28 +147,38 @@ xtern double oswinexp mk_ipow10(int);
 xtern double oswinexp mk_ipow2(int);
 
 /* in str , in str dec=. , in str group=0 , return 0,1 */
-xtern int oswinexp mk_removeseparators(char *,const char * const,const char * const);
+xtern int oswinexp mk_removeseparators(char *,char *,char *);
 
 /* in str , in maxlen , in str dec=0 , in str group=0 , return 0,1 */
-xtern int oswinexp mk_insertseparators(char *,int,const char * const,const char * const);
+xtern int oswinexp mk_insertseparators(char *,char *,char *);
 
 /* in str , inout *base=0 , out *sgn=0 , in str group=0 , return number or 0 */
-xtern mk_ulreal oswinexp mk_parseint(const char *,int *,int *,const char *);
+xtern mk_ulreal oswinexp mk_parseint(char *,int *,int *,char *);
 
 /* in str , out *type=0 , out *prec=0 , in str dec=. , in str group=0 , return number or nan */
-xtern double oswinexp mk_parsefloat(const char *,int *,int *,const char *,const char *);
+xtern double oswinexp mk_parsefloat(char *,int *,int *,char *,char *);
 
 /* in str , inout *base=0 , out *sign=0 , in str group=0 , return number */
 xtern mk_ulreal oswinexp mk_a2ui_(int,...);
 
 /* in str , inout *base=0 , in str group=0 , return number */
-xtern mk_lreal oswinexp mk_a2i(const char *,int *,const char *);
+xtern mk_lreal oswinexp mk_a2i_(int,...);
 
 /* in number , out str , in base=10 , in width=0 , in padzero=1 , in str group=0 , return base */
-xtern int oswinexp mk_ui2a(mk_ulreal,char [mk_klen],int,int,int,const char *);
+xtern int oswinexp mk_ui2str(mk_ulreal,char *,int,int,int,char *);
+
+/* in number , in base=10 , in width=0 , in padzero=1 , in str group=0 , return str 
+   allocates memory
+*/
+xtern char * oswinexp mk_ui2a_(int,...);
 
 /* in number , out str , in base=10 , in width=0 , in padzero=1 , in str group=0 , return base */
-xtern int oswinexp mk_i2a(mk_lreal,char [mk_klen],int,int,int,const char *);
+xtern int oswinexp mk_i2str(mk_lreal,char *,int,int,int,char *);
+
+/* in number , in base=10 , in width=0 , in padzero=1 , in str group=0 , return str 
+   allocates memory
+*/
+xtern char * oswinexp mk_i2a_(int,...);
 
 /* in number , in number , out *overflow=0 , return result */
 xtern mk_ulreal oswinexp mk_binadd(mk_ulreal,mk_ulreal,int *);
@@ -212,21 +190,30 @@ xtern mk_ulreal oswinexp mk_binmult(mk_ulreal,mk_ulreal,int *);
 xtern double oswinexp mk_a2d_(int,...);
 
 /* in number , out str , in prec , in fmt=-1 , in pad=-1 , return 0,1 */
-xtern int oswinexp mk_dconvert (double,char [mk_klen],int,char,int);
+xtern int oswinexp mk_dconvert (double,char *,int,char,int);
 
 /*
-  in number , out str , in prec=15 , in fmt=-1 , in pad=-1 , in str dec=. ,
-  in str group=0 , return 0,1
+  in number , out str , in prec=15 , in fmt=-1 , in pad=-1 , 
+  in str dec=. , in str group=0 , return 0,1
 */
-xtern int oswinexp mk_d2a(double,char [mk_klen],int,char,int,const char *,const char *);
+xtern int oswinexp mk_d2str(double,char *,int,char,int,char *,char *);
+
+/*
+  in number , out str , in prec=15 , in fmt=-1 , in pad=-1 , 
+  in str dec=. , in str group=0 , return str
+  allocates memory
+*/
+xtern char * oswinexp mk_d2a_(int,...);
 
 /* inout str , return 0,1 */
-xtern int oswinexp mk_exp2simple(char [mk_klen]);
+xtern int oswinexp mk_exp2simple(char *);
 
 /* in number , in calcedge=1 , return magnitude-of-number */
 xtern int oswinexp mk_mag_(int,...);
 
-/* [diff of] regular or no regular numbers , in number , in number , out *cmp=0 [-1,0,1] , return 0,1 */
+/* [diff of] regular or no regular numbers , in number , in number , 
+   out *cmp=0 [-1,0,1] , return 0,1 
+*/
 xtern int oswinexp mk_dbusted(double,double,int *);
 
 /* raw double equal , in number , in number , return 0,1 */

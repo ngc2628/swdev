@@ -194,11 +194,8 @@ int main(int argc,char **argv) {
   double zero=.0,one=1.;
 
   struct mk_matrix mat,lum;
-  mat.mm=0;
-  lum.mm=0;
-  mat.rows=mat.cols=lum.rows=lum.cols=4;
-  mk_matrixalloc(&mat);
-  mk_matrixalloc(&lum);
+  mk_matrixalloc(&mat,4,4);
+  mk_matrixalloc(&lum,4,4);
 
   mk_matrixset(&mat,0,0,mm44[0][0]);
   mk_matrixset(&mat,0,1,mm44[0][1]);

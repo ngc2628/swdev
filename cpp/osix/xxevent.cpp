@@ -11,44 +11,25 @@ void xxEvent::clear() {
 	m_xxsym=0;
   m_pos=m_globalpos=m_lastpos=m_downpos=aux::Vector3(mk_dnan,mk_dnan,mk_dnan);
   m_r=xxRect();
-  memset(&m_info[0][0],0,mk_k4len);
+  m_info.clear();
   
 }
 
 int xxEvent::setInfo(const char *info,int idx) {
 
-  if (idx<0 || idx>=(int)mk_qwlen) {
-    idx=-1;
-    while (idx<(int)mk_qwlen-1) {
-      if (strlen(m_info[idx+1])==0) {
-        idx++;
-        break;
-      }
-    }
-  }
   if (idx<0)
     return -1;
-  else if (!info || strlen(info)==0)
-    memset(&m_info[idx],0,mk_qwlen);
-  else if (info!=m_info[idx])
-    strncpy(m_info[idx],info,mk_qwlen-1);
+  aux::Asciistr strinfo(info);
+  m_info.set(idx,strinfo);
   return idx;   
 
 }
 
 int xxEvent::info(aux::Asciistr *str,int idx) const {
 
-  if (idx<0 || idx>=(int)mk_qwlen) {
-    idx=-1;
-    while (idx<(int)mk_qwlen-1) {
-      if (strlen(m_info[idx+1])>0) {
-        idx++;
-        break;
-      }
-    }
-  }
-  if (idx>=0)
-    *str=m_info[idx];
+  if (idx<0 || idx>m_info.last())
+    idx=m_info.last();
+  *str=m_info[idx];
   return idx;
 
 }

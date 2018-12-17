@@ -5,8 +5,10 @@ all:
 	cd $(SWDIR)/c/misc; make -f Makefile.gnu
 	cd $(SWDIR)/c/ipc; make -f Makefile.gnu
 	cd $(SWDIR)/c/xt; make -f Makefile.gnu
+	cd $(SWDIR)/c/tst; make -f Makefile.gnu
 	cd $(SWDIR)/c
 clean:
+	cd $(SWDIR)/c/tst; make -f Makefile.gnu clean
 	cd $(SWDIR)/c/xt; make -f Makefile.gnu clean
 	cd $(SWDIR)/c/ipc; make -f Makefile.gnu clean
 	cd $(SWDIR)/c/misc; make -f Makefile.gnu clean

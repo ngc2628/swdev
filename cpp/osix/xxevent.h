@@ -45,18 +45,16 @@ class oswinexp xxEvent {
     unsigned short m_xxsym;
     aux::Vector3 m_pos,m_globalpos,m_lastpos,m_downpos;
     xxRect m_r;
-    char m_info[mk_qwlen][mk_qwlen];
+    aux::TVArr<aux::Asciistr> m_info;
     xxEvent() : 
       m_type(0),m_mods(0),m_consumer(0),m_xxk(0),m_buttons(0),m_xxsym(0) {
-      memset(&m_info[0][0],0,mk_k4len);
+      m_info.resize(128);
     }
     xxEvent(const xxEvent &ass) :
       m_type(ass.m_type),m_mods(ass.m_mods),m_consumer(ass.m_consumer),
       m_xxk(ass.m_xxk),m_buttons(ass.m_buttons),m_xxsym(ass.m_xxsym),
       m_pos(ass.m_pos),m_globalpos(ass.m_globalpos),m_lastpos(ass.m_lastpos),
-      m_downpos(ass.m_downpos),m_r(ass.m_r) {
-      if (&ass!=this)
-        memcpy(&m_info[0][0],&ass.m_info[0][0],mk_k4len);
+      m_downpos(ass.m_downpos),m_r(ass.m_r),m_info(ass.m_info) {
     }
     ~xxEvent() {
     }
@@ -73,7 +71,7 @@ class oswinexp xxEvent {
         m_lastpos=ass.m_lastpos;
         m_downpos=ass.m_downpos;
         m_r=ass.m_r;
-        memcpy(&m_info[0][0],&ass.m_info[0][0],mk_k4len);
+        m_info=ass.m_info;
       }
       return *this;
     }

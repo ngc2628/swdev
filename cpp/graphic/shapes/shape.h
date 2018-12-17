@@ -19,20 +19,19 @@ class oswinexp Shape2 : public aux::TypeId {
     double m_rotate;
     aux::Vector3 m_translate;
     aux::TVList<aux::Vector3> m_points;
-    char m_descr[mk_idlen];
+    aux::Asciistr m_descr;
        
   public:
     osix::xxStyle m_styleO;
     osix::xxStyle m_styleF;
     Shape2(const char *type) : 
-      aux::TypeId(type),m_scale(1.),m_rotate(.0),m_translate(aux::Vector3(0.,0.)) { 
-      memset(&m_descr[0],0,mk_idlen);
+      aux::TypeId(type),m_scale(1.),m_rotate(.0),
+      m_translate(aux::Vector3(0.,0.)),m_descr(type) {
     }
     Shape2(const Shape2 &ass) : 
-      aux::TypeId((const aux::TypeId &)ass),m_scale(ass.m_scale),m_rotate(ass.m_rotate),
-      m_translate(ass.m_translate),m_points(ass.m_points),m_styleO(ass.m_styleO),
-      m_styleF(ass.m_styleF) { 
-      memcpy(&m_descr[0],&ass.m_descr[0],mk_idlen);
+      aux::TypeId((const aux::TypeId &)ass),m_scale(ass.m_scale),
+      m_rotate(ass.m_rotate),m_translate(ass.m_translate),m_points(ass.m_points),
+      m_descr(ass.m_descr),m_styleO(ass.m_styleO),m_styleF(ass.m_styleF) { 
     }
     virtual ~Shape2() { }
     Shape2 &operator=(const Shape2 &);
@@ -64,7 +63,7 @@ class oswinexp Shape2 : public aux::TypeId {
     virtual int eval(aux::TVList<aux::Vector3> *pointL,int npoints=-1)=0;
     void setDescr(const char *);
     const char * descr() {
-      return &m_descr[0];
+      return m_descr.data();
     }
     virtual void toString(aux::Asciistr*) const;
     virtual void toStringType(aux::Asciistr*) const { }

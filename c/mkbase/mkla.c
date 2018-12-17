@@ -36,357 +36,72 @@ double mk_binomialCoeff(int up,int down) {
 }
 
 /* ########## */
-double mk_lineq(double xlow,double xhigh,double ylow,double yhigh,double xarg) {
+char *mk_vertexdbg(mk_vertex vertex) {
 
-  int dfx=0,dbx=mk_dbusted(xhigh,xlow,&dfx),dfy=0,dby=mk_dbusted(yhigh,ylow,&dfy),
-      dfa=0,dba=mk_dbusted(xarg,xlow,&dfa),dbsgxl=mk_dsgn(xlow),dbsg=(dfx==0 ? dbsgxl : dfx);
-  dbsg*=((dfy==0 ? mk_dsgn(yhigh) : dfy)*(dfa==0 ? dbsgxl : dfa));
-  if (dfx==0 || dba!=0 || dby!=0)
-    return (dbsg<0 ? mk_dsnan : mk_dnan);
-  if (dbx!=0)
-    return ylow;
-  double res=ylow+(xarg-xlow)*(yhigh-ylow)/(xhigh-xlow);
-  dba=mk_isbusted(res);
-  if (dba==0)
-    return res;
-  res=(mk_isinf(res) ? (dba<0 ? mk_dsinf : mk_dinf) : (dba<0 ? mk_dsnan : mk_dnan));
+  mk_str1k(resx);
+  char *buf=0;
+  resx[0]='[';
+  int ii=0,jj=0;
+  for (ii=3;ii>-1;ii--) {
+    if (mk_isnan(vertex[ii])==0) {
+      for (jj=0;jj<ii+1;jj++) {
+        buf=mk_d2a(vertex[jj],6);
+        strcat(resx,buf);
+        free(buf);
+        if (jj<ii)
+          resx[(int)strlen(resx)]=';';
+      }
+      break;
+    }
+  }
+  char *res=(char *) malloc((int)strlen(resx)+1);
+  strcpy(res,&resx[0]);
+  res[(int)strlen(res)]=0;
   return res;
 
 }
 
 /* ########## */
-double mk_lgeq(double xlow,double xhigh,double ylow,double yhigh,double xarg) {
+int mk_vertexcopy(mk_vertex to,mk_vertex from) {
 
-  if (mk_isbusted(xlow)!=0 || mk_isbusted(xhigh)!=0 || mk_isbusted(ylow)!=0 ||
-      mk_isbusted(yhigh)!=0 || mk_isbusted(xarg)!=0)
-    return mk_dnan;
-  double dy=yhigh-ylow;
-  if (xarg<=.0 || xlow<.0 || xhigh<.0 || dy==.0)
-    return mk_dnan;
-  int vv=0;
-  if (xhigh<xlow) {
-    mk_swapf(&xlow,&xhigh);
-    vv=1;
-  }
-  if (yhigh<ylow) {
-    mk_swapf(&ylow,&yhigh);
-    vv=~vv;
-  }
-  if (xlow<=.0)
-    xlow=mk_ipow10((-1)*mk_dprec); /* i do not like this - but what would the left edge be otherwise ? */
-  double m=1.*pow(xhigh/xlow,1./(yhigh-ylow));
-  double n=ylow-mk_logm(xlow,m);
-  double res=mk_logm(xarg,m)+n;
-  return ((vv&1)>0 ? yhigh-res+ylow : res);
-
-}
-
-/* ########## */
-void mk_intersectionpointslinerect(
-  double rl_,double rr_,double rb_,double rt_,double p1x_,double p1y_,double p2x_,double p2y_,
-  double *piBx,double *piBy,double *piLx,double *piLy,double *piTx,double *piTy,double *piRx,
-  double *piRy,int *cutsB,int *cutsL,int *cutsT,int *cutsR,int clip) {
-
-  double m=.0,rl=rl_,rr=rr_,rt=rt_,rb=rb_,p1x=p1x_,p1y=p1y_,p2x=p2x_,p2y=p2y_;
-  *piBx=*piBy=*piLx=*piLy=*piTx=*piTy=*piRx=*piRy=.0;
-  int isLineHor=0,isLineVer=0,isPdoubled=0;
-  *cutsB=1;*cutsL=1;*cutsT=1;*cutsR=1;
-  if (rl>rr)
-    mk_swapf(&rl,&rr);
-  if (rb>rt)
-    mk_swapf(&rb,&rt);
-  if (p1x>p2x) {
-    mk_swapf(&p1x,&p2x);
-    mk_swapf(&p1y,&p2y);
-  }
-  if (mk_deq(p2y,p1y))
-    isLineHor=1;
-  if (mk_deq(p2x,p1x))
-    isLineVer=1;
-  /* make line equation and calc intersection points for regular line */
-  if (isLineHor==0 && isLineVer==0) {
-    /* special values for infinite (non hor/ver) line */
-    if (p1x==-mk_dlimit)
-      p1x=rl;
-    else if (p1x==mk_dlimit)
-      p1x=rr;
-    if (p2x==-mk_dlimit)
-      p2x=rl;
-    else if (p2x==mk_dlimit)
-      p2x=rr;
-    if (p1y==-mk_dlimit)
-      p1y=rb;
-    else if (p1y==mk_dlimit)
-      p1y=rt;
-    if (p2y==-mk_dlimit)
-      p2y=rb;
-    else if (p2y==mk_dlimit)
-      p2y=rt;
-    m=(p2y-p1y)/(p2x-p1x);
-    *piTx=p1x+(rt-p1y)/m;
-    *piTy=rt;
-    *piBx=p1x+(rb-p1y)/m;
-    *piBy=rb;
-    *piLx=rl;
-    *piLy=p1y+m*(rl-p1x);
-    *piRx=rr;
-    *piRy=p1y+m*(rr-p1x);
-    if (*piRy<rb || *piRy>rt)
-      *cutsR=0;
-    if (*piLy<rb || *piLy>rt)
-      *cutsL=0;
-    if (*piBx<rl || *piBx>rr)
-      *cutsB=0;
-    if (*piTx<rl || *piTx>rr)
-      *cutsT=0;
-  }
-  else if(isLineHor==1) {
-    *piLx=rl;
-    *piLy=p1y;
-    *piRx=rr;
-    *piRy=p1y;
-    *cutsB=*cutsT=0;
-    if (*piLy<rb || *piLy>rt)
-      *cutsL=0;
-    if (*piRy<rb || *piRy>rt)
-      *cutsR=0;
-  }
-  else if(isLineVer==1) {
-    *piBx=p1x;
-    *piBy=rb;
-    *piTx=p1x;
-    *piTy=rt;
-    *cutsL=*cutsR=0;
-    if (*piBx<rl || *piBx>rr)
-      *cutsB=0;
-    if (*piTx<rl || *piTx>rr)
-      *cutsT=0;
-  }
-  else {
-    isPdoubled=1;
-    *cutsB=*cutsL=*cutsT=*cutsR=0;
-  }
-  if (clip==1) {
-    if ( (p1x<rl && p2x<rl) || (p1x>rr && p2x>rr) || (p1y<rb && p2y<rb) || (p1y>rt && p2y>rt) )
-      *cutsB=*cutsL=*cutsT=*cutsR=0;
-    if (*cutsL==1) {
-      if ( (*piLy<p1y && *piLy<p2y) || (*piLy>p1y && *piLy>p2y) || (*piLx<p1x && *piLx<p2x) )
-        *cutsL=0;
-    }
-    if (*cutsR==1) {
-      if ( (*piRy<p1y && *piRy<p2y) || (*piRy>p1y && *piRy>p2y) || (*piRx>p1x && *piRx>p2x) )
-        *cutsR=0;
-    }
-    if (*cutsT==1) {
-      if ( (*piTx<p1x && *piTx<p2x) || (*piTx>p1x && *piTx>p2x) || (*piTy>p1y && *piTy>p2y) )
-        *cutsT=0;
-    }
-    if (*cutsB==1) {
-      if ( (*piBx<p1x && *piBx<p2x) || (*piBx>p1x && *piBx>p2x) || (*piBy<p1y && *piBy<p2y) )
-        *cutsB=0;
-    }
-  }
-  if (*cutsB==1) {
-    if ( (mk_deq(rb,p1y)) || (mk_deq(rb,p2y)) )
-      *cutsB=0;
-  }
-  if (*cutsL==1) {
-    if ( (mk_deq(rl,p1x)) || (mk_deq(rl,p2x)) )
-      *cutsL=0;
-  }
-  if (*cutsT==1) {
-    if ( (mk_deq(rt,p1y)) || (mk_deq(rt,p2y)) )
-      *cutsT=0;
-  }
-  if (*cutsR==1) {
-    if ( (mk_deq(rr,p1x)) || (mk_deq(rr,p2x)) )
-      *cutsR=0;
-  }
-
-}
-
-/* ########## */
-int mk_polygonintersection(
-  int n1,double *poly1x,double *poly1y,
-  int n2,double *poly2x,double *poly2y,
-  double *interx,double *intery) {
-
-  double m1=.0,m2=.0,mdiff=.0,b1=.0,b2=.0;
-  int ii=0,jj=0,kk=0;
-  double p1x1=.0,p1x2=.0,p1y1=.0,p2x1=.0,p2y1=.0,p2x2=.0,xinter=.0;
-  /* line equation :
-   y=m*x+b
-   m=(y2-y1)/(x2-x1)
-   b=y1-m*x1
-   condition : m1x+b1==m2x+b2 ->
-   xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
-  for (ii=1;ii<n1;ii++) {
-    p1x1=poly1x[ii-1];
-    p1y1=poly1y[ii-1];
-    p1x2=poly1x[ii];
-    m1=(poly1y[ii]-p1y1)/(p1x2-p1x1);
-    b1=p1y1-m1*p1x1;
-    for (jj=1;jj<n2;jj++) {
-      p2x1=poly2x[jj-1];
-      p2y1=poly2y[jj-1];
-      p2x2=poly2x[jj];
-      m2=(poly2y[jj]-p2y1)/(p2x2-p2x1);
-      b2=p2y1-m2*p2x1;
-      if ((mdiff=mk_diff(m1,m2))==.0)
-        continue;
-      xinter=(b2-b1)/mdiff;
-      if (mk_isfinite(xinter)==0)
-        continue;
-      if (xinter<p1x1 || xinter>p1x2 || xinter<p2x1 || xinter>p2x2)
-        continue;
-      interx[kk]=xinter;
-      intery[kk++]=(b2*m1-b1*m2)/mdiff;
-    }
-  }
-  return kk;
-
-}
-
-/* ########## */
-int mk_linesintersection(
-  double line1x1,double line1y1,double line1x2,double line1y2,double line2x1,double line2y1,
-  double line2x2,double line2y2,double *interx,double *intery,int prec,int xbox,int ybox) {
-
-  /* line equation :
-   y=m*x+b
-   m=(y2-y1)/(x2-x1)
-   b=y1-m*x1
-   condition : m1x+b1==m2x+b2 ->
-   xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
-  double x11=line1x1,x12=line1x2,y11=line1y1,y12=line1y2,
-         x21=line2x1,x22=line2x2,y21=line2y1,y22=line2y2;
-  double eps=mk_ipow10(-prec);
-  if (mk_diff(x11,x12,eps)>.0) {
-    mk_swapf(&x11,&x12);
-    mk_swapf(&y11,&y12);
-  }
-  if (mk_diff(x21,x22,eps)>.0) {
-    mk_swapf(&x21,&x22);
-    mk_swapf(&y21,&y22);
-  }
-  double m1=.0,m2=.0;
-  int vert1=0,vert2=0;
-  if (mk_diff(x11,x12,eps)==.0)
-    vert1=1;
-  else
-    m1=(y12-y11)/(x12-x11);
-  if (mk_isfinite(m1)==0) {
-    vert1=1;
-    m1=.0;
-  }
-  if (vert1==1 && mk_diff(y11,y12,eps)>.0)
-    mk_swapf(&y11,&y12);
-  if (mk_diff(x21,x22,eps)==.0)
-    vert2=1;
-  else
-    m2=(y22-y21)/(x22-x21);
-  if (mk_isfinite(m2)==0) {
-    vert2=1;
-    m2=.0;
-  }
-  if (vert2==1 && mk_diff(y21,y22,eps)>0.0)
-    mk_swapf(&y21,&y22);
-  double b1=y11-m1*x11,b2=y21-m2*x21,mdiff=mk_diff(m1,m2);
-  if (mdiff==.0) {
-    if (vert1==1 && vert2==0) {
-      *interx=x11;
-      *intery=y21;
-    }
-    else if (vert1==0 && vert2==1) {
-      *interx=x21;
-      *intery=y11;
-    }
-    else if ((vert1==1 && vert2==1 && mk_diff(x11,x21,eps)==.0) ||
-             (vert1==0 && vert2==0 && mk_diff(y11,y21,eps)==.0) ||
-             (y21==(b1+m1*x21))) {  //degenerated case (do not know .... to be precised)
-      *interx=x11;
-      *intery=y11;
-      if (xbox || ybox)
-        return 0;
-      return 1;
-    }
-    else {
-      *interx=0.0;
-      *intery=0.0;
-      return 0;
-    }
-  }
-  else {
-    if (vert1) {
-      *interx=x11;
-      *intery=b2+m2*x11;
-      if (mk_diff(y11,y12,eps)==.0) {
-        if (mk_diff(y11,m2*x11+b2,eps)==.0)
-          return 1;
-        return 0;
-      }
-    }
-    else if (vert2) {
-      *interx=x21;
-      *intery=b1+m1*x21;
-      if (mk_diff(y21,y22,eps)==.0) {
-        if (mk_diff(y21,m1*x21+b1,eps)==.0)
-          return 1;
-        return 0;
-      }
-    }
-    else {
-      *interx=(b2-b1)/mdiff;
-      *intery=(b2*m1-b1*m2)/mdiff;
-    }
-  }
-  if (xbox==1 && (mk_diff(*interx,x11,eps)<.0 || mk_diff(*interx,x21,eps)<.0 || 
-      mk_diff(*interx,x12,eps)>.0 || mk_diff(*interx,x22,eps)>.0))
-    return 0;
-  if (ybox==1) {
-    if (mdiff==.0) {
-      if (vert1==1 && vert2==0 && (mk_diff(*intery,y11,eps)<.0 || mk_diff(*intery,y12,eps)>.0))
-        return 0;
-      if (vert1==0 && vert2==1 && (mk_diff(*intery,y21,eps)<.0 || mk_diff(*intery,y22,eps)>.0))
-        return 0;
-      return 1;
-    }
-    if ((m1>.0 && (mk_diff(*intery,y11,eps)<.0 || mk_diff(*intery,y12,eps)>.0)) || 
-        (m1<.0 && (mk_diff(*intery,y11,eps)>.0 || mk_diff(*intery,y12,eps)<0.0)))
-      return 0;
-    if ((m2>.0 && (mk_diff(*intery,y21,eps)<.0 || mk_diff(*intery,y22,eps)>.0)) || 
-        (m2<.0 && (mk_diff(*intery,y21,eps)>.0 || mk_diff(*intery,y22,eps)<0.0)))
-      return 0;
-  }
-  return 1;
-
-}
-
-/* ########## */
-int mk_vertexcopy(mk_vertex *vvto,mk_vertex *vvfrom) {
-
-  if (!vvto || !vvfrom)
-    return 1;
-  int ii=0;
-  for (ii=0;ii<4;ii++)
-    (*vvto)[ii]=(*vvfrom)[ii];
+  memcpy(&to[0],&from[0],4*sizeof(double));
   return 0;
 
 }
 
-double mk_vertexlen(mk_vertex *vertex) {
+/* ########## */
+int mk_vertexset(mk_vertex vertex,double val) {
 
-  if (!vertex)
-    return .0;
-  double pp[3]={mk_isbusted((*vertex)[0])==0 ? (*vertex)[0] : .0,
-                mk_isbusted((*vertex)[1])==0 ? (*vertex)[1] : .0,
-                mk_isbusted((*vertex)[2])==0 ? (*vertex)[2] : .0};
+  vertex[0]=vertex[1]=vertex[2]=vertex[3]=val;
+  return 0;
+
+}
+
+/* ########## */
+int mk_vertexswap(mk_vertex vv1,mk_vertex vv2) {
+
+  mk_vertexnan(swp);
+  mk_vertexcopy(swp,vv1);
+  mk_vertexcopy(vv1,vv2);
+  mk_vertexcopy(vv2,swp);
+  return 0;
+
+}
+
+/* ########## */
+double mk_vertexlen(mk_vertex vertex) {
+
+  mk_vertexzero(pp);
+  int ii=0;
+  for (ii=0;ii<3;ii++)
+    if (mk_isbusted(vertex[ii])==0)
+      pp[ii]=vertex[ii];
   return sqrt(pp[0]*pp[0]+pp[1]*pp[1]+pp[2]*pp[2]);
 
 }
 
 /* ########## */
-int mk_vertexcmp(mk_vertex *cmp1,mk_vertex *cmp2) {
+int mk_vertexcmp(mk_vertex cmp1,mk_vertex cmp2) {
 
   double ll1=mk_vertexlen(cmp1),ll2=mk_vertexlen(cmp2);
   return (ll1<ll2 ? -1 : (ll2<ll1 ? 1 : 0));
@@ -394,133 +109,113 @@ int mk_vertexcmp(mk_vertex *cmp1,mk_vertex *cmp2) {
 }
 
 /* ########## */
-int mk_vertexadd(mk_vertex *vertex,mk_vertex *addend) {
+int mk_vertexadd(mk_vertex vertex,mk_vertex addend) {
 
-  if (!vertex || !addend)
-    return 1;
   int ii=0;
   for (ii=0;ii<4;ii++) {
-    if (mk_isbusted((*vertex)[ii])==0 && mk_isbusted((*addend)[ii])==0)
-      (*vertex)[ii]+=(*addend)[ii];
+    if (mk_isbusted(vertex[ii])==0 && mk_isbusted(addend[ii])==0)
+      vertex[ii]+=addend[ii];
     else
-      (*vertex)[ii]=mk_dnan;
+      vertex[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexsubs(mk_vertex *vertex,mk_vertex *addend) {
+int mk_vertexsubs(mk_vertex vertex,mk_vertex addend) {
 
-  if (!vertex || !addend)
-    return 1;
   int ii=0;
   for (ii=0;ii<4;ii++) {
-    if (mk_isbusted((*vertex)[ii])==0 && mk_isbusted((*addend)[ii])==0)
-      (*vertex)[ii]-=(*addend)[ii];
+    if (mk_isbusted(vertex[ii])==0 && mk_isbusted(addend[ii])==0)
+      vertex[ii]-=addend[ii];
     else
-      (*vertex)[ii]=mk_dnan;
+      vertex[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexmult(mk_vertex *vertex,double sc) {
+int mk_vertexmult(mk_vertex vertex,double sc) {
 
-  if (!vertex)
-    return 1;
   int bsc=mk_isbusted(sc),ii=0;
   for (ii=0;ii<4;ii++) {
-    if (mk_isbusted((*vertex)[ii])==0 && bsc==0)
-      (*vertex)[ii]*=sc;
+    if (mk_isbusted(vertex[ii])==0 && bsc==0)
+      vertex[ii]*=sc;
     else
-      (*vertex)[ii]=mk_dnan;
+      vertex[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexdiv(mk_vertex *vertex,double sc) {
+int mk_vertexdiv(mk_vertex vertex,double sc) {
 
-  if (!vertex)
-    return 1;
   int bsc=(mk_isbusted(sc) && sc!=.0 ? 0 : 1),ii=0;
   for (ii=0;ii<4;ii++) {
-    if (mk_isbusted((*vertex)[ii])==0 && bsc==0)
-      (*vertex)[ii]/=sc;
+    if (mk_isbusted(vertex[ii])==0 && bsc==0)
+      vertex[ii]/=sc;
     else
-      (*vertex)[ii]=mk_dnan;
+      vertex[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-double mk_vertexdot(mk_vertex *vertex1,mk_vertex *vertex2) {
+double mk_vertexdot(mk_vertex vertex1,mk_vertex vertex2) {
 
-  if (!vertex1 || !vertex2)
-    return .0;
-  mk_vertex *vertex[2]={vertex1,vertex2};
-  double pp[2][3];
-  int ii=0,jj=0;
-  for (jj=0;jj<2;jj++) {
-    for (ii=0;ii<3;ii++) {
-      if (mk_isbusted((*vertex[jj])[ii])==0)
-        pp[jj][ii]=(*vertex[jj])[ii];
-      else
-        pp[jj][ii]=mk_dnan;
-    }
+  mk_vertexnan(resv);
+  int ii=0;
+  for (ii=0;ii<3;ii++) {
+    if (mk_isbusted(vertex1[ii])==0 && mk_isbusted(vertex2[ii]))
+      resv[ii]=vertex1[ii]*vertex2[ii];
   }
-  return (pp[0][0]*pp[1][0]+pp[0][1]*pp[1][1]+pp[0][2]*pp[1][2]);
+  double res=mk_dnan;
+  if (mk_isbusted(resv[0])==0 && mk_isbusted(resv[1])==0 && mk_isbusted(resv[2])==0)
+    res=(resv[0]+resv[1]+resv[2]);
+  return res;
 
 }
 
 /* ########## */
-int mk_vertexnorm(mk_vertex *vertex) {
+int mk_vertexnorm(mk_vertex vertex) {
 
-  if (!vertex)
-    return 1;
   double ll=mk_vertexlen(vertex);
   int ii=0;
   for (ii=0;ii<3;ii++) {
-    if (mk_isbusted((*vertex)[ii])==0 && ll>.0)
-      (*vertex)[ii]/=ll;
+    if (mk_isbusted(vertex[ii])==0 && ll>.0)
+      vertex[ii]/=ll;
     else
-      (*vertex)[ii]=mk_dnan;
+      vertex[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexcross(mk_vertex *vertex1,mk_vertex *vertex2) {
+int mk_vertexcross(mk_vertex vertex1,mk_vertex vertex2) {
 
-  if (!vertex1 || !vertex2)
-    return 1;
-  double pp[3]={mk_dnan,mk_dnan,mk_dnan};
-  if (mk_isbusted((*vertex1)[1])==0 && mk_isbusted((*vertex1)[2])==0 &&
-      mk_isbusted((*vertex2)[1])==0 && mk_isbusted((*vertex2)[2])==0)
-    pp[0]=(*vertex1)[1]*(*vertex2)[2]-(*vertex1)[2]*(*vertex2)[1];
-  if (mk_isbusted((*vertex1)[0])==0 && mk_isbusted((*vertex1)[2])==0 &&
-      mk_isbusted((*vertex2)[0])==0 && mk_isbusted((*vertex2)[2])==0)
-    pp[1]=(*vertex1)[2]*(*vertex2)[0]-(*vertex1)[0]*(*vertex2)[2];
-  if (mk_isbusted((*vertex1)[0])==0 && mk_isbusted((*vertex1)[1])==0 &&
-      mk_isbusted((*vertex2)[0])==0 && mk_isbusted((*vertex2)[1])==0)
-    pp[2]=(*vertex1)[0]*(*vertex2)[1]-(*vertex1)[1]*(*vertex2)[0];
-  int ii=0;
-  for (ii=0;ii<3;ii++)
-    (*vertex1)[ii]=pp[ii];
+  mk_vertexnan(pp);
+  if (mk_isbusted(vertex1[1])==0 && mk_isbusted(vertex1[2])==0 &&
+      mk_isbusted(vertex2[1])==0 && mk_isbusted(vertex2[2])==0)
+    pp[0]=vertex1[1]*vertex2[2]-vertex1[2]*vertex2[1];
+  if (mk_isbusted(vertex1[0])==0 && mk_isbusted(vertex1[2])==0 &&
+      mk_isbusted(vertex2[0])==0 && mk_isbusted(vertex2[2])==0)
+    pp[1]=vertex1[2]*vertex2[0]-vertex1[0]*vertex2[2];
+  if (mk_isbusted(vertex1[0])==0 && mk_isbusted(vertex1[1])==0 &&
+      mk_isbusted(vertex2[0])==0 && mk_isbusted(vertex2[1])==0)
+    pp[2]=vertex1[0]*vertex2[1]-vertex1[1]*vertex2[0];
+  mk_vertexcopy(vertex1,pp);
   return 0;
 
 }
 
 /* ########## */
-double mk_vertexangrad(mk_vertex *vertex1,mk_vertex *vertex2) {
+double mk_vertexangrad(mk_vertex vertex1,mk_vertex vertex2) {
 
-  if (!vertex1 || !vertex2)
-    return .0;
   double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
   if (den==.0)
     return .0;
@@ -529,10 +224,8 @@ double mk_vertexangrad(mk_vertex *vertex1,mk_vertex *vertex2) {
 }
 
 /* ########## */
-double mk_vertexangdeg(mk_vertex *vertex1,mk_vertex *vertex2) {
+double mk_vertexangdeg(mk_vertex vertex1,mk_vertex vertex2) {
 
-  if (!vertex1 || !vertex2)
-    return .0;
   double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
   if (den==.0)
     return .0;
@@ -542,21 +235,297 @@ double mk_vertexangdeg(mk_vertex *vertex1,mk_vertex *vertex2) {
 }
 
 /* ########## */
-int mk_verticesalloc(struct mk_vertices *vertices) {
+double mk_lineq(mk_vertex lp1,mk_vertex lp2,double xarg) {
 
-  if (vertices->vertexL)
+  int dfx=0,dbx=mk_dbusted(lp2[0],lp1[0],&dfx),dfy=0,dby=mk_dbusted(lp2[1],lp1[1],&dfy),
+      dfa=0,dba=mk_dbusted(xarg,lp1[0],&dfa),dbsgxl=mk_dsgn(lp1[0]),dbsg=(dfx==0 ? dbsgxl : dfx);
+  dbsg*=((dfy==0 ? mk_dsgn(lp1[1]) : dfy)*(dfa==0 ? dbsgxl : dfa));
+  if (dfx==0 || dba!=0 || dby!=0)
+    return (dbsg<0 ? mk_dsnan : mk_dnan);
+  if (dbx!=0)
+    return lp1[1];
+  double res=lp1[1]+(xarg-lp1[0])*(lp2[1]-lp1[1])/(lp2[0]-lp1[0]);
+  dba=mk_isbusted(res);
+  if (dba==0)
+    return res;
+  res=(mk_isinf(res) ? (dba<0 ? mk_dsinf : mk_dinf) : (dba<0 ? mk_dsnan : mk_dnan));
+  return res;
+
+}
+
+/* ########## */
+double mk_lgeq(mk_vertex hp1,mk_vertex hp2,double xarg) {
+
+  if (mk_isbusted(hp1[0])!=0 || mk_isbusted(hp2[0])!=0 || mk_isbusted(hp1[1])!=0 ||
+      mk_isbusted(hp2[1])!=0 || mk_isbusted(xarg)!=0)
+    return mk_dnan;
+  double dy=hp2[1]-hp1[1];
+  if (xarg<=.0 || hp1[0]<.0 || hp2[0]<.0 || dy==.0)
+    return mk_dnan;
+  int vv=0;
+  if (hp2[0]<hp1[0]) {
+    mk_swapf(&hp1[0],&hp2[0]);
+    vv=1;
+  }
+  if (hp2[1]<hp1[1]) {
+    mk_swapf(&hp1[1],&hp2[1]);
+    vv=~vv;
+  }
+  if (hp1[0]<=.0)
+    /* i do not like this - but what would the left edge be otherwise ? */
+    hp1[0]=mk_ipow10((-1)*mk_dprec); 
+  double m=1.*pow(hp2[0]/hp1[0],1./(hp2[1]-hp1[1]));
+  double n=hp1[1]-mk_logm(hp1[0],m);
+  double res=mk_logm(xarg,m)+n;
+  return ((vv&1)>0 ? hp2[1]-res+hp1[1] : res);
+
+}
+
+/* ########## */
+int mk_linesintersection(
+  mk_vertex l1p1,mk_vertex l1p2,mk_vertex l2p1,mk_vertex l2p2,mk_vertex pinter,int prec,int box) {
+  /* line equation :
+   y=m*x+b
+   m=(y2-y1)/(x2-x1)
+   b=y1-m*x1
+   condition : m1x+b1==m2x+b2 ->
+   xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
+  double eps=mk_ipow10(-prec);
+  if (mk_diff(l1p1[0],l1p2[0],eps)>.0)
+    mk_vertexswap(l1p1,l1p2);
+  if (mk_diff(l2p1[0],l2p2[0],eps)>.0)
+    mk_vertexswap(l2p1,l2p2);
+  double m1=.0,m2=.0;
+  int vertical=0;
+  if (mk_diff(l1p1[0],l1p2[0],eps)==.0)
+    vertical|=1;
+  else {
+    m1=(l1p2[1]-l1p1[1])/(l1p2[0]-l1p1[0]);
+    if (mk_isfinite(m1)==0) {
+      vertical|=1;
+      m1=.0;
+    }
+  }
+  if ((vertical&1)>0 && mk_diff(l1p1[1],l1p2[1],eps)>.0)
+    mk_swapf(&l1p1[1],&l1p2[1]);
+  if (mk_diff(l2p1[0],l2p2[0],eps)==.0)
+    vertical|=2;
+  else {
+    m2=(l2p2[1]-l2p1[1])/(l2p2[0]-l2p1[0]);
+    if (mk_isfinite(m2)==0) {
+      vertical|=2;
+      m2=.0;
+    }
+  }
+  if ((vertical&2)>0 && mk_diff(l2p1[1],l2p2[1],eps)>.0)
+    mk_swapf(&l2p1[1],&l2p2[1]);
+  double b1=l1p1[1]-m1*l1p1[0],b2=l2p1[1]-m2*l2p1[0];
+  if (mk_diff(m1,m2)==.0) {
+    if (vertical==1) {
+      pinter[0]=l1p1[0];
+      pinter[1]=l2p1[1];
+    }  
+    else if (vertical==2) {
+      pinter[0]=l2p1[0];
+      pinter[1]=l1p1[1];
+    }
+    else if ((vertical==3 && mk_diff(l1p1[0],l2p1[0],eps)==.0) ||
+             (vertical==0 && mk_diff(l1p1[1],l2p1[1],eps)==.0) ||
+             (l2p1[1]==(b1+m1*l2p1[0]))) {  /* degenerated case (do not know ... to be precised) */
+      pinter[0]=l1p1[0];
+      pinter[1]=l1p1[1];
+      if (box>0)
+        return 0;
+      return 1;
+    }
+    else {
+      pinter[0]=.0;
+      pinter[1]=.0;
+      return 0;
+    }
+  }
+  else {
+    if ((vertical&1)>0) {
+      pinter[0]=l1p1[0];
+      pinter[1]=b2+m2*l1p1[0];
+      if (mk_diff(l1p1[1],l1p2[1],eps)==.0) {
+        if (mk_diff(l1p1[1],m2*l1p1[0]+b2,eps)==.0)
+          return 1;
+        return 0;
+      }
+    }
+    else if ((vertical&2)>0) {
+      pinter[0]=l2p1[0];
+      pinter[1]=b1+m1*l2p1[0];
+      if (mk_diff(l2p1[1],l2p2[1],eps)==.0) {
+        if (mk_diff(l2p1[1],m1*l2p1[0]+b1,eps)==.0)
+          return 1;
+        return 0;
+      }
+    }
+    else {
+      pinter[0]=(b2-b1)/mk_diff(m1,m2);
+      pinter[1]=(b2*m1-b1*m2)/mk_diff(m1,m2);
+    }
+  }
+  if ((box&1)>0 && (mk_diff(pinter[0],l1p1[0],eps)<.0 || mk_diff(pinter[0],l2p1[0],eps)<.0 || 
+      mk_diff(pinter[0],l1p2[0],eps)>.0 || mk_diff(pinter[0],l2p2[0],eps)>.0))
     return 0;
-  int ii=0,jj=0,sz=1;
-  while (sz<vertices->reserve && (ii++)<32)
-    sz*=2;
-  vertices->reserve=sz;
+  if ((box&2)>0) {
+    if (mk_diff(m1,m2)==.0) {
+      if (vertical==1 && (mk_diff(pinter[1],l1p1[1],eps)<.0 || mk_diff(pinter[1],l1p2[1],eps)>.0))
+        return 0;
+      if (vertical==2 && (mk_diff(pinter[1],l2p1[1],eps)<.0 || mk_diff(pinter[1],l2p2[1],eps)>.0))
+        return 0;
+      return 1;
+    }
+    if ((m1>.0 && (mk_diff(pinter[1],l1p1[1],eps)<.0 || mk_diff(pinter[1],l1p2[1],eps)>.0)) || 
+        (m1<.0 && (mk_diff(pinter[1],l1p1[1],eps)>.0 || mk_diff(pinter[1],l1p2[1],eps)<0.0)))
+      return 0;
+    if ((m2>.0 && (mk_diff(pinter[1],l2p1[1],eps)<.0 || mk_diff(pinter[1],l2p2[1],eps)>.0)) || 
+        (m2<.0 && (mk_diff(pinter[1],l2p1[1],eps)>.0 || mk_diff(pinter[1],l2p2[1],eps)<0.0)))
+      return 0;
+  }
+  return 1;
+
+}
+
+/* ########## */
+int mk_intersectionpointslinerect(
+  mk_vertex rtl,mk_vertex rbr,mk_vertex lp1,mk_vertex lp2,
+  mk_vertex pl,mk_vertex pt,mk_vertex pr,mk_vertex pb,mk_vertex cut_ltrb,int clip) {
+
+  /* cuts at every rect-bound */
+  mk_vertexset(cut_ltrb,1.);
+  /* normalize rect */
+  if (rtl[0]>rbr[0])
+    mk_swapf(&rtl[0],&rbr[0]);
+  if (rbr[1]>rtl[1])
+    mk_swapf(&rbr[1],&rtl[1]);
+  /* normalize line */
+  if (lp1[0]>lp2[0]) 
+    mk_vertexswap(lp1,lp2);
+  /* make line equation and calc intersection points for regular line */
+  if (mk_deq(lp1[0],lp2[0])==0 && mk_deq(lp1[1],lp2[1])==0) {
+    /* special values for infinite (non hor/ver) line */
+    if (mk_isinf(lp1[0])!=0)
+      lp1[0]=(mk_isinf(lp1[0])<0 ? rtl[0] : rbr[0]);
+    if (mk_isinf(lp2[0])!=0)
+      lp2[0]=(mk_isinf(lp2[0])<0 ? rtl[0] : rbr[0]);
+    if (mk_isinf(lp1[1])!=0)
+      lp1[1]=(mk_isinf(lp1[1])<0 ? rbr[1] : rtl[1]);
+    if (mk_isinf(lp2[1])!=0)
+      lp2[1]=(mk_isinf(lp2[1])<0 ? rbr[1] : rtl[1]);
+    /* gradient */
+    double mm=(lp2[1]-lp1[1])/(lp2[0]-lp1[0]);
+    /* interpolated points cuts on either side of rect */
+    pl[0]=rtl[0];
+    pl[1]=lp1[1]+mm*(rtl[0]-lp1[0]);
+    if (pl[1]<rbr[1] || pl[1]>rtl[1])
+      cut_ltrb[0]=.0;
+    pt[0]=lp1[0]+(rtl[1]-lp1[1])/mm;
+    pt[1]=rtl[1];
+    if (pt[0]<rtl[0] || pt[0]>rbr[0])
+      cut_ltrb[1]=.0;
+    pr[0]=rbr[0];
+    pr[1]=lp1[1]+mm*(rbr[0]-lp1[0]);
+    if (pr[1]<rbr[1] || pr[1]>rtl[1])
+      cut_ltrb[2]=.0;
+    pb[0]=lp1[0]+(rbr[1]-lp1[1])/mm;
+    pb[1]=rbr[1];
+    if (pb[0]<rtl[0] || pb[0]>rbr[0])
+      cut_ltrb[3]=.0;
+  }
+  else if(mk_deq(lp1[1],lp2[1])!=0) {
+    pl[0]=rtl[0];
+    pl[1]=lp1[1];
+    pr[0]=rbr[0];
+    pr[1]=lp1[1];
+    cut_ltrb[1]=cut_ltrb[3]=.0;
+    if (pl[1]<rbr[1] || pl[1]>rtl[1])
+      cut_ltrb[0]=.0;
+    if (pr[1]<rbr[1] || pr[1]>rtl[1])
+      cut_ltrb[2]=.0;
+  }
+  else if(mk_deq(lp1[0],lp2[0])!=0) {
+    pt[0]=lp1[0];
+    pt[1]=rbr[1];
+    pb[0]=lp1[0];
+    pb[1]=rtl[1];
+    cut_ltrb[0]=cut_ltrb[2]=.0;
+    if (pt[0]<rtl[0] || pt[0]>rbr[0])
+      cut_ltrb[1]=.0;
+    if (pb[0]<rtl[0] || pb[0]>rbr[0])
+      cut_ltrb[3]=.0;
+  }
+  else {
+    cut_ltrb[0]=cut_ltrb[1]=cut_ltrb[2]=cut_ltrb[3]=.0;
+  }
+  if (clip==1) {
+    if ( (lp1[0]<rtl[0] && lp2[0]<rtl[0]) || 
+         (lp1[0]>rbr[0] && lp2[0]>rbr[0]) || 
+         (lp1[1]<rbr[1] && lp2[1]<rbr[1]) || 
+         (lp1[1]>rtl[1] && lp2[1]>rtl[1]) )
+      cut_ltrb[0]=cut_ltrb[1]=cut_ltrb[2]=cut_ltrb[3]=.0;
+    if (cut_ltrb[0]==1.) {
+      if ( (pl[1]<lp1[1] && pl[1]<lp2[1]) || 
+           (pl[1]>lp1[1] && pl[1]>lp2[1]) || 
+           (pl[0]<lp1[0] && pl[0]<lp2[0]) )
+        cut_ltrb[0]=.0;
+    }
+    if (cut_ltrb[2]==1.) {
+      if ( (pr[1]<lp1[1] && pr[1]<lp2[1]) || 
+           (pr[1]>lp1[1] && pr[1]>lp2[1]) || 
+           (pr[0]>lp1[0] && pr[0]>lp2[0]) )
+        cut_ltrb[2]=.0;
+    }
+    if (cut_ltrb[1]==1.) {
+      if ( (pt[0]<lp1[0] && pt[0]<lp2[0]) || 
+           (pt[0]>lp1[0] && pt[0]>lp2[0]) || 
+           (pt[1]>lp1[1] && pt[1]>lp2[1]) )
+        cut_ltrb[1]=.0;
+    }
+    if (cut_ltrb[3]==1.) {
+      if ( (pb[0]<lp1[0] && pb[0]<lp2[0]) || 
+           (pb[0]>lp1[0] && pb[0]>lp2[0]) || 
+           (pb[1]<lp1[1] && pb[1]<lp2[1]) )
+        cut_ltrb[3]=.0;
+    }
+  }
+  if (cut_ltrb[3]==1.) {
+    if ( (mk_deq(rbr[1],lp1[1])) || (mk_deq(rbr[1],lp2[1])) )
+      cut_ltrb[3]=.0;
+  }
+  if (cut_ltrb[0]==1.) {
+    if ( (mk_deq(rtl[0],lp1[0])) || (mk_deq(rtl[0],lp2[0])) )
+      cut_ltrb[0]=.0;
+  }
+  if (cut_ltrb[1]==1.) {
+    if ( (mk_deq(rtl[1],lp1[1])) || (mk_deq(rtl[1],lp2[1])) )
+      cut_ltrb[1]=.0;
+  }
+  if (cut_ltrb[2]==1.) {
+    if ( (mk_deq(rbr[0],lp1[0])) || (mk_deq(rbr[0],lp2[0])) )
+      cut_ltrb[2]=.0;
+  }
+  return 0;
+
+}
+
+/* ########## */
+int mk_verticesalloc(struct mk_vertices *vertices,int reserve_) {
+
+  int ii=0,jj=0;
+  vertices->reserve=1;
+  while (vertices->reserve<MAX(reserve_,1) && (ii++)<32)
+    vertices->reserve*=2;
   vertices->vertexL=(mk_vertex *)malloc(vertices->reserve*sizeof(mk_vertex));
   for (ii=0;ii<vertices->reserve;ii++) {
     for (jj=0;jj<4;jj++)
       vertices->vertexL[ii][jj]=mk_dnan;
   }
   vertices->cnt=0;
-  return sz;  
+  return vertices->reserve;  
 
 }
 
@@ -574,90 +543,160 @@ int mk_verticesfree(struct mk_vertices *vertices) {
 }
 
 /* ########## */
-mk_vertex *mk_verticesget(struct mk_vertices *vertices,int idx) {
+int mk_verticesget(struct mk_vertices *vertices,int idx,mk_vertex vertex) {
 
-  if (!vertices || idx<0 || idx>=vertices->cnt)
-    return 0;
-  return &(vertices->vertexL[idx]);
-
-}
-
-/* ########## */
-int mk_verticesappend(struct mk_vertices *vertices,mk_vertex *vertex) {
-
-  if (!vertices || !vertex)
-    return 0;
-  int res=mk_verticesalloc(vertices);
-  if (res>0) {
-    memcpy(&(vertices->vertexL[0][0]),*vertex,sizeof(mk_vertex));
-    vertices->cnt=1;
+  mk_vertexset(vertex,mk_dnan);
+  if (!vertices || idx<0 || vertices->cnt<=idx)
     return 1;
-  }
-  if (vertices->reserve==vertices->cnt) {
-    mk_vertex *cpL=(mk_vertex *)malloc(vertices->cnt*sizeof(mk_vertex));
-    memcpy(&(cpL[0][0]),&(vertices->vertexL[0][0]),vertices->cnt*sizeof(mk_vertex));
-    free(vertices->vertexL);
-    vertices->reserve*=2;
-    vertices->vertexL=(mk_vertex *)malloc(vertices->reserve*sizeof(mk_vertex));
-    memcpy(&(vertices->vertexL[0][0]),&(cpL[0][0]),vertices->cnt*sizeof(mk_vertex));
-    free(cpL);
-    int ii=0,jj=0;
-    for (ii=vertices->cnt;ii<vertices->reserve;ii++) {
-      for (jj=0;jj<4;jj++)
-        vertices->vertexL[ii][jj]=mk_dnan;
-    }
-  }
-  memcpy(&(vertices->vertexL[vertices->cnt][0]),&(vertex[0]),sizeof(mk_vertex));
-  vertices->cnt++;
-  return vertices->cnt;
+  mk_vertexcopy(vertex,vertices->vertexL[idx]);
+  return 0;
 
 }
 
 /* ########## */
-int oswinexp mk_der1(struct mk_vertices *vertices,double *derx,double *dery) {
+int mk_verticesset(struct mk_vertices *vertices,int idx,mk_vertex vertex) {
 
   if (!vertices)
     return 1;
+  if (idx<0 || idx>vertices->cnt)
+    idx=vertices->cnt;
+  if (idx>=vertices->reserve)
+    return 1;
+  if (idx==vertices->cnt)
+    vertices->cnt++;  
+  mk_vertexcopy(vertices->vertexL[idx],vertex);
+  return 0;
 
-  double cc=mk_dnan,dh=mk_dnan,zdh=mk_dnan;
-  if (derx) {
-  
+}
+
+/* ########## */
+int mk_polygonintersection(
+  struct mk_vertices *poly1,struct mk_vertices *poly2,struct mk_vertices *pinter) {
+
+  if (!poly1 || !poly2 || !pinter)
+    return 0;
+  int ii=0,jj=0,kk=0;
+  double m1=.0,m2=.0,mdiff=.0,b1=.0,b2=.0,xinter=.0;
+  mk_vertexnan(interp);
+  /* line equation :
+   y=m*x+b
+   m=(y2-y1)/(x2-x1)
+   b=y1-m*x1
+   condition : m1x+b1==m2x+b2 ->
+   xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
+  for (ii=1;ii<poly1->cnt;ii++) {
+    m1=(poly1->vertexL[ii][1]-poly1->vertexL[ii-1][1]) /
+       (poly1->vertexL[ii][0]-poly1->vertexL[ii-1][0]);
+    b1=poly1->vertexL[ii-1][1]-m1*poly1->vertexL[ii-1][0];
+    for (jj=1;jj<poly2->cnt;jj++) {
+      m2=(poly2->vertexL[jj][1]-poly2->vertexL[jj-1][1]) /
+         (poly2->vertexL[jj][0]-poly2->vertexL[jj-1][0]);
+      b2=poly2->vertexL[jj-1][1]-m2*poly2->vertexL[jj-1][0];
+      mdiff=mk_diff(m1,m2);
+      if (mdiff==.0)
+        continue;
+      xinter=(b2-b1)/mdiff;
+      if (mk_isfinite(xinter)!=0 && poly1->vertexL[ii-1][0]<=xinter && 
+        poly2->vertexL[jj-1][0]<=xinter && xinter<=poly1->vertexL[ii][0] && 
+        xinter<=poly2->vertexL[jj][0]) {
+        interp[0]=xinter;
+        interp[1]=(b2*m1-b1*m2)/mdiff;
+        mk_verticesset(pinter,-1,interp);
+      }
+    }
   }
+  return pinter->cnt;
 
+}
+
+/* ########## */
+int oswinexp mk_der12(
+  struct mk_vertices *vertices,struct mk_vertices *der1,struct mk_vertices *der2) {
+
+  if (!vertices)
+    return 1;
+  mk_vertexzero(vv1);
+  mk_vertexzero(vv2);
+  if (vertices->cnt==1) {
+    if (der1)
+      mk_verticesset(der1,0,vv1);
+    if (der2)
+      mk_verticesset(der2,0,vv2);
+    return 0;
+  }
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvc);
+  mk_vertexnan(vvr);
+  double df1=mk_dnan,df2=mk_dnan;
+  int ii=0;
+  for (ii=0;ii<vertices->cnt;ii++) {
+    if (ii==0)
+      mk_verticesget(vertices,ii,vvl);
+    else
+      mk_verticesget(vertices,ii-1,vvl);
+    if (ii==vertices->cnt-1) {
+      mk_verticesget(vertices,ii-1,vvc);
+      mk_verticesget(vertices,ii,vvr);
+    }
+    else {
+      mk_verticesget(vertices,ii,vvc);
+      mk_verticesget(vertices,ii+1,vvr);
+    }
+    if (mk_isnan(vvl[2])!=0 || mk_isnan(vvc[2])!=0 || mk_isnan(vvr[2])!=0)
+      df1=df2=.0;
+    else {
+      df1=(vvr[2]-vvl[2]);
+      df2=(vvr[2]-2.*vvc[2]+vvl[2]);
+    }
+    if (mk_isnan(vvl[0])==0 || mk_isnan(vvr[0])==0 || mk_diff(vvl[0],vvr[0])!=.0) {
+      vv1[0]=df1/(vvr[0]-vvl[0]);
+      vv2[0]=df2/((vvr[0]-vvl[0])*(vvr[0]-vvl[0]));
+    }
+    else
+      vv1[0]=vv2[0]=.0;
+    if (mk_isnan(vvl[1])==0 || mk_isnan(vvr[1])==0 || mk_diff(vvl[1],vvr[1])!=.0) {
+      vv1[1]=df1/(vvr[1]-vvl[1]);
+      vv2[1]=df2/((vvr[1]-vvl[1])*(vvr[1]-vvl[1]));
+    }
+    else
+      vv1[1]=vv2[1]=.0;
+    if (der1)
+      mk_verticesset(der1,ii,vv1);
+    if (der2)
+      mk_verticesset(der2,ii,vv2);
+  }
+  return 0;
+
+}
+
+/* ########## */
+int oswinexp mk_der2xy(struct mk_vertices *vertices,struct mk_vertices *der) {
+
+  if (!vertices || !der)
+    return 1;
+  mk_vertexzero(vv);
+  if (vertices->cnt==1) {
+    mk_verticesset(der,0,vv);
+    return 0;
+  }
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvc);
+  mk_vertexnan(vvr);
+  double df=mk_dnan;
   int ii=0;
   for (ii=0;ii<vertices->cnt;ii++) {
     
   }
-
   return 0;
 
 }
 
 /* ########## */
-int oswinexp mk_der2xy(struct mk_vertices *vertices) {
+int mk_matrixalloc(struct mk_matrix *matrix,int rows_,int cols_) {
 
-  if (!vertices)
-    return 1;
-
-  
-
-  
-
-  int ii=0;
-  for (ii=0;ii<vertices->cnt;ii++) {
-
-  }
-
-  return 0;
-
-}
-
-/* ########## */
-int mk_matrixalloc(struct mk_matrix *matrix) {
-
-  if (matrix->mm)
-    return 0;
   int ii=0,jj=0;
+  matrix->rows=MAX(rows_,1);
+  matrix->cols=MAX(cols_,1);
   matrix->mm=(double **)malloc(matrix->rows*sizeof(double *));
   for (ii=0;ii<matrix->rows;ii++) {
     matrix->mm[ii]=(double *)malloc(matrix->cols*sizeof(double));
@@ -687,8 +726,6 @@ double mk_matrixget(struct mk_matrix *matrix,int row,int col) {
 
   if (!matrix || row<0 || row>=matrix->rows || col<0 || col>=matrix->cols)
     return mk_dnan;
-  if (!matrix->mm)
-    mk_matrixalloc(matrix);
   return matrix->mm[row][col];
 
 }
@@ -698,8 +735,6 @@ double mk_matrixset(struct mk_matrix *matrix,int row,int col,double val) {
 
   if (!matrix || row<0 || row>=matrix->rows || col<0 || col>=matrix->cols)
     return mk_dnan;
-  if (!matrix->mm)
-    mk_matrixalloc(matrix);
   double oldval=matrix->mm[row][col];
   matrix->mm[row][col]=val;
   return oldval;
@@ -842,9 +877,7 @@ int mk_matrixsolve(struct mk_matrix *mat,double *rr,double *xx) {
     return -1;
   int num=mat->rows;
   struct mk_matrix lumat;
-  lumat.mm=0;
-  lumat.rows=lumat.cols=num;
-  mk_matrixalloc(&lumat);
+  mk_matrixalloc(&lumat,num,num);
   int *rowperm=(int*)malloc(num*sizeof(int));
   memset(&rowperm[0],0,num*sizeof(int));
   double *parity=(double*)malloc(num*sizeof(double));

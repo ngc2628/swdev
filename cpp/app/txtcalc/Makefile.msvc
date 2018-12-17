@@ -1,0 +1,44 @@
+
+PRJROOT       = $(SWDIR)
+PRJ           = txtcalc
+DESTDIR       = $(BINDIR)
+HEADER        = 
+SOURCES       = main.cpp
+
+WFLAGS        = 
+LFLAGS        = /LIBPATH:"$(LIBDIR)"  
+INCPATH       = -I"$(SWDIR)\cpp"
+LIBS          = libauxx.lib
+OBJECTS       = main.obj
+TARGET        = $(PRJ).exe
+
+CC            = cl
+CXX           = cl
+LEX           = flex
+YACC          = yacc
+DEFINES       = 
+CFLAGS        = /D_CRT_SECURE_NO_WARNINGS /GR /FC /MD /MP2 /Wall $(WFLAGS) $(DEFINES) /c 
+CXXFLAGS      = $(CFLAGS)
+LEXFLAGS      = 
+YACCFLAGS     = -d
+LINK          = link
+AR            = ar cq
+RANLIB        = ranlib -s
+TAR           = tar -cf
+COMPRESS      = zip
+RM            = del
+
+all: $(TARGET)
+	
+.cpp.obj:
+	$(CC) $(CFLAGS) $(INCPATH) $<
+
+$(TARGET): $(OBJECTS)   
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) /OUT:$(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS) 
+
+clean: 
+	$(RM) $(OBJECTS) $(DESTDIR)\$(TARGET)
+
+
+

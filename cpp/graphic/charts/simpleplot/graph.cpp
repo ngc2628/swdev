@@ -23,8 +23,6 @@ int markshape2idx(const char *type) {
   if (len==0)
     return 0;
   int idx=nummarkshapes2d-1;
-  if (len>=mk_idlen)
-    len=mk_idlen-1;
   for (ii=0;ii<nummarkshapes2d;ii++) {
     if (strncmp(type,markshapes2d[ii],(size_t)len)==0) {
       idx=ii;

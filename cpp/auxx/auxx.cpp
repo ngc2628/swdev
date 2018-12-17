@@ -5,36 +5,45 @@ namespace aux {
 
 int ui2a(mk_ulreal number,Asciistr *numstr,int base,int width,int fillzero,const char *group) {
 
-  int res=0;
-  if (numstr) {
-    char astr[mk_klen];
-    res=mk_ui2a(number,astr,base,width,fillzero,group);
-    *numstr=astr;
-  }
+  if (!numstr)
+    return 1;
+  mk_str1k(astr);
+  mk_str1k(groupstr);
+  if (group)
+    strcpy(groupstr,group);
+  int res=mk_ui2str(number,astr,base,width,fillzero,groupstr);
+  *numstr=astr;
   return res;
 
 }
 
 int i2a(mk_lreal number,Asciistr *numstr,int base,int width,int fillzero,const char *group) {
 
-  int res=0;
-  if (numstr) {
-    char astr[mk_klen];
-    res=mk_i2a(number,astr,base,width,fillzero,group);
-    *numstr=astr;
-  }
+  if (!numstr)
+    return 1;
+  mk_str1k(astr);
+  mk_str1k(groupstr);
+  if (group)
+    strcpy(groupstr,group);
+  int res=mk_i2str(number,astr,base,width,fillzero,groupstr);
+  *numstr=astr;
   return res;
 
 }
 
-int d2a(double d,Asciistr *str,int p,char fmt,int pad,const char *decSep,const char *groupSep) {
+int d2a(double d,Asciistr *str,int p,char fmt,int pad,const char *dec,const char *group) {
 
-  int res=0;
-  if (str) {
-    char astr[mk_klen];
-    res=mk_d2a(d,astr,p,fmt,pad,decSep,groupSep);
-    *str=astr;
-  }
+  if (!str) 
+    return 1;
+  mk_str1k(astr);
+  mk_str1k(decstr);
+  mk_str1k(groupstr);
+  if (decstr)
+    strcpy(decstr,dec);
+  if (group)
+    strcpy(groupstr,group);
+  int res=mk_d2str(d,astr,p,fmt,pad,decstr,groupstr);
+  *str=astr;
   return res;
 
 }
@@ -800,9 +809,9 @@ int cmpIdd(const void *t1,const void *t2) {
 
 TypeId::TypeId(const char *name,mk_ulreal idd) : m_idd(idd)  {
 
-  memset(&m_type[0],0,mk_idlen);
+  memset(&m_type[0],0,mk_sz);
   if (name && strlen(name)>0)
-    strncpy(&m_type[0],&name[0],mk_idlen-1);
+    strncpy(&m_type[0],&name[0],mk_sz-1);
   if (m_idd==0 && strlen(m_type)>0)
     m_idd=mk_nextcnt();
 
@@ -811,7 +820,7 @@ TypeId::TypeId(const char *name,mk_ulreal idd) : m_idd(idd)  {
 TypeId::TypeId(const TypeId &ass) : m_idd(ass.m_idd) {
 
   if (&ass!=this) {
-    memset(&m_type[0],0,mk_idlen);
+    memset(&m_type[0],0,mk_sz);
     strcpy(&m_type[0],&ass.m_type[0]);
   }
 
@@ -825,7 +834,7 @@ TypeId &TypeId::operator=(const TypeId &ass) {
 
   m_idd=ass.m_idd;
   if (this!=&ass) {
-    memset(&m_type[0],0,mk_idlen);
+    memset(&m_type[0],0,mk_sz);
     strcpy(&m_type[0],&ass.m_type[0]);
   }
   return *this;
@@ -875,7 +884,7 @@ void TypeId::toString(Asciistr *str) const {
 
   if (!str)
     return;
-  str->reserve(mk_idlen+alnumlen);
+  str->reserve(mk_sz+alnumlen);
   str->append(m_type);
   Asciistr nstr;
   ui2a (m_idd,&nstr,mk_maxintbase,alnumlen);
@@ -898,10 +907,10 @@ int TypeId::fromString(const char *s) {
   if (base<0)
     return 0;
   m_idd=idd;
-  memset(&m_type[0],0,mk_idlen);
+  memset(&m_type[0],0,mk_sz);
   len-=alnumlen;
-  if (len>mk_idlen)
-    len=mk_idlen;
+  if (len>mk_sz)
+    len=mk_sz;
   strncpy(&m_type[0],s,(size_t)len);
   return 1;
 

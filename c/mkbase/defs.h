@@ -17,21 +17,16 @@
 #define MAX(x,y) ((x)<(y) ? (y) : (x))
 #endif
 
-#define mk_blen 8
-#define mk_wlen 16
-#define mk_dwlen 32
-#define mk_qwlen 64
-#define mk_dqwlen 128
-#define mk_idlen 256
-#define mk_klen 1024
-#define mk_k4len 4096
-
 #define _ARG2(_0,_1,_2,...) _2
 #define NARG2(...) _ARG2(__VA_ARGS__,2,1,0)
 #define _ARG3(_0,_1,_2,_3,...) _3
 #define NARG3(...) _ARG3(__VA_ARGS__,3,2,1,0)
 #define _ARG4(_0,_1,_2,_3,_4,...) _4
 #define NARG4(...) _ARG4(__VA_ARGS__,4,3,2,1,0)
+#define _ARG5(_0,_1,_2,_3,_4,_5,...) _5
+#define NARG5(...) _ARG5(__VA_ARGS__,5,4,3,2,1,0)
+#define _ARG6(_0,_1,_2,_3,_4,_5,_6,...) _6
+#define NARG6(...) _ARG6(__VA_ARGS__,6,5,4,3,2,1,0)
 
 #define mk_diff(...) mk_diff_(NARG4(__VA_ARGS__),__VA_ARGS__)
 #define mk_round2(...) mk_round2_(NARG3(__VA_ARGS__),__VA_ARGS__)
@@ -40,7 +35,11 @@
 #define mk_txtchknum(...) mk_txtchknum_(NARG3(__VA_ARGS__),__VA_ARGS__)
 #define mk_mag(...) mk_mag_(NARG2(__VA_ARGS__),__VA_ARGS__)
 #define mk_a2ui(...) mk_a2ui_(NARG4(__VA_ARGS__),__VA_ARGS__)
+#define mk_a2i(...) mk_a2i_(NARG3(__VA_ARGS__),__VA_ARGS__)
 #define mk_a2d(...) mk_a2d_(NARG4(__VA_ARGS__),__VA_ARGS__)
+#define mk_ui2a(...) mk_ui2a_(NARG5(__VA_ARGS__),__VA_ARGS__)
+#define mk_i2a(...) mk_i2a_(NARG5(__VA_ARGS__),__VA_ARGS__)
+#define mk_d2a(...) mk_d2a_(NARG6(__VA_ARGS__),__VA_ARGS__)
 
 union tp_ucpd {
   unsigned char ucd[8];
@@ -77,5 +76,8 @@ static const union tp_ucpf mk_deffsinf={{0,0,128,255}};  /* little endian */
 #define mk_fsnan *((const double *)&mk_deffsnan.d)
 #define mk_finf *((const double *)&mk_deffinf.d)
 #define mk_fsinf *((const double *)&mk_deffsinf.d)
+
+#define mk_sz 1024
+#define mk_str1k(name) char name[mk_sz];memset(&name[0],0,mk_sz);
 
 #endif
