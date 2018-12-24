@@ -1,6 +1,7 @@
 
 #include <mkbase/defs.h>
-#include <mkbase/mkbase.h>
+#include <mkbase/mkmath.h>
+#include <mkbase/mkconv.h>
 #include <osix/xxshape.h>
 #include <graphic/charts/simpleplot/graph.h>
 #include <graphic/charts/simpleplot/axis.h>

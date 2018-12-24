@@ -8,7 +8,8 @@
 
 #include <ctype.h>
 #include <mkbase/defs.h>
-#include <mkbase/mkbase.h>
+#include <mkbase/mkmath.h>
+#include <mkbase/mkconv.h>
 #include <txtcalc/txtcalc.h>
 
 /*static const int maxintbase=36;

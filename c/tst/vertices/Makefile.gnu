@@ -1,21 +1,21 @@
 
 ####### definitions #######
 
-PRJ           = mkbase
-#DESTDIR       = $(SWDIR)/c/$(PRJ)
-DESTDIR       = $(LIBDIR)
-TARGET        = lib$(PRJ).so
+PRJROOT       = $(SWDIR)
+PRJ           = tstvertices
+DESTDIR       = $(BINDIR)
+TARGET        = $(PRJ)
 DEFINES       =
-HEADER        = defs.h exportdefs.h mkmath.h mkconv.h mkla.h 
-SOURCES       = mkmath.c mkconv.c mkla.c
-LIBS          = -lz -lm
-SOLN		  = -shared
+HEADER        =
+SOURCES       = main.c
+LIBS          = -lmkbase -lz -lm
+SOLN					=
 
 ####### names and locations #######
 
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
-vpath					%.c $(DESTDIR)
+vpath					%.c $(SWDIR)/c/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
 
 ####### compiler flags #######
@@ -25,8 +25,8 @@ WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow
 WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
 WFLAGS4				= -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
-CFLAGS        = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -O2 -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
+CFLAGS        = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
 IFLAGS				= -I$(SWDIR)/c
 LFLAGS				= -L$(LIBDIR)
 LEXFLAGS      =
@@ -38,16 +38,16 @@ CC            = gcc
 CXX           = gcc
 LEX           = flex
 YACC          = yacc
+DEFINES       =
 LINK          = gcc $(SOLN)
 AR            = ar cq
 RANLIB        = ranlib -s
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-RM            = rm -f
 RMDIR         = rm -rf
+RM            = rm -f
 SYMLINK       = ln -sf
 MKDIR					= mkdir -p
-COPY				  = cp -p -u
 
 ####### targets #######
 
@@ -56,19 +56,12 @@ all: $(OBJPRJ) $(TARGET)
 $(OBJPRJ):
 	-$(MKDIR) $(OBJPRJ)
 
-install: all
-	-$(MKDIR) $(INCDIR)/$(PRJ)
-	$(COPY) $(HEADER) $(INCDIR)/$(PRJ)
-
-uninstall:
-	$(RMDIR) $(INCDIR)/$(PRJ)
-
 ####### suffix and pattern rules #######
 
 .SUFFIXES:
 
 $(OBJPRJ)/%.o : %.c
-	$(CC) -c $(CFLAGS) $(IFLAGS) -o "$@" "$<"
+	$(CXX) -c $(CXXFLAGS) $(IFLAGS) -o "$@" "$<"
 
 ####### build rules #######
 

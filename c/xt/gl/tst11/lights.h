@@ -4,7 +4,8 @@
 
 #include <GL/gl.h>
 #include <xt/gl/tst11/statics.h>
-#include <mkbase/mkbase.h>
+#include <mkbase/mkmath.h>
+#include <mkbase/mkconv.h>
 #include <mkbase/mkla.h>
 
 #define light_n 8

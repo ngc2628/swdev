@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
-#include <mkbase/mkbase.h>
 
 typedef double mk_vertex[4];
 #define mk_vertexnan(name) mk_vertex name={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
@@ -24,7 +23,7 @@ struct oswinexp mk_vertices {
 
 struct oswinexp mk_matrix {
   int rows,cols;
-  double **mm;
+  double **matrix;
 };
 
 struct oswinexp mk_polynomial {
@@ -174,13 +173,13 @@ xtern int mk_polygonintersection(struct mk_vertices *,struct mk_vertices *,struc
   in list-of-*vertices , out list-of-1st-derivatives (df/dx)[i][0], (df/dy)[i][1] , 
   out list-of-2nd-derivatives (df2/dxdx)[i][0], (d2f/dydy)[i][1] , return 0,1
 */
-xtern int oswinexp mk_der12(struct mk_vertices *,struct mk_vertices *,struct mk_vertices *);
+xtern int oswinexp mk_derivatives(struct mk_vertices *,struct mk_vertices *,struct mk_vertices *);
 
 /*
-  in list-of-*vertices , 
-  out list-of-*derivatives (d2f/dxdy)[i][0] , (d2f/dydx)[i][1] , return 0,1
+  in list-of-*vertices , out list-of-2nd-derivatives (d2f/dxdy)[i][2] , 
+  in number grid columns , return 0,1
 */
-xtern int oswinexp mk_der2xy(struct mk_vertices *,struct mk_vertices *);
+xtern int oswinexp mk_derivativesmixed(struct mk_vertices *,struct mk_vertices *,int);
 
 /*
   inout matrix* , return 0,size

@@ -1,6 +1,7 @@
 
 #include <mkbase/defs.h>
-#include <mkbase/mkbase.h>
+#include <mkbase/mkmath.h>
+#include <mkbase/mkconv.h>
 #include <mkbase/mkla.h>
 
 #include <ctype.h>
@@ -610,13 +611,13 @@ int mk_polygonintersection(
 }
 
 /* ########## */
-int oswinexp mk_der12(
+int mk_derivatives(
   struct mk_vertices *vertices,struct mk_vertices *der1,struct mk_vertices *der2) {
 
   if (!vertices)
     return 1;
-  mk_vertexzero(vv1);
-  mk_vertexzero(vv2);
+  mk_vertexnan(vv1);
+  mk_vertexnan(vv2);
   if (vertices->cnt==1) {
     if (der1)
       mk_verticesset(der1,0,vv1);
@@ -628,20 +629,14 @@ int oswinexp mk_der12(
   mk_vertexnan(vvc);
   mk_vertexnan(vvr);
   double df1=mk_dnan,df2=mk_dnan;
-  int ii=0;
+  int ii=0,idx=0;
   for (ii=0;ii<vertices->cnt;ii++) {
-    if (ii==0)
-      mk_verticesget(vertices,ii,vvl);
-    else
-      mk_verticesget(vertices,ii-1,vvl);
-    if (ii==vertices->cnt-1) {
-      mk_verticesget(vertices,ii-1,vvc);
-      mk_verticesget(vertices,ii,vvr);
-    }
-    else {
-      mk_verticesget(vertices,ii,vvc);
-      mk_verticesget(vertices,ii+1,vvr);
-    }
+    idx=(ii==0 ? ii : ii-1);
+    mk_verticesget(vertices,idx,vvl);
+    idx=(ii==vertices->cnt-1 ? ii-1 : ii);
+    mk_verticesget(vertices,idx,vvc);
+    idx=(ii==vertices->cnt-1 ? ii : ii+1);
+    mk_verticesget(vertices,idx,vvr);
     if (mk_isnan(vvl[2])!=0 || mk_isnan(vvc[2])!=0 || mk_isnan(vvr[2])!=0)
       df1=df2=.0;
     else {
@@ -653,13 +648,13 @@ int oswinexp mk_der12(
       vv2[0]=df2/((vvr[0]-vvl[0])*(vvr[0]-vvl[0]));
     }
     else
-      vv1[0]=vv2[0]=.0;
+      vv1[0]=vv2[0]=mk_dnan;
     if (mk_isnan(vvl[1])==0 || mk_isnan(vvr[1])==0 || mk_diff(vvl[1],vvr[1])!=.0) {
       vv1[1]=df1/(vvr[1]-vvl[1]);
       vv2[1]=df2/((vvr[1]-vvl[1])*(vvr[1]-vvl[1]));
     }
     else
-      vv1[1]=vv2[1]=.0;
+      vv1[1]=vv2[1]=mk_dnan;
     if (der1)
       mk_verticesset(der1,ii,vv1);
     if (der2)
@@ -670,73 +665,91 @@ int oswinexp mk_der12(
 }
 
 /* ########## */
-int oswinexp mk_der2xy(struct mk_vertices *vertices,struct mk_vertices *der) {
+int mk_derivativesmixed(struct mk_vertices *vertices,struct mk_vertices *der,int cols) {
 
-  if (!vertices || !der)
+  if (!vertices || !der || cols<2)
     return 1;
-  mk_vertexzero(vv);
-  if (vertices->cnt==1) {
-    mk_verticesset(der,0,vv);
-    return 0;
-  }
-  mk_vertexnan(vvl);
-  mk_vertexnan(vvc);
-  mk_vertexnan(vvr);
-  double df=mk_dnan;
-  int ii=0;
-  for (ii=0;ii<vertices->cnt;ii++) {
-    
+  mk_vertexnan(vv);
+  mk_vertexnan(vv00);
+  mk_vertexnan(vv01);
+  mk_vertexnan(vv10);
+  mk_vertexnan(vv11);
+  int ii=0,jj=0,kk=0,row=0,col=0,idx=0,rows=vertices->cnt/cols;
+  for (ii=0;ii<rows;ii++) {
+    for (jj=0;jj<cols;jj++) {
+      row=(ii==0 ? 0 : ii-1);
+      col=(jj==0 ? 0 : jj-1);
+      idx=row*cols+col;
+      mk_verticesget(vertices,idx,vv00);
+      col=(jj==cols-1 ? cols-1 : jj+1);
+      idx=row*cols+col;
+      mk_verticesget(vertices,idx,vv10);
+      row=(ii==rows-1 ? rows-1 : ii+1);
+      idx=row*cols+col;
+      mk_verticesget(vertices,idx,vv11);
+      col=(jj==0 ? 0 : jj-1);
+      idx=row*cols+col;
+      mk_verticesget(vertices,idx,vv01);
+      mk_verticesget(der,kk,vv);
+      if (mk_isnan(vv11[2])==0 && mk_isnan(vv01[2])==0 && mk_isnan(vv10[2])==0 && 
+          mk_isnan(vv00[2])==0 && mk_isnan(vv10[0])==0 && mk_isnan(vv00[0])==0 && 
+          mk_isnan(vv01[1])==0 && mk_isnan(vv11[1])==0) {
+        vv[2]=(vv11[2]-vv01[2]-vv10[2]+vv00[2])/(4.*(vv10[0]-vv00[0])*(vv11[1]-vv01[1])); 
+        mk_verticesset(der,kk,vv);
+      }
+      kk++;     
+    } 
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_matrixalloc(struct mk_matrix *matrix,int rows_,int cols_) {
+int mk_matrixalloc(struct mk_matrix *mat,int rows_,int cols_) {
 
   int ii=0,jj=0;
-  matrix->rows=MAX(rows_,1);
-  matrix->cols=MAX(cols_,1);
-  matrix->mm=(double **)malloc(matrix->rows*sizeof(double *));
-  for (ii=0;ii<matrix->rows;ii++) {
-    matrix->mm[ii]=(double *)malloc(matrix->cols*sizeof(double));
-    for (jj=0;jj<matrix->cols;jj++)
-      matrix->mm[ii][jj]=(ii==jj ? 1. : .0);
+  mat->rows=MAX(rows_,1);
+  mat->cols=MAX(cols_,1);
+  mat->matrix=(double **)malloc(mat->rows*sizeof(double *));
+  for (ii=0;ii<mat->rows;ii++) {
+    mat->matrix[ii]=(double *)malloc(mat->cols*sizeof(double));
+    for (jj=0;jj<mat->cols;jj++)
+      mat->matrix[ii][jj]=(ii==jj ? 1. : .0);
   }
-  return matrix->rows*matrix->cols; 
+  return mat->rows*mat->cols; 
 
 }
 
 /* ########## */
-int mk_matrixfree(struct mk_matrix *matrix) {
+int mk_matrixfree(struct mk_matrix *mat) {
 
-  if (!matrix || !matrix->mm)
+  if (!mat || !mat->matrix)
     return 1;
   int ii=0;
-  for (ii=0;ii<matrix->rows;ii++)
-    free(matrix->mm[ii]);
-  free(matrix->mm);
-  matrix->mm=0;
+  for (ii=0;ii<mat->rows;ii++)
+    free(mat->matrix[ii]);
+  free(mat->matrix);
+  mat->matrix=0;
   return 0;
 
 }
 
 /* ########## */
-double mk_matrixget(struct mk_matrix *matrix,int row,int col) {
+double mk_matrixget(struct mk_matrix *mat,int row,int col) {
 
-  if (!matrix || row<0 || row>=matrix->rows || col<0 || col>=matrix->cols)
+  if (!mat || row<0 || row>=mat->rows || col<0 || col>=mat->cols)
     return mk_dnan;
-  return matrix->mm[row][col];
+  return mat->matrix[row][col];
 
 }
 
 /* ########## */
-double mk_matrixset(struct mk_matrix *matrix,int row,int col,double val) {
+double mk_matrixset(struct mk_matrix *mat,int row,int col,double val) {
 
-  if (!matrix || row<0 || row>=matrix->rows || col<0 || col>=matrix->cols)
+  if (!mat || row<0 || row>=mat->rows || col<0 || col>=mat->cols)
     return mk_dnan;
-  double oldval=matrix->mm[row][col];
-  matrix->mm[row][col]=val;
+  double oldval=mat->matrix[row][col];
+  mat->matrix[row][col]=val;
   return oldval;
 
 }
@@ -768,8 +781,8 @@ int mk_matrixludecomposition(struct mk_matrix *mat,struct mk_matrix *lumat,int *
   for (ii=0;ii<num;ii++) {
     maxcoeff=.0;
     for (jj=0;jj<num;jj++) {
-      lumat->mm[ii][jj]=mat->mm[ii][jj];
-      tmp=fabs(lumat->mm[ii][jj]);
+      lumat->matrix[ii][jj]=mat->matrix[ii][jj];
+      tmp=fabs(lumat->matrix[ii][jj]);
       if (tmp>maxcoeff)
         maxcoeff=tmp;
     }
@@ -785,7 +798,7 @@ int mk_matrixludecomposition(struct mk_matrix *mat,struct mk_matrix *lumat,int *
       /* do the matrix multiplication
        beta[i,j]=m[i,j]-sum(alpha[i,k]*beta[k,j]) */
       for (kk=0;kk<ii;kk++)
-        lumat->mm[ii][jj]-=lumat->mm[ii][kk]*lumat->mm[kk][jj];     
+        lumat->matrix[ii][jj]-=lumat->matrix[ii][kk]*lumat->matrix[kk][jj];     
     }
     maxcoeff=.0;
     /* loop rows for 'l'ower triangular matrix
@@ -794,10 +807,10 @@ int mk_matrixludecomposition(struct mk_matrix *mat,struct mk_matrix *lumat,int *
       /* do the matrix multiplication
        beta[j,j]*alpha[i,j]=m[i,j]-sum(alpha[i,k]*beta[k,j]) */
       for (kk=0;kk<jj;kk++)
-        lumat->mm[ii][jj]-=lumat->mm[ii][kk]*lumat->mm[kk][jj];
+        lumat->matrix[ii][jj]-=lumat->matrix[ii][kk]*lumat->matrix[kk][jj];
       /* beta[j,j] is to calculate as pivot(largest element)
        from this row=i and (precalculated) =rowscale[i] */
-      tmp=fabs(lumat->mm[ii][jj])/rowscale[ii];
+      tmp=fabs(lumat->matrix[ii][jj])/rowscale[ii];
       if (tmp>=maxcoeff) {
         maxcoeff=tmp;
         imax=ii;
@@ -813,17 +826,17 @@ int mk_matrixludecomposition(struct mk_matrix *mat,struct mk_matrix *lumat,int *
      a rowwise permutation of m */
     if (jj!=imax) {
       for (ii=0;ii<num;ii++)
-        mk_swapf(&lumat->mm[imax][ii],&lumat->mm[jj][ii]);
+        mk_swapf(&lumat->matrix[imax][ii],&lumat->matrix[jj][ii]);
       rowscale[imax]=rowscale[jj]; /* rowscale[j] is not needed anymore */
       mk_swapi(&rowperm[jj],&rowperm[imax]);
       *parity=-(*parity);
     }
-    if (mk_deq(lumat->mm[jj][jj],.0))
+    if (mk_deq(lumat->matrix[jj][jj],.0))
       return -1;
     /* finallly (for this column) divide all lower row elements by the pivot */
     if (jj<(num-1)) {
       for (ii=(jj+1);ii<num;ii++)
-        lumat->mm[ii][jj]/=lumat->mm[jj][jj];
+        lumat->matrix[ii][jj]/=lumat->matrix[jj][jj];
     }
   }
   free(rowscale);
@@ -851,7 +864,7 @@ int mk_matrixlubacksubstitution(struct mk_matrix *lumat,int *lurowperm,double *r
    in --> ludecomposition */
   for (ii=0;ii<num;ii++) {
     for (jj=0;jj<ii;jj++)
-      xx[ii]-=lumat->mm[ii][jj]*xx[jj];
+      xx[ii]-=lumat->matrix[ii][jj]*xx[jj];
   }
   /* now do the backsubstitution by solving for the upper triangular matrix (beta)
    e.g. for (rows=cols=3) lum(upperpart)={lum[1,1],lum[1,2],lum[1,3],
@@ -862,9 +875,9 @@ int mk_matrixlubacksubstitution(struct mk_matrix *lumat,int *lurowperm,double *r
   for (ii=(num-1);ii>-1;ii--) {
     tmp=xx[ii];
     for (jj=(ii+1);jj<num;jj++) {
-      tmp-=lumat->mm[ii][jj]*xx[jj];
+      tmp-=lumat->matrix[ii][jj]*xx[jj];
     }
-    xx[ii]=tmp/lumat->mm[ii][ii];
+    xx[ii]=tmp/lumat->matrix[ii][ii];
   }
   return 0;
 

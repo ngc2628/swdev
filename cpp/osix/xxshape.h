@@ -2,7 +2,6 @@
 #ifndef _xxshape_h_
 #define _xxshape_h_
 
-#include <mkbase/mkbase.h>
 #include <auxx/auxx.h>
 #include <auxx/vertex.h>
 

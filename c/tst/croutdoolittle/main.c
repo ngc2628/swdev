@@ -1,7 +1,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <mkbase/mkbase.h>
+#include <mkbase/mkmath.h>
+#include <mkbase/mkconv.h>
 #include <mkbase/mkla.h>
 
 int usage() {

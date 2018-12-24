@@ -2,7 +2,6 @@
 #ifndef _vertex_H_
 #define _vertex_H_
 
-#include <mkbase/mkbase.h>
 #include <auxx/auxx.h>
 
 namespace aux {
