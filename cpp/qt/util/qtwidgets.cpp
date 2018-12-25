@@ -9,10 +9,12 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QStyle>
+
 #include <qt/util/qtutil.h>
 #include <qt/util/qtwidgets.h>
 #include <auxx/auxx.h>
 #include <osix/xxstyle.h>
+#include <mkbase/mkconv.h>
 
 namespace qtutil {
 

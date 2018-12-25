@@ -10,6 +10,34 @@
 #define xtern extern
 #endif
 
+/* int types */
+#if defined (_MSC_VER)
+#include <basetsd.h>
+#if defined (_WIN64)
+typedef int64_t mk_lreal;
+typedef uint64_t mk_ulreal;
+#else
+typedef __int64__ mk_lreal;
+typedef __uint64__ mk_ulreal;
+#endif
+#else
+#if defined (__WATCOMC__)
+typedef int64_t mk_lreal;
+typedef uint64_t mk_ulreal;
+#define finite(x) isfinite(x)
+#else
+#if defined (__MACH__)
+#include <inttypes.h>
+typedef long long int mk_lreal;
+typedef unsigned long long int  mk_ulreal;
+#else
+#include <inttypes.h>
+typedef long long int mk_lreal;
+typedef unsigned long long int mk_ulreal;
+#endif
+#endif
+#endif
+
 #if !defined MIN
 #define MIN(x,y) ((x)<(y) ? (x) : (y))
 #endif

@@ -4,7 +4,10 @@
 #include <QtGui/QKeyEvent>
 #include <QtX11Extras/QX11Info>
 #include <QtGui/QPainter>
+
 #include <math.h>
+
+#include <mkbase/mkconv.h>
 #include <osix/xxstyle.h>
 #include <osix/xxevent.h>
 #include <qt/util/qtutil.h>

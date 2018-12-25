@@ -1,4 +1,5 @@
 
+#include <mkbase/mkla.h>
 #include <graphic/charts/simpleplot/scale.h>
 #include <graphic/charts/simpleplot/axis.h>
 #include <graphic/charts/simpleplot/graph.h>

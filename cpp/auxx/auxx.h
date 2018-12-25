@@ -12,8 +12,6 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 #include <mkbase/mkmath.h>
-#include <mkbase/mkconv.h>
-#include <mkbase/mkla.h>
 
 namespace aux {
 

@@ -38,12 +38,6 @@ struct oswinexp mk_polynomial {
 extern "C" {
 #endif
 
-/* in number , return result */
-xtern double oswinexp mk_factorial(int);
-
-/* in number set , in number subset , return result */
-xtern double oswinexp mk_binomialCoeff(int,int);
-
 /*
   in vertex , return str , allocates memory
 */

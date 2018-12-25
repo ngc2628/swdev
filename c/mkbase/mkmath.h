@@ -12,34 +12,6 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 
-/* int types */
-#if defined (_MSC_VER)
-#include <basetsd.h>
-#if defined (_WIN64)
-typedef int64_t mk_lreal;
-typedef uint64_t mk_ulreal;
-#else
-typedef __int64__ mk_lreal;
-typedef __uint64__ mk_ulreal;
-#endif
-#else
-#if defined (__WATCOMC__)
-typedef int64_t mk_lreal;
-typedef uint64_t mk_ulreal;
-#define finite(x) isfinite(x)
-#else
-#if defined (__MACH__)
-#include <inttypes.h>
-typedef long long int mk_lreal;
-typedef unsigned long long int  mk_ulreal;
-#else
-#include <inttypes.h>
-typedef long long int mk_lreal;
-typedef unsigned long long int mk_ulreal;
-#endif
-#endif
-#endif
-
 #if defined (_MSC_VER)
 static const mk_lreal mk_i64limit=9223372036854775807i64;
 static const mk_ulreal mk_ui64limit=18446744073709551615ui64;
@@ -196,7 +168,14 @@ xtern void oswinexp mk_heapsort(int,void **,int (*)(const void *,const void *));
   in *look-for , in numberelements , in **array , in cmp-function ,
   in guess-likely-index=-1 , return index-in-array
 */
-xtern int oswinexp mk_binsearch(const void *,int,const void **,int (*)(const void *,const void *),int);
+xtern int oswinexp mk_binsearch(
+  const void *,int,const void **,int (*)(const void *,const void *),int);
+
+/* in number , return result */
+xtern double oswinexp mk_factorial(int);
+
+/* in number set , in number subset , return result */
+xtern double oswinexp mk_binomialCoeff(int,int);
 
 #ifdef __cplusplus
 }

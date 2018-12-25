@@ -1,4 +1,5 @@
 
+#include <mkbase/mkconv.h>
 #include <txtcalculator/calculator.h>
 #include <math.h>
 #include <ctype.h>

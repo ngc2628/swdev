@@ -1,4 +1,5 @@
 
+#include <mkbase/mkconv.h>
 #include <auxx/auxx.h>
 
 namespace aux {

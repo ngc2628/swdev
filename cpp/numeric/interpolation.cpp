@@ -1,4 +1,6 @@
 
+#include <mkbase/mkconv.h>
+#include <mkbase/mkla.h>
 #include <auxx/auxx.h>
 #include <numeric/matrix.h>
 #include <numeric/interpolation.h>
@@ -1874,7 +1876,6 @@ int BicubicPatch::setup() {
     return -1;
 
   int ii=0,jj=0;
-
   m_cij=new double *[16];
   for (ii=0;ii<16;ii++) {
     m_cij[ii]=new double[16];

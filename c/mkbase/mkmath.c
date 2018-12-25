@@ -1005,4 +1005,32 @@ int mk_binsearch(const void *xx,int cnt,const void **arr,int (*comp)(const void 
   return -1;
 }
 
+/* ########## */
+double mk_factorial(int nn) {
 
+  if (nn>170 || nn<0)
+    return .0;
+  static double factab[171]={
+    1.0 /*=0!*/,1.0 /*=1!*/,2.0 /*=2!*/,6.0 /*=3!*/,24.0 /*=4!*/,
+    120.0 /*=5!*/,720.0 /*=6!*/,5040.0 /*=7!*/,40320.0 /*=8!*/,
+    362880.0 /*=9!*/,3628800.0 /*=10!*/,39916800.0 /*=11!*/,
+    479001600.0 /*=12!*/,6227020800.0 /*=13!*/, 87178291200.0 /*=14!*/,
+    1307674368000.0 /*=15!*/,20922789888000.0 /*=16!*/,355687428096000.0 /*=17!*/};
+  static int calced=17;
+  if (nn<=calced)
+    return factab[nn];
+  int ii=0;
+  /* double ret=factab[calced]; */
+  for (ii=(calced+1);ii<(nn+1);ii++)
+    factab[ii]=(double)ii*factab[ii-1];
+  calced=nn;
+  return factab[calced];
+
+}
+
+/* ########## */
+double mk_binomialCoeff(int up,int down) {
+
+  return mk_factorial(up)/(mk_factorial(down)*mk_factorial(up-down));
+
+}

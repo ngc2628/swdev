@@ -2,7 +2,10 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QGroupBox>
 #include <QtGui/QPainter>
+
 #include <math.h>
+
+#include <mkbase/mkconv.h>
 #include <graphic/charts/simpleplot/graph.h>
 #include <graphic/charts/simpleplot/axis.h>
 #include <graphic/charts/simpleplot/scale.h>
