@@ -541,6 +541,30 @@ int mk_verticesset(struct mk_vertices *vertices,int idx,mk_vertex vertex) {
 }
 
 /* ########## */
+int mk_ellipse(struct mk_vertices *vertices,int nn) {
+
+  if (!vertices)
+    return 1;
+  nn=MAX(1,MIN(vertices->reserve,nn));
+  int ii=0,off=nn/2;
+  double sc=360./(double)nn;
+  mk_vertexnan(vv);
+  for (ii=0;ii<nn;ii++) {  
+    if (ii<=off) {
+      vv[0]=cos(sc*mk_rad*(double)ii);
+      vv[1]=sin(sc*mk_rad*(double)ii);
+    }
+    else {
+      vv[0]=-cos(sc*mk_rad*(double)(ii-off));
+      vv[1]=-sin(sc*mk_rad*(double)(ii-off));
+    }
+    mk_verticesset(vertices,vertices->cnt,vv);
+  }
+  return 0;
+
+}
+
+/* ########## */
 int mk_polygonintersection(
   struct mk_vertices *poly1,struct mk_vertices *poly2,struct mk_vertices *pinter) {
 

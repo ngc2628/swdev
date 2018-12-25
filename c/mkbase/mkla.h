@@ -159,6 +159,11 @@ xtern int oswinexp mk_verticesget(struct mk_vertices *,int,mk_vertex);
 xtern int oswinexp mk_verticesset(struct mk_vertices *,int,mk_vertex);
 
 /*
+  inout list-of-*vertices , in number-of-points , return 0,1
+*/
+xtern int oswinexp mk_ellipse(struct mk_vertices *,int);
+
+/*
   in polygon1 , in polygon2 , out *intersection points , return numberintersectionpoints
 */
 xtern int mk_polygonintersection(struct mk_vertices *,struct mk_vertices *,struct mk_vertices *);

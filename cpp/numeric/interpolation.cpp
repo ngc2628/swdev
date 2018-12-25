@@ -11,40 +11,7 @@
 
 namespace num {
 
-static double *ellipsex=0;
-static double *ellipsey=0;
-static int ellipsen=0;
 int numsmoothIntermediates=500;
-
-void ellipse(int nn,double *xx,double *yy) {
-
-  if (!xx || !yy || nn<=0)
-    return;
-  if (!ellipsex || !ellipsey || ellipsen<=0 || nn!=ellipsen) {
-    if (ellipsex)
-      delete [] ellipsex;
-    if (ellipsey)
-      delete [] ellipsey;
-    ellipsex=new double[(size_t)nn];
-    ellipsey=new double[(size_t)nn];
-    int ii=0,off=nn/2;
-    double sc=360./(double)nn;
-    for (ii=0;ii<nn;ii++) {
-      if (ii<=off) {
-        ellipsex[ii]=cos(sc*mk_rad*(double)ii);
-        ellipsey[ii]=sin(sc*mk_rad*(double)ii);
-      }
-      else {
-        ellipsex[ii]=-cos(sc*mk_rad*(double)(ii-off));
-        ellipsey[ii]=-sin(sc*mk_rad*(double)(ii-off));
-      }
-    }
-    ellipsen=nn;
-  }
-  memcpy(xx,ellipsex,ellipsen*sizeof(double));
-  memcpy(yy,ellipsey,ellipsen*sizeof(double));
-
-}
 
 Interpolation *buildInterpolation(const char *type,aux::TVList<aux::Asciistr> *optL) {
 
