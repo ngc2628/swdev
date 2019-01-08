@@ -7,7 +7,7 @@
 #include <ctype.h>
 
 /* ########## */
-char *mk_vertexdbg(mk_vertex vertex) {
+char *mk_vertexdbg(const mk_vertex vertex) {
 
   mk_str1k(resx);
   char *buf=0;
@@ -25,7 +25,7 @@ char *mk_vertexdbg(mk_vertex vertex) {
       break;
     }
   }
-  char *res=(char *) malloc((int)strlen(resx)+1);
+  char *res=(char *)malloc((int)strlen(resx)+1);
   strcpy(res,&resx[0]);
   res[(int)strlen(res)]=0;
   return res;
@@ -33,7 +33,7 @@ char *mk_vertexdbg(mk_vertex vertex) {
 }
 
 /* ########## */
-int mk_vertexcopy(mk_vertex to,mk_vertex from) {
+int mk_vertexcopy(mk_vertex to,const mk_vertex from) {
 
   memcpy(&to[0],&from[0],4*sizeof(double));
   return 0;
@@ -60,7 +60,7 @@ int mk_vertexswap(mk_vertex vv1,mk_vertex vv2) {
 }
 
 /* ########## */
-double mk_vertexlen(mk_vertex vertex) {
+double mk_vertexlen(const mk_vertex vertex) {
 
   mk_vertexzero(pp);
   int ii=0;
@@ -72,15 +72,20 @@ double mk_vertexlen(mk_vertex vertex) {
 }
 
 /* ########## */
-int mk_vertexcmp(mk_vertex cmp1,mk_vertex cmp2) {
+int mk_vertexcmpx(const void *cmp1,const void *cmp2) {
 
-  double ll1=mk_vertexlen(cmp1),ll2=mk_vertexlen(cmp2);
-  return (ll1<ll2 ? -1 : (ll2<ll1 ? 1 : 0));
+  const mk_vertex *vv1=(const mk_vertex*)cmp1;
+  const mk_vertex *vv2=(const mk_vertex*)cmp2;
+  if ((*vv1)[0]<(*vv2)[0])
+    return -1;
+  if ((*vv2)[0]<(*vv1)[0])
+    return 1;
+  return 0;
 
 }
 
 /* ########## */
-int mk_vertexadd(mk_vertex vertex,mk_vertex addend) {
+int mk_vertexadd(mk_vertex vertex,const mk_vertex addend) {
 
   int ii=0;
   for (ii=0;ii<4;ii++) {
@@ -94,7 +99,7 @@ int mk_vertexadd(mk_vertex vertex,mk_vertex addend) {
 }
 
 /* ########## */
-int mk_vertexsubs(mk_vertex vertex,mk_vertex addend) {
+int mk_vertexsubs(mk_vertex vertex,const mk_vertex addend) {
 
   int ii=0;
   for (ii=0;ii<4;ii++) {
@@ -136,7 +141,7 @@ int mk_vertexdiv(mk_vertex vertex,double sc) {
 }
 
 /* ########## */
-double mk_vertexdot(mk_vertex vertex1,mk_vertex vertex2) {
+double mk_vertexdot(const mk_vertex vertex1,const mk_vertex vertex2) {
 
   mk_vertexnan(resv);
   int ii=0;
@@ -167,7 +172,7 @@ int mk_vertexnorm(mk_vertex vertex) {
 }
 
 /* ########## */
-int mk_vertexcross(mk_vertex vertex1,mk_vertex vertex2) {
+int mk_vertexcross(mk_vertex vertex1,const mk_vertex vertex2) {
 
   mk_vertexnan(pp);
   if (mk_isbusted(vertex1[1])==0 && mk_isbusted(vertex1[2])==0 &&
@@ -185,17 +190,18 @@ int mk_vertexcross(mk_vertex vertex1,mk_vertex vertex2) {
 }
 
 /* ########## */
-double mk_vertexangrad(mk_vertex vertex1,mk_vertex vertex2) {
+double mk_vertexangrad(const mk_vertex vertex1,const mk_vertex vertex2) {
 
   double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
   if (den==.0)
     return .0;
   return acos(mk_vertexdot(vertex1,vertex2)/den);
+  //return atan2(sqrt(1.-arg*arg),arg)/rad;
 
 }
 
 /* ########## */
-double mk_vertexangdeg(mk_vertex vertex1,mk_vertex vertex2) {
+double mk_vertexangdeg(const mk_vertex vertex1,const mk_vertex vertex2) {
 
   double den=mk_vertexlen(vertex1)*mk_vertexlen(vertex2);
   if (den==.0)
@@ -484,64 +490,7 @@ int mk_intersectionpointslinerect(
 }
 
 /* ########## */
-int mk_verticesalloc(struct mk_vertices *vertices,int reserve_) {
-
-  int ii=0,jj=0;
-  vertices->reserve=1;
-  while (vertices->reserve<MAX(reserve_,1) && (ii++)<32)
-    vertices->reserve*=2;
-  vertices->vertexL=(mk_vertex *)malloc(vertices->reserve*sizeof(mk_vertex));
-  for (ii=0;ii<vertices->reserve;ii++) {
-    for (jj=0;jj<4;jj++)
-      vertices->vertexL[ii][jj]=mk_dnan;
-  }
-  vertices->cnt=0;
-  return vertices->reserve;  
-
-}
-
-/* ########## */
-int mk_verticesfree(struct mk_vertices *vertices) {
-
-  if (!vertices)
-    return 1;
-  if (vertices->vertexL)
-    free(vertices->vertexL);
-  vertices->vertexL=0;
-  vertices->cnt=0;
-  return 0;
-
-}
-
-/* ########## */
-int mk_verticesget(struct mk_vertices *vertices,int idx,mk_vertex vertex) {
-
-  mk_vertexset(vertex,mk_dnan);
-  if (!vertices || idx<0 || vertices->cnt<=idx)
-    return 1;
-  mk_vertexcopy(vertex,vertices->vertexL[idx]);
-  return 0;
-
-}
-
-/* ########## */
-int mk_verticesset(struct mk_vertices *vertices,int idx,mk_vertex vertex) {
-
-  if (!vertices)
-    return 1;
-  if (idx<0 || idx>vertices->cnt)
-    idx=vertices->cnt;
-  if (idx>=vertices->reserve)
-    return 1;
-  if (idx==vertices->cnt)
-    vertices->cnt++;  
-  mk_vertexcopy(vertices->vertexL[idx],vertex);
-  return 0;
-
-}
-
-/* ########## */
-int mk_ellipse(struct mk_vertices *vertices,int nn) {
+int mk_ellipse(struct mk_list *vertices,int nn) {
 
   if (!vertices)
     return 1;
@@ -558,65 +507,70 @@ int mk_ellipse(struct mk_vertices *vertices,int nn) {
       vv[0]=-cos(sc*mk_rad*(double)(ii-off));
       vv[1]=-sin(sc*mk_rad*(double)(ii-off));
     }
-    mk_verticesset(vertices,vertices->cnt,vv);
+    mk_listappend(vertices,(void*)&vv);
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_polygonintersection(
-  struct mk_vertices *poly1,struct mk_vertices *poly2,struct mk_vertices *pinter) {
+int mk_polygonintersection(struct mk_list *poly1,struct mk_list *poly2,struct mk_list *pinter) {
 
   if (!poly1 || !poly2 || !pinter)
     return 0;
   int ii=0,jj=0,kk=0;
   double m1=.0,m2=.0,mdiff=.0,b1=.0,b2=.0,xinter=.0;
   mk_vertexnan(interp);
+  mk_listclear(pinter,(void*)&pinter);
+  mk_vertexnan(vv1);
+  mk_vertexnan(vv2);
   /* line equation :
    y=m*x+b
    m=(y2-y1)/(x2-x1)
    b=y1-m*x1
    condition : m1x+b1==m2x+b2 ->
    xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
-  for (ii=1;ii<poly1->cnt;ii++) {
-    m1=(poly1->vertexL[ii][1]-poly1->vertexL[ii-1][1]) /
-       (poly1->vertexL[ii][0]-poly1->vertexL[ii-1][0]);
-    b1=poly1->vertexL[ii-1][1]-m1*poly1->vertexL[ii-1][0];
-    for (jj=1;jj<poly2->cnt;jj++) {
-      m2=(poly2->vertexL[jj][1]-poly2->vertexL[jj-1][1]) /
-         (poly2->vertexL[jj][0]-poly2->vertexL[jj-1][0]);
-      b2=poly2->vertexL[jj-1][1]-m2*poly2->vertexL[jj-1][0];
+  for (ii=1;ii<poly1->count;ii++) {
+    mk_listat(poly1,ii,(void*)&vv1);
+    mk_listat(poly1,ii-1,(void*)&vv2);
+    m1=(vv1[1]-vv2[1])/(vv1[0]-vv2[0]);
+    b1=vv2[1]-m1*vv2[0];
+    for (jj=1;jj<poly2->count;jj++) {
+      mk_listat(poly2,ii,(void*)&vv1);
+      mk_listat(poly2,ii-1,(void*)&vv2);
+      m2=(vv1[1]-vv2[1])/(vv1[0]-vv2[0]);
+      b2=vv2[1]-m1*vv2[0];
       mdiff=mk_diff(m1,m2);
       if (mdiff==.0)
         continue;
       xinter=(b2-b1)/mdiff;
-      if (mk_isfinite(xinter)!=0 && poly1->vertexL[ii-1][0]<=xinter && 
-        poly2->vertexL[jj-1][0]<=xinter && xinter<=poly1->vertexL[ii][0] && 
-        xinter<=poly2->vertexL[jj][0]) {
-        interp[0]=xinter;
-        interp[1]=(b2*m1-b1*m2)/mdiff;
-        mk_verticesset(pinter,-1,interp);
-      }
+      if (mk_isfinite(xinter)!=0 && xinter<=vv1[0] && vv2[0]<=xinter) {
+        mk_listat(poly1,ii,(void*)&vv1);
+        mk_listat(poly1,ii-1,(void*)&vv2); 
+        if (xinter<=vv1[0] && vv2[0]<=xinter) { 
+          interp[0]=xinter;
+          interp[1]=(b2*m1-b1*m2)/mdiff;
+          mk_listappend(pinter,(void*)&interp);
+        }
+      } 
     }
   }
-  return pinter->cnt;
+  return pinter->count;
 
 }
 
 /* ########## */
-int mk_derivatives(
-  struct mk_vertices *vertices,struct mk_vertices *der1,struct mk_vertices *der2) {
+int mk_derivatives(struct mk_list *vertices,struct mk_list *der1,struct mk_list *der2) {
 
   if (!vertices)
     return 1;
   mk_vertexnan(vv1);
   mk_vertexnan(vv2);
-  if (vertices->cnt==1) {
+  if (vertices->count==1) {
     if (der1)
-      mk_verticesset(der1,0,vv1);
+      mk_listappend(der1,(void*)&vv1);
     if (der2)
-      mk_verticesset(der2,0,vv2);
+      mk_listappend(der2,(void*)&vv2);
     return 0;
   }
   mk_vertexnan(vvl);
@@ -624,13 +578,13 @@ int mk_derivatives(
   mk_vertexnan(vvr);
   double df1=mk_dnan,df2=mk_dnan;
   int ii=0,idx=0;
-  for (ii=0;ii<vertices->cnt;ii++) {
+  for (ii=0;ii<vertices->count;ii++) {
     idx=(ii==0 ? ii : ii-1);
-    mk_verticesget(vertices,idx,vvl);
-    idx=(ii==vertices->cnt-1 ? ii-1 : ii);
-    mk_verticesget(vertices,idx,vvc);
-    idx=(ii==vertices->cnt-1 ? ii : ii+1);
-    mk_verticesget(vertices,idx,vvr);
+    mk_listat(vertices,idx,(void*)&vvl);
+    idx=(ii==vertices->count-1 ? ii-1 : ii);
+    mk_listat(vertices,idx,(void*)&vvc);
+    idx=(ii==vertices->count-1 ? ii : ii+1);
+    mk_listat(vertices,idx,(void*)&vvr);
     if (mk_isnan(vvl[2])!=0 || mk_isnan(vvc[2])!=0 || mk_isnan(vvr[2])!=0)
       df1=df2=.0;
     else {
@@ -650,16 +604,16 @@ int mk_derivatives(
     else
       vv1[1]=vv2[1]=mk_dnan;
     if (der1)
-      mk_verticesset(der1,ii,vv1);
+      mk_listsetat(der1,&vv1,ii,der1->count);
     if (der2)
-      mk_verticesset(der2,ii,vv2);
+      mk_listsetat(der2,&vv2,ii,der2->count);
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_derivativesmixed(struct mk_vertices *vertices,struct mk_vertices *der,int cols) {
+int mk_derivativesmixed(struct mk_list *vertices,struct mk_list *der,int cols) {
 
   if (!vertices || !der || cols<2)
     return 1;
@@ -668,28 +622,28 @@ int mk_derivativesmixed(struct mk_vertices *vertices,struct mk_vertices *der,int
   mk_vertexnan(vv01);
   mk_vertexnan(vv10);
   mk_vertexnan(vv11);
-  int ii=0,jj=0,kk=0,row=0,col=0,idx=0,rows=vertices->cnt/cols;
+  int ii=0,jj=0,kk=0,row=0,col=0,idx=0,rows=vertices->count/cols;
   for (ii=0;ii<rows;ii++) {
     for (jj=0;jj<cols;jj++) {
       row=(ii==0 ? 0 : ii-1);
       col=(jj==0 ? 0 : jj-1);
       idx=row*cols+col;
-      mk_verticesget(vertices,idx,vv00);
+      mk_listat(vertices,idx,vv00);
       col=(jj==cols-1 ? cols-1 : jj+1);
       idx=row*cols+col;
-      mk_verticesget(vertices,idx,vv10);
+      mk_listat(vertices,idx,vv10);
       row=(ii==rows-1 ? rows-1 : ii+1);
       idx=row*cols+col;
-      mk_verticesget(vertices,idx,vv11);
+      mk_listat(vertices,idx,vv11);
       col=(jj==0 ? 0 : jj-1);
       idx=row*cols+col;
-      mk_verticesget(vertices,idx,vv01);
-      mk_verticesget(der,kk,vv);
+      mk_listat(vertices,idx,vv01);
+      mk_listat(der,kk,vv);
       if (mk_isnan(vv11[2])==0 && mk_isnan(vv01[2])==0 && mk_isnan(vv10[2])==0 && 
           mk_isnan(vv00[2])==0 && mk_isnan(vv10[0])==0 && mk_isnan(vv00[0])==0 && 
           mk_isnan(vv01[1])==0 && mk_isnan(vv11[1])==0) {
         vv[2]=(vv11[2]-vv01[2]-vv10[2]+vv00[2])/(4.*(vv10[0]-vv00[0])*(vv11[1]-vv01[1])); 
-        mk_verticesset(der,kk,vv);
+        mk_listsetat(der,&vv,kk,der->count);
       }
       kk++;     
     } 
@@ -760,7 +714,8 @@ where diagonal is set as beta[i,i] and alpha[i,i]=1.0 as free selectable coeffic
 triangular matrices alpha+beta can be easily solved by forward/backward substitution
 decomposed matrix will be returned in lum to preserve the original m
 ------------------------------------------------------------------------------------ */
-int mk_matrixludecomposition(struct mk_matrix *mat,struct mk_matrix *lumat,int *rowperm,double *parity) {
+int mk_matrixludecomposition(
+  struct mk_matrix *mat,struct mk_matrix *lumat,int *rowperm,double *parity) {
 
   if (!mat || !rowperm || mat->rows<=0 || mat->rows!=mat->cols)
     return -1;

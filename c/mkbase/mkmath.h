@@ -137,12 +137,6 @@ xtern double oswinexp mk_logm(double,double);
 /* in number , in exponent , return result */
 xtern double oswinexp mk_powrat(double,float);
 
-/* in number , in array , out indexarray */
-xtern void oswinexp mk_indextab1(int,double[],int []);
-
-/* in number , in array , out indexarray */
-xtern void oswinexp mk_indextab2(int,double [],int []);
-
 /* in number , return 0,1 */
 xtern int oswinexp mk_isprim(int);
 
@@ -160,16 +154,6 @@ xtern int oswinexp mk_gcd(int,int);
 
 /* double%double , in number , in number , return result */
 xtern double oswinexp mk_doublemod(double,double);
-
-/* in numberelements , inout **array , in cmp-function */
-xtern void oswinexp mk_heapsort(int,void **,int (*)(const void *,const void *));
-
-/*
-  in *look-for , in numberelements , in **array , in cmp-function ,
-  in guess-likely-index=-1 , return index-in-array
-*/
-xtern int oswinexp mk_binsearch(
-  const void *,int,const void **,int (*)(const void *,const void *),int);
 
 /* in number , return result */
 xtern double oswinexp mk_factorial(int);

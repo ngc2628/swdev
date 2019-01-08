@@ -89,20 +89,29 @@ static void obj_triangle(
 }
 
 static void subtriangle(
-  mk_vertex v1,mk_vertex v2,mk_vertex v3,
-  int level,struct mk_vertices *vL) {
+  mk_vertex vv1,mk_vertex vv2,mk_vertex vv3,
+  int level,struct mk_list *vL) {
 
   if (level<0)
     return;
 
+  mk_vertexzero(v1);
+  mk_vertexzero(v2);
+  mk_vertexzero(v3);
+  mk_vertexzero(v12);
+  mk_vertexzero(v23);
+  mk_vertexzero(v31);
+
+  mk_vertexcopy(v1,vv1);
+  mk_vertexcopy(v2,vv2);
+  mk_vertexcopy(v3,vv3);
   if (level==0) {
-    mk_verticesset(vL,-1,v1);
-    mk_verticesset(vL,-1,v2);
-    mk_verticesset(vL,-1,v3);
+    mk_listsetat(vL,(void*)&v1,vL->count,1);
+    mk_listsetat(vL,(void*)&v2,vL->count,1);
+    mk_listsetat(vL,(void*)&v3,vL->count,1);
     return;
   }
 
-  mk_vertex v12,v23,v31;
   mk_vertexcopy(v12,v1);
   mk_vertexadd(v12,v2);
   mk_vertexcopy(v23,v2);
@@ -134,8 +143,8 @@ static void obj_sphere(int level) {
   glGetBooleanv(GL_LIGHTING,&ison[0]);
 
   int ii=0;
-  struct mk_vertices vL; 
-  mk_verticesalloc(&vL,4*20*(int)pow(4.,level)); /* 4 : do not exhaust */
+  struct mk_list vL; 
+  mk_listalloc(&vL,sizeof(mk_vertex),4*20*(int)pow(4.,level)); /* 4 : do not exhaust */
   for (ii=0;ii<sphere_n;ii++) {
     subtriangle(
       sphere_vertex[sphere_index[ii][2]],
@@ -143,8 +152,10 @@ static void obj_sphere(int level) {
       sphere_vertex[sphere_index[ii][0]],level,&vL
     );
   }
-  int vcnt=vL.cnt;
-  mk_vertex v1,v2,v3;
+  mk_vertexzero(v1);
+  mk_vertexzero(v2);
+  mk_vertexzero(v3);
+  int vcnt=vL.count;
 
   glPushMatrix();
   glTranslated(-1.,0.,0.);
@@ -157,9 +168,9 @@ static void obj_sphere(int level) {
     for (ii=0;ii<vcnt;ii+=3) {
       if (ii==95*vcnt/100 && !ison[0])
         glColor4fv(tstcolor[3]);
-      mk_verticesget(&vL,ii,v1);
-      mk_verticesget(&vL,ii+1,v2);
-      mk_verticesget(&vL,ii+2,v3);
+      mk_listat(&vL,ii,&v1);
+      mk_listat(&vL,ii+1,&v2);
+      mk_listat(&vL,ii+2,&v3);
       obj_triangle(v1,v2,v3);
     }
     glEnd();
@@ -171,9 +182,9 @@ static void obj_sphere(int level) {
       glColor4fv(tstcolor[2]);
     glBegin(GL_TRIANGLES);
     for (ii=0;ii<vcnt;ii+=3) {
-      mk_verticesget(&vL,ii,v1);
-      mk_verticesget(&vL,ii+1,v2);
-      mk_verticesget(&vL,ii+2,v3);
+      mk_listat(&vL,ii,&v1);
+      mk_listat(&vL,ii+1,&v2);
+      mk_listat(&vL,ii+2,&v3);
       obj_triangle(v1,v2,v3);
     }
     glEnd();
@@ -183,16 +194,16 @@ static void obj_sphere(int level) {
     glColor4fv(tstcolor[4]);
     glBegin(GL_LINES);
     for (ii=0;ii<vcnt;ii+=3) {
-      mk_verticesget(&vL,ii,v1);
-      mk_verticesget(&vL,ii+1,v2);
-      mk_verticesget(&vL,ii+2,v3);
+      mk_listat(&vL,ii,&v1);
+      mk_listat(&vL,ii+1,&v2);
+      mk_listat(&vL,ii+2,&v3);
       obj_trianglenormal(v1,v2,v3);
     }
     glEnd();
   }
 
   glPopMatrix();
-  mk_verticesfree(&vL);
+  mk_listfree(&vL);
 
 }
 

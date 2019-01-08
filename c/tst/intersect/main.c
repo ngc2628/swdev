@@ -381,10 +381,10 @@ int main(int argc,char **argv) {
   printf("%d [%d] [%f,%f %f,%f %f,%f %f,%f]\n",__LINE__,
     npinter,interx[0],intery[0],interx[1],intery[1],interx[2],intery[2],interx[3],intery[3]);
 
-  struct mk_vertices poly1,poly2,pinter;
-  mk_verticesalloc(&poly1,6);
-  mk_verticesalloc(&poly2,5);
-  mk_verticesalloc(&pinter,4);
+  struct mk_list poly1,poly2,pinter;
+  mk_listalloc(&poly1,sizeof(mk_vertex),6);
+  mk_listalloc(&poly2,sizeof(mk_vertex),5);
+  mk_listalloc(&pinter,sizeof(mk_vertex),4);
   mk_vertex poly1p[6]={
     {-6.,6.,mk_dnan,mk_dnan},{-3.,6.,mk_dnan,mk_dnan},{0.,-3.,mk_dnan,mk_dnan},
     {4.,1.,mk_dnan,mk_dnan},{2.,3.,mk_dnan,mk_dnan},{4.,7.,mk_dnan,mk_dnan}
@@ -394,14 +394,17 @@ int main(int argc,char **argv) {
     {1.,6.,mk_dnan,mk_dnan},{6.,4.,mk_dnan,mk_dnan}
   };
   for (ii=0;ii<6;ii++)
-    mk_verticesset(&poly1,-1,poly1p[ii]);
+    mk_listsetat(&poly1,poly1p[ii],poly1.count,1);
   for (ii=0;ii<5;ii++)
-    mk_verticesset(&poly2,-1,poly2p[ii]);
+    mk_listsetat(&poly2,poly2p[ii],poly1.count,1);
 
+  mk_vertexnan(dbgv);
   char *dbgstr=0;
   npinter=mk_polygonintersection(&poly1,&poly2,&pinter);
-  for (ii=0;ii<npinter;ii++)
-    printf("%d #%d %s\n",__LINE__,ii,mk_vertexdbg(pinter.vertexL[ii]));
+  for (ii=0;ii<npinter;ii++) {
+    mk_listat(&pinter,ii,&dbgv);
+    printf("%d #%d %s\n",__LINE__,ii,mk_vertexdbg(dbgv));
+  }
 
   double plineq=lineq(p1x,p2x,p1y,p2y,8.);
   printf("%d [%f]\n",__LINE__,plineq);
