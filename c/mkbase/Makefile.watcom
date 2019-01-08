@@ -7,9 +7,9 @@ WFLAGS        = -w3
 LFLAGS        = -nologo -dll 
 INCPATH       = -i"$(SWDIR)\c"
 LIBS          =  
-HEADER        = defs.h exportdefs.h mkmath.h mkconv.h mkla.h
-SOURCES       = mkmath.c mkconv.c mkla.c
-OBJECTS       = mkmath.obj mkconv.obj mkla.obj
+HEADER        = defs.h exportdefs.h mkutil.h mkmath.h mkconv.h mkla.h
+SOURCES       = mkutil.c mkmath.c mkconv.c mkla.c
+OBJECTS       = mkutil.obj mkmath.obj mkconv.obj mkla.obj
 TARGET        = lib$(PRJ).dll
 TARGETLIB     = lib$(PRJ).lib
 
