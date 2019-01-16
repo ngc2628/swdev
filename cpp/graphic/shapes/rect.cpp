@@ -11,7 +11,7 @@ namespace shapes {
 
 static const int defCntPoints=4;
 
-int Rect::eval(TVList<Vector3> *pointL,int npoints) {
+int Rect::eval(num::VertexList *pointL,int npoints) {
 
   if (npoints!=defCntPoints) npoints=defCntPoints;
   if (npoints==m_points.count()) {
@@ -20,9 +20,8 @@ int Rect::eval(TVList<Vector3> *pointL,int npoints) {
     return npoints; // cache
   }
   m_points.clear();
-  if (m_points.size()<npoints)
-    m_points.resize(npoints);
-  aux::Vector3 pc(.0,m_sz.width()/2.),
+  m_points.resize(npoints);
+  num::Vector3 pc(.0,m_sz.width()/2.),
                p0(.0,m_sz.height()/2.),p1(p0),p2(.0,-m_sz.height()/2.),p3(p2);
   TransformMatrix mm;
   mm.scale(1.,m_scale);

@@ -332,8 +332,8 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
 
   simpleplot::GraphData2 *graphdata=new simpleplot::GraphData2(cntctrl);
   graphdata->setSortype(0);
-  aux::TVList<aux::Vector3> vvL;
-  aux::Vector3 vv;
+  num::VertexList vvL;
+  num::Vector3 vv;
   for (ii=0;ii<cntctrl;ii++) {
     vv.setXY(xx[ii],yy[ii]);
     jj=graphdata->setData(-1,&vv);
@@ -357,19 +357,24 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
  
   num::Polynomial polyinter1(&interpoloptL);
   polyinter1.setCtrl(&vvL);
-  aux::TVList<double> cc;
+  num::VertexList cc;
   polyinter1.coeff(.0,&cc);
   for (ii=0;ii<cc.count();ii++) {
-    xx[ii]=cc[ii];
+    xx[ii]=cc[ii].y();
     printf ("%d coeff#%d=%.15f\n",__LINE__,ii,xx[ii]);
   }
 
   interpoloptL.clear();
   interpoloptL.inSort("eq");
   num::Polynomial polyinter2(&interpoloptL);
-  for (ii=1;ii<cc.count();ii++)
+  cc.clear();
+  for (ii=1;ii<cc.count();ii++) {
     xx[ii-1]=(double)ii*xx[ii];
-  polyinter2.setCtrl(cc.count()-1,xx);
+    vv.setX(xx[ii-1]);
+    cc.append(vv);
+  }
+  
+  polyinter2.setCtrl(&cc);
   
   jj=polyinter2.rootsBrute(xx,minx,maxx);
   for (ii=0;ii<jj;ii++)
@@ -385,7 +390,7 @@ static int cnttstdata=19;
 /* ***** */
 void AppFrame::slotChart2Action() {
 
-  int i=0,j=0,idx=m_tabwidget->currentIndex();
+  int ii=0,jj=0,idx=m_tabwidget->currentIndex();
   if (idx<0 || idx>=ntabs || m_chart2[idx]) 
     return;
   m_chart2[idx]=new QtDiagramXY(m_tab[idx]);
@@ -404,15 +409,15 @@ void AppFrame::slotChart2Action() {
     
   simpleplot::GraphData2 *graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
-  aux::Vector3 v;
-  for (i=0;i<cnttstdata;i++) {
-    v.setXY((double)(i*360/(cnttstdata-1)),100.*sin((double)(i*360/(cnttstdata-1))*mk_rad));
-    if (i==cnttstdata/2-1) 
-      v.setY(v.y()-9.);
-    j=graphdata->setData(-1,&v);
+  num::Vector3 vv;
+  for (ii=0;ii<cnttstdata;ii++) {
+    vv.setXY((double)(ii*360/(cnttstdata-1)),100.*sin((double)(ii*360/(cnttstdata-1))*mk_rad));
+    if (ii==cnttstdata/2-1) 
+      vv.setY(vv.y()-9.);
+    jj=graphdata->setData(-1,&vv);
   }
 
-//aux::TVList<aux::Vector3> dbgdata;
+//aux::TVList<num::Vector3> dbgdata;
 //graphdata->data(&dbgdata);
 //for (i=0;i<dbgdata.count();i++) printf ("data-in %d  x=%f y=%f\n",i,dbgdata[i][0],dbgdata[i][1]);
 
@@ -425,7 +430,7 @@ void AppFrame::slotChart2Action() {
   graph->m_graphdata=graphdata;
   aux::TVList<aux::Asciistr> interpoloptL(1);
   interpoloptL.inSort("solve2nd");
-  graph->m_interpolation=new num::Spline(&interpoloptL);
+  graph->m_interpolation=new num::CubicSpline(&interpoloptL);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
@@ -445,9 +450,9 @@ void AppFrame::slotChart2Action() {
   
   graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
-  for (i=0;i<cnttstdata;i++) {
-    v.setXY((double)(i*360/(cnttstdata-1)),50.*cos((double)(i*360/(cnttstdata-1))*mk_rad));
-    j=graphdata->setData(-1,&v);
+  for (ii=0;ii<cnttstdata;ii++) {
+    vv.setXY((double)(ii*360/(cnttstdata-1)),50.*cos((double)(ii*360/(cnttstdata-1))*mk_rad));
+    jj=graphdata->setData(-1,&vv);
   }
   
 //graphdata->data(&dbgdata);
@@ -459,7 +464,7 @@ void AppFrame::slotChart2Action() {
   graphdata->setMark(0,mark);
   graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
-  graph->m_interpolation=new num::Spline(&interpoloptL);
+  graph->m_interpolation=new num::CubicSpline(&interpoloptL);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::blue],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
@@ -485,7 +490,7 @@ void AppFrame::slotT1Action() {
     return;
   aux::TPList<simpleplot::Graph> grL;
   simpleplot::Graph *graph=0;
-  aux::Vector3 v;
+  num::Vector3 v;
   int ngr=m_chart2[idx]->typegraphs("graphxy",&grL),modbounds=0,modb=0;
   for (i=0;i<ngr;i++) {
     graph=grL.at(i);
@@ -602,7 +607,7 @@ void AppFrame::slotChartInteractive() {
   
   simpleplot::GraphData2 *graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
-  aux::Vector3 v;
+  num::Vector3 v;
   v.setXY(3.,4.);
   graphdata->setData(-1,&v);
   v.setXY(7.,6.);
@@ -619,7 +624,7 @@ void AppFrame::slotChartInteractive() {
   graphdata->setMark(0,mark);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
-  graph->m_interpolation=new num::Spline;
+  graph->m_interpolation=new num::CubicSpline;
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::blue],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);

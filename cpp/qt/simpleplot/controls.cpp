@@ -203,7 +203,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   }
 
   shapes::Shape2 *samplemark=0;
-  aux::TVList<aux::Vector3> smL(600);
+  num::VertexList smL(600);
   QPointF smpL[120];
   QPixmap smpix(30,30);
   QPainter smp;
@@ -217,7 +217,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
       samplemark->eval(&smL);
       cnteval=smL.count(); 
       for (jj=0;jj<cnteval;jj++) 
-        smpL[jj]=QPointF(smL.at(jj)->x()+15.,smL.at(jj)->y()+15.);
+        smpL[jj]=QPointF(smL.get(jj).x()+15.,smL.get(jj).y()+15.);
       smp.begin(&smpix);
       smp.fillRect(0,0,30,30,m_combomarkstyle->palette().button());
       smp.setBrush(Qt::NoBrush);

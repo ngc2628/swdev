@@ -60,9 +60,35 @@ xtern int oswinexp mk_vertexswap(mk_vertex,mk_vertex);
 xtern double oswinexp mk_vertexlen(const mk_vertex);
 
 /*
+  in *vertex-cmp1 , in *vertex-cmp2 , in arr-idx , return -1,0,1
+*/
+xtern int oswinexp mk_vertexcmpidx(const void *,const void *,int);
+
+/*
   in *vertex-cmp1 , in *vertex-cmp2 , return -1,0,1
 */
 xtern int oswinexp mk_vertexcmpx(const void *,const void *);
+
+/*
+  in *vertex-cmp1 , in *vertex-cmp2 , return -1,0,1
+*/
+xtern int oswinexp mk_vertexcmpy(const void *,const void *);
+
+/*
+  in *vertex-cmp1 , in *vertex-cmp2 , return -1,0,1
+*/
+xtern int oswinexp mk_vertexcmpz(const void *,const void *);
+
+/*
+  in *vertex-cmp1 , in *vertex-cmp2 , return -1,0,1
+*/
+xtern int oswinexp mk_vertexcmpw(const void *,const void *);
+
+/*
+  cmp-function array
+*/
+typedef int (*mk_vertexcmpf)(const void *,const void *);
+xtern oswinexp mk_vertexcmpf mk_vertexcmp[4];
 
 /*
   inout vertex-mod , in vertex-addend  , return 0,1

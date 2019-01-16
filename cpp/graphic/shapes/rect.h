@@ -76,7 +76,7 @@ class oswinexp Rect : public Shape2 {
           
   public:
     Rect(RectSize sz=RectSize(.0,.0)) : Shape2("rect"),m_sz(sz) { }
-    Rect(aux::Vector3,RectSize sz=RectSize(.0,.0));
+    Rect(num::Vector3,RectSize sz=RectSize(.0,.0));
     Rect(const Rect &ass) : Shape2((const Shape2 &)ass),m_sz(ass.m_sz) { }
     virtual ~Rect() { }
     Rect &operator=(const Rect &ass) {
@@ -108,13 +108,13 @@ class oswinexp Rect : public Shape2 {
       m_points.clear();
       return m_rotate; 
     }
-    aux::Vector3 center() const {
-      return aux::Vector3(.0,.0,.0);
+    num::Vector3 center() const {
+      return num::Vector3(.0,.0,.0);
     }
     double circradius() const {
       return sqrt(m_sz.width()*m_sz.width()+m_sz.height()*m_sz.height());
     }
-    int eval(aux::TVList<aux::Vector3> *,int npoints=-1);
+    int eval(num::VertexList *,int npoints=-1);
     void toStringType(aux::Asciistr*) const;
 
 };

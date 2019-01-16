@@ -81,9 +81,9 @@ typedef int (*xxdrawLineF)(void *,xxDrawable *,xxGC *);
 extern xxdrawLineF oswinexp xxdrawLineExt;
 extern int oswinexp xxdrawLine(void *,xxDrawable *,xxGC *);
 
-typedef int (*xxdrawLinesF)(void *,xxDrawable *,xxGC *,aux::Vector3 *,int,int);
+typedef int (*xxdrawLinesF)(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
 extern xxdrawLinesF oswinexp xxdrawLinesExt;
-extern int oswinexp xxdrawLines(void *,xxDrawable *,xxGC *,aux::Vector3 *,int,int);
+extern int oswinexp xxdrawLines(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
 
 typedef int (*xxdrawRectF)(void *,xxDrawable *,xxGC *);
 extern xxdrawRectF oswinexp xxdrawRectExt;
@@ -93,9 +93,9 @@ typedef int (*xxfillRectF)(void *,xxDrawable *,xxGC *);
 extern xxfillRectF oswinexp xxfillRectExt;
 extern int oswinexp xxfillRect(void *,xxDrawable *,xxGC *);
 
-typedef int (*xxfillPolygonF)(void *,xxDrawable *,xxGC *,aux::Vector3 *,int,int);
+typedef int (*xxfillPolygonF)(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
 extern xxfillPolygonF oswinexp xxfillPolygonExt;
-extern int oswinexp xxfillPolygon(void *,xxDrawable *,xxGC *,aux::Vector3 *,int,int);
+extern int oswinexp xxfillPolygon(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
 
 typedef int (*xxdrawTextF)(void *,xxDrawable *,xxGC *,aux::Ucsstr *,int);
 extern xxdrawTextF oswinexp xxdrawTextExt;

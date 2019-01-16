@@ -59,7 +59,7 @@ int Axis::unassignGraph(const aux::TypeId &grid) {
   int idx=m_graphs.find(&grid);
   if (idx>=0) {
     m_graphs.remove(idx);
-    findAutoBounds(aux::typeX|aux::typeY,0,0);
+    findAutoBounds(num::typeX|num::typeY,0,0);
   }
   return m_graphs.count();
   
@@ -176,7 +176,7 @@ aux::TypeId Xaxis::assignGraph(Graph *graph) {
   TypeId assid=Axis::assignGraph(graph);
   if (!assid.busted()) {
     graph->m_axis[0]=this;
-    findAutoBounds(aux::typeX,0,0);
+    findAutoBounds(num::typeX,0,0);
   }
   return assid;
   
@@ -214,7 +214,7 @@ int Xaxis::resize(osix::xxRectSize size) {
     
 }
 
-int Xaxis::sc2sz(aux::Vector3 *vv) const {
+int Xaxis::sc2sz(num::Vector3 *vv) const {
 
   if (!vv)
     return -1;
@@ -229,7 +229,7 @@ int Xaxis::sc2sz(aux::Vector3 *vv) const {
 
 }
 
-int Xaxis::sz2sc(aux::Vector3 *vv) const {
+int Xaxis::sz2sc(num::Vector3 *vv) const {
 
   if (!vv)
     return -1;
@@ -257,7 +257,7 @@ aux::TypeId Yaxis::assignGraph(Graph *graph) {
   aux::TypeId assid=Axis::assignGraph(graph);
   if (!assid.busted()) {
     graph->m_axis[1]=this;
-    findAutoBounds(aux::typeY,0,0);
+    findAutoBounds(num::typeY,0,0);
   }
   return assid;
   
@@ -304,7 +304,7 @@ int Yaxis::resize(osix::xxRectSize size) {
     
 }
 
-int Yaxis::sc2sz(aux::Vector3 *vv) const {
+int Yaxis::sc2sz(num::Vector3 *vv) const {
 
   if (!vv)
     return -1;
@@ -319,7 +319,7 @@ int Yaxis::sc2sz(aux::Vector3 *vv) const {
 
 }
 
-int Yaxis::sz2sc(aux::Vector3 *vv) const {
+int Yaxis::sz2sc(num::Vector3 *vv) const {
 
   if (!vv)
     return -1;

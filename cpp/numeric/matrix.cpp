@@ -83,7 +83,7 @@ int  Matrix::setArr(int rows,int cols,double **m) {
 
   clearArr();
   if (rows<1 || cols<1)
-    return -1; // that does not look like a matrix --> out
+    return 1; // that does not look like a matrix --> out
   int ii=0,jj=0;
   m_rows=rows;
   m_cols=cols;
@@ -176,7 +176,7 @@ void Matrix::reset(bool zero) {
 int Matrix::alter(int row, int col, double value) {
 
   if (row<0 || col<0)
-    return -1;
+    return 1;
   int ii=0;
   // do we have to expand the data structure ? ...
   bool addrows=(row>=m_rows || !m_m),addcols=(col>=m_cols || !m_m);
@@ -189,7 +189,7 @@ int Matrix::alter(int row, int col, double value) {
     if (!setArr(addrows ? row+1 : rows,addcols ? col+1 : cols,0)) {
       if (cpm)
         delete cpm;
-      return -1;
+      return 1;
     }
     if (cpm) {
       for (ii=0;ii<rows;ii++)
@@ -223,7 +223,7 @@ void Matrix::transpose() {
 int Matrix::mult(int rows,int cols,double **m) {
 
   if (!m_m || m_cols!=rows)
-    return -1;
+    return 1;
   int ii=0,jj=0,kk=0,myrows=m_rows;
   double **res=new double*[(size_t)m_rows];
   for (ii=0;ii<m_rows;ii++) {
@@ -248,7 +248,7 @@ int Matrix::mult(int rows,int cols,double **m) {
 int Matrix::mult(Matrix *matrix) {
 
   if (!matrix || !m_m || m_cols!=matrix->m_rows)
-    return -1;
+    return 1;
   int ii=0,jj=0,kk=0,myrows=m_rows;
   double **res=new double*[(size_t)m_rows];
   for (ii=0;ii<m_rows;ii++) {
@@ -399,7 +399,7 @@ int SquareMatrix::setCtrl(int rows,int cols,double **m) {
 
   if (rows==cols)
     return setCtrl(rows,m);
-  return -1;
+  return 1;
 
 }
 
@@ -422,7 +422,7 @@ double SquareMatrix::determinant() {
 int SquareMatrix::invert() {
 
   if (!m_m || m_rows<=1)
-    return -1;
+    return 1;
   int ii=0,jj=0;
   double *identity=new double[(size_t)m_cols];
   double *inv=new double[(size_t)m_cols];
@@ -433,7 +433,7 @@ int SquareMatrix::invert() {
     if (backsubstitution(identity,inv)!=0) {
       delete [] identity;
       delete [] inv;
-      return -1;
+      return 1;
     }
     // set the new elements ...
     for (jj=0;jj<m_rows;jj++)
@@ -450,7 +450,7 @@ int SquareMatrix::invert() {
 int SquareMatrix::decomposition() {
 
   if (!m_m || m_rows<=1)
-    return -1;
+    return 1;
   int ii=0,jj=0,kk=0,imax=0,num=m_rows;
   double maxcoeff=.0,tmp=.0;
   invalidate();
@@ -470,7 +470,7 @@ int SquareMatrix::decomposition() {
     if (mk_deq(maxcoeff,.0)) {
       invalidate();
       delete [] rowscale;
-      return -1;
+      return 1;
     }
     rowscale[ii]=maxcoeff;
   }
@@ -535,26 +535,26 @@ int SquareMatrix::decomposition() {
 
 }
 
-int SquareMatrix::backsubstitution(double *r,double *x) {
+int SquareMatrix::backsubstitution(double *rr,double *xx) {
 
-  if (!r || !x)
-    return -1;
+  if (!rr || !xx)
+    return 1;
   if (!m_lum || !m_rowperm) {
     if (decomposition()!=0)
-      return -1;
+      return 1;
   }
   int ii=0,jj=0,num=m_rows;
   // first adapt the row permutation for the right hand side vector r
   // also copy right hand side input (do not destroy)
   for (ii=0;ii<num;ii++)
-    x[ii]=r[m_rowperm[ii]];
+    xx[ii]=rr[m_rowperm[ii]];
   // do the forward substitution by solving for the lower triangular matrix (alpha)
   // e.g. for (rows=cols=3) lum(lowerpart)={lum[1,1]=1,lum[1,2]=0,lum[1,3]=0,
   // lum[2,1],lum[2,2]=1,lum[2,3]=0,lum[3,1],lum[3,2],lum[3,3]=1} as determined
   // in --> ludecomposition
   for (ii=0;ii<num;ii++) {
     for (jj=0;jj<ii;jj++)
-      x[ii]-=m_lum[ii][jj]*x[jj];
+      xx[ii]-=m_lum[ii][jj]*xx[jj];
   }
   // now do the backsubstitution by solving for the upper triangular matrix (beta)
   // e.g. for (rows=cols=3) lum(upperpart)={lum[1,1],lum[1,2],lum[1,3],
@@ -563,24 +563,21 @@ int SquareMatrix::backsubstitution(double *r,double *x) {
   // (since pivot is not ==1 here we have to do the dividing)
   double tmp=.0;
   for (ii=(num-1);ii>-1;ii--) {
-    tmp=x[ii];
+    tmp=xx[ii];
     for (jj=(ii+1);jj<num;jj++)
-      tmp-=m_lum[ii][jj]*x[jj];
-    x[ii]=tmp/m_lum[ii][ii];
+      tmp-=m_lum[ii][jj]*xx[jj];
+    xx[ii]=tmp/m_lum[ii][ii];
   }
   return 0;
 
 }
 
-int SquareMatrix::solveFor(int num,double *r,double *x) {
+int SquareMatrix::solveFor(int num,double *rr,double *xx) {
 
-  if (!x)
-    return -1;
-  int ii=0;
-  if (!r || num!=m_rows || backsubstitution(r,x)!=0) {
-    for (ii=0;ii<num;ii++)
-      x[ii]=.0;
-    return -1;
+  if (!xx || !rr || num!=m_rows || backsubstitution(rr,xx)!=0) {
+    if (xx)
+      memset(&xx[0],0,num*sizeof(double));
+    return 1;
   }
   return 0;
 
@@ -622,7 +619,7 @@ bool TransformMatrix::operator<(const TransformMatrix &cmp) const {
 int TransformMatrix::translate(double x,double y,double z) {
 
   if (!m_m)
-    return -1;
+    return 1;
   TransformMatrix tm;
   tm.m_m[3][0]=x;
   tm.m_m[3][1]=y;
@@ -634,7 +631,7 @@ int TransformMatrix::translate(double x,double y,double z) {
 int TransformMatrix::scale(double x,double y,double z) {
 
   if (!m_m)
-    return -1;
+    return 1;
   TransformMatrix tm;
   tm.m_m[0][0]=x;
   tm.m_m[1][1]=y;
@@ -646,7 +643,7 @@ int TransformMatrix::scale(double x,double y,double z) {
 int TransformMatrix::rotateZ(double degrees) {
 
   if (!m_m)
-    return -1;
+    return 1;
   double radang=degrees*mk_rad;
   TransformMatrix tm;
   tm.m_m[0][0]=cos(radang);
@@ -660,7 +657,7 @@ int TransformMatrix::rotateZ(double degrees) {
 int TransformMatrix::rotateX(double degrees) {
 
   if (!m_m)
-    return -1;
+    return 1;
   double radang=degrees*mk_rad;
   TransformMatrix tm;
   tm.m_m[1][1]=cos(radang);
@@ -674,7 +671,7 @@ int TransformMatrix::rotateX(double degrees) {
 int TransformMatrix::rotateY(double degrees) {
 
   if (!m_m)
-    return -1;
+    return 1;
   double radang=degrees*mk_rad;
   TransformMatrix tm;
   tm.m_m[0][0]=cos(radang);
@@ -688,7 +685,7 @@ int TransformMatrix::rotateY(double degrees) {
 int TransformMatrix::shearXY(double x,double y) {
 
   if (!m_m)
-    return -1;
+    return 1;
   TransformMatrix tm;
   tm.m_m[1][0]=y;
   tm.m_m[0][1]=x;
@@ -699,7 +696,7 @@ int TransformMatrix::shearXY(double x,double y) {
 int TransformMatrix::shearXZ(double x,double z) {
 
   if (!m_m)
-    return -1;
+    return 1;
   TransformMatrix tm;
   tm.m_m[0][2]=x;
   tm.m_m[2][0]=z;
@@ -710,7 +707,7 @@ int TransformMatrix::shearXZ(double x,double z) {
 int TransformMatrix::shearYZ(double y,double z) {
 
   if (!m_m)
-    return -1;
+    return 1;
   TransformMatrix tm;
   tm.m_m[1][2]=y;
   tm.m_m[2][1]=z;
@@ -721,17 +718,22 @@ int TransformMatrix::shearYZ(double y,double z) {
 int TransformMatrix::transform(Vertex *vertex) {
 
   if (!m_m || !vertex)
-    return -1;
-  Vertex v(mk_isbusted(vertex->x())!=0 ? .0 : vertex->x(),
-           mk_isbusted(vertex->y())!=0 ? .0 : vertex->y(),
-           mk_isbusted(vertex->z())!=0 ? .0 : vertex->z(),
-           mk_isbusted(vertex->w())!=0 ? 1. : vertex->w());
-  vertex->set(.0,.0,.0,.0);
-  int i=0,j=0;
+    return 1;
+  Vertex vv(vertex->data());  
+  if (mk_isbusted(vv.x())!=0)
+    vv.setX(.0);
+  if (mk_isbusted(vv.y())!=0)
+    vv.setY(.0);
+  if (mk_isbusted(vv.z())!=0)
+    vv.setZ(.0);
+  if (mk_isbusted(vv.w())!=0)
+    vv.setW(1.);
+  vertex->setXYZ(.0,.0,.0);
+  int ii=0,jj=0;
   double *vdata=vertex->data();
-  for (i=0;i<4;i++) {
-    for (j=0;j<4;j++)
-      vdata[i]+=v[j]*m_m[j][i];
+  for (ii=0;ii<4;ii++) {
+    for (jj=0;jj<4;jj++)
+      vdata[ii]+=vv[jj]*m_m[jj][ii];
   }
   return 0;
 

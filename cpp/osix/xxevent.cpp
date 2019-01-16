@@ -9,7 +9,7 @@ void xxEvent::clear() {
       
   m_type=m_mods=m_consumer=m_xxk=m_buttons=0;
 	m_xxsym=0;
-  m_pos=m_globalpos=m_lastpos=m_downpos=aux::Vector3(mk_dnan,mk_dnan,mk_dnan);
+  m_pos=m_globalpos=m_lastpos=m_downpos=num::Vector3(mk_dnan,mk_dnan,mk_dnan);
   m_r=xxRect();
   m_info.clear();
   

@@ -6,8 +6,8 @@ PRJ           = auxx
 DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
 DEFINES       =
-HEADER        = auxx.h vertex.h
-SOURCES       = auxx.cpp vertex.cpp
+HEADER        = auxx.h 
+SOURCES       = auxx.cpp 
 LIBS          = -lmkbase -lz -lm 
 SOLN					= -shared
 

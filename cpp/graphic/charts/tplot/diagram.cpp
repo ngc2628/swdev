@@ -144,7 +144,7 @@ int DiagramXY::setSelection(DiagramSelection sel,bool add) {
 
 }
 
-aux::TypeId DiagramXY::selectGraph(aux::Vector3 p,bool set,bool add) {
+aux::TypeId DiagramXY::selectGraph(num::Vector3 p,bool set,bool add) {
 
   DiagramSelection sel;
   if (p.busted(3)) {

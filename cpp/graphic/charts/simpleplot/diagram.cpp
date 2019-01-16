@@ -141,7 +141,7 @@ int Diagram::setSelection(DiagramSelection sel,int) {
 
 }
 
-aux::TypeId Diagram::selectGraph(aux::Vector3,int,int) {
+aux::TypeId Diagram::selectGraph(num::Vector3,int,int) {
 
   return aux::TypeId();
     
@@ -270,10 +270,10 @@ int DiagramXY::setSelection(DiagramSelection sel,int add) {
 
 }
 
-aux::TypeId DiagramXY::selectGraph(aux::Vector3 pp,int set,int add) {
+aux::TypeId DiagramXY::selectGraph(num::Vector3 pp,int set,int add) {
 
   DiagramSelection sel;
-  if (pp.busted(aux::typeXY)) {
+  if (pp.busted(num::typeXY)) {
     if (set>0)
       setSelection(sel,add);
     return aux::TypeId();
@@ -393,7 +393,7 @@ int DiagramXY::drawAxes() {
   Tic *tic=0;
   aux::TVList<Tic> ticL;
   int ntics=0,ticsz=0;
-  aux::Vector3 v0,v1;
+  num::Vector3 v0,v1;
   double basepos=.0,marklen=.0;
   for (ii=0;ii<nxax;ii++) {
     ax=xaxL[ii];
@@ -515,12 +515,12 @@ int DiagramXY::drawGraphs() {
 
   aux::Asciistr str;
   Graph *graph=0;
-  aux::TVList<aux::TVList<aux::Vector3> > *iL=0;
-  aux::TVList<aux::Vector3> *vL=0;
-  aux::TVList<aux::Vector3> mL;
+  aux::TVList<num::VertexList> *iL=0;
+  num::VertexList *vL=0;
+  num::VertexList mL;
   shapes::Shape2 *mshape=0;
-  aux::Vector3 pL[maxdatacnt];
-  memset(&pL[0],0,maxdatacnt*sizeof(aux::Vector3));
+  num::Vector3 pL[maxdatacnt];
+  memset(&pL[0],0,maxdatacnt*sizeof(num::Vector3));
   for (ii=0;ii<ngr;ii++) {
     graph=grL[ii];
     gc.m_fg=graph->m_linestyle;
@@ -530,11 +530,11 @@ int DiagramXY::drawGraphs() {
       cntp=vL->count();
       cantpaint=(cntp==0 ? 1 : 0);
       for (kk=0;kk<cntp;kk++) {
-        if (vL->at(kk)->busted(3)>0) {
+        if (vL->get(kk).busted(3)>0) {
           cantpaint=1;
           break;
         }
-        pL[kk].setXY(vL->at(kk)->x(),rsrc.size().height()-vL->at(kk)->y()-1.);
+        pL[kk].setXY(vL->get(kk).x(),rsrc.size().height()-vL->get(kk).y()-1.);
       }
       if (cantpaint==0) {
         osix::xxdrawLines(disp,&m_pixplot,&gc,pL,kk,0);
@@ -549,7 +549,7 @@ int DiagramXY::drawGraphs() {
       cntp=mL.count();
       if (cntp>0) {
         for (kk=0;kk<cntp;kk++)
-          pL[kk].setXY(mL.at(kk)->x(),rsrc.size().height()-mL.at(kk)->y()-1.);
+          pL[kk].setXY(mL.get(kk).x(),rsrc.size().height()-mL.get(kk).y()-1.);
         gc.m_fg=mshape->m_styleO;
         gc.m_bg=mshape->m_styleF;
         osix::xxfillPolygon(disp,&m_pixplot,&gc,pL,cntp,0);
@@ -651,7 +651,7 @@ int DiagramXY::mousePressed (osix::xxEvent *xxev) {
   if (inplotarea) {
     if ((m_mouseMode&mouseModify)>0 && (xxev->m_buttons&osix::xxm_leftButton)>0) {
       if (xxev->m_mods==0) {
-        aux::TypeId sel=selectGraph(aux::Vector3(xxev->m_pos.x()-m_pixplot.m_r.left(),
+        aux::TypeId sel=selectGraph(num::Vector3(xxev->m_pos.x()-m_pixplot.m_r.left(),
                                     m_pixplot.m_r.bottom()-xxev->m_pos.y()));
       }
     }
@@ -688,7 +688,7 @@ int DiagramXY::mouseMoved (osix::xxEvent *xxev) {
           return 0;
         Graph *gg=graph(m_selected.at(0)->m_sel);
         if (gg) {
-          aux::Vector3 vv(xxev->m_pos.x()-m_pixplot.m_r.left(),
+          num::Vector3 vv(xxev->m_pos.x()-m_pixplot.m_r.left(),
                           m_pixplot.m_r.bottom()-xxev->m_pos.y());
           gg->sz2sc(&vv);
 //printf ("v=%f,%f\n",vv.x(),vv.y());
@@ -724,7 +724,7 @@ int DiagramXY::mouseReleased (osix::xxEvent *xxev) {
     xxev->m_consumer|=osix::xx_processed;
     aux::TPList<Axis> xaxL,yaxL;
     Axis *ax=0;
-    aux::Vector3 vv(xxev->m_pos.x()-m_pixplot.m_r.left(),
+    num::Vector3 vv(xxev->m_pos.x()-m_pixplot.m_r.left(),
                     m_pixplot.m_r.bottom()-xxev->m_pos.y()),
                  vdown(xxev->m_downpos.x()-m_pixplot.m_r.left(),
                        m_pixplot.m_r.bottom()-xxev->m_downpos.y()),
@@ -851,7 +851,7 @@ int DiagramXY::drawCrosshair(osix::xxEvent *xxev) {
   if ((m_mouseMode&mouseCrosshair)==0) 
     return 0;
   
-  aux::Vector3 pv0(xxev->m_pos.x(),m_pixplot.m_r.top()+1.),
+  num::Vector3 pv0(xxev->m_pos.x(),m_pixplot.m_r.top()+1.),
                pv1(xxev->m_pos.x(),m_pixplot.m_r.bottom()-1.),
                ph0(m_pixplot.m_r.left()+1.,xxev->m_pos.y()),
                ph1(m_pixplot.m_r.right()-1.,xxev->m_pos.y());

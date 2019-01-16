@@ -91,8 +91,8 @@ int fromQString(const QString *qstr,aux::Ucsstr *str) {
 
 int fromQLineF(const QLineF *ql,osix::xxLine *ll) {
 
-  ll->set(aux::Vector3(ql ? ql->p1().x() : .0,ql ? ql->p1().y() : .0),
-          aux::Vector3(ql ? ql->p2().x() : .0,ql ? ql->p2().y() :.0));
+  ll->set(num::Vector3(ql ? ql->p1().x() : .0,ql ? ql->p1().y() : .0),
+          num::Vector3(ql ? ql->p2().x() : .0,ql ? ql->p2().y() :.0));
   return 0;
 
 }

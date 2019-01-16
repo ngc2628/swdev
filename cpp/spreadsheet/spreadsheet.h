@@ -104,7 +104,7 @@ class oswinexp Spreadsheet {
     Spreadsheet(const char *name=0);
     virtual ~Spreadsheet();
     virtual SpreadsheetData *setSpreadsheetData(SpreadsheetData *,bool remove=true);
-    virtual Coords cellAt(aux::Vector3,int *dir=0) const;
+    virtual Coords cellAt(num::Vector3,int *dir=0) const;
     virtual osix::xxRect cellRect(Coords,Coords *vpos=0) const;
     virtual Coords setPos(Coords pos) {
       return setPos(pos,1,0,false);
@@ -174,7 +174,7 @@ class oswinexp Spreadsheet {
     }
     virtual int copyCells(aux::Ucsstr *,int);
     virtual int pasteCells(aux::Ucsstr *);
-    virtual int scrollAction(int,aux::Vector3);
+    virtual int scrollAction(int,num::Vector3);
     virtual int adjustSliders(int,int,int,int,int,int) {
       return 0;
     }

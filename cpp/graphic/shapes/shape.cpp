@@ -39,9 +39,9 @@ double Shape2::rotate(double rr) {
   
 }
 	
-aux::Vector3 Shape2::translate(aux::Vector3 tt) { 
+num::Vector3 Shape2::translate(num::Vector3 tt) { 
 
-  if (tt.busted(aux::typeX|aux::typeY)==0)
+  if (tt.busted(num::typeX|num::typeY)==0)
     m_translate=tt;
   m_points.clear();
   return m_translate; 
@@ -118,7 +118,7 @@ void Shape2::toString(aux::Asciistr *buf) const {
   
 }
 
-int NoShape2::eval(aux::TVList<aux::Vector3> *pointL,int) {
+int NoShape2::eval(num::VertexList *pointL,int) {
       
   m_points.resize(0);
   if (pointL)

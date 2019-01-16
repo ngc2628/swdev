@@ -7,8 +7,8 @@ namespace qtutil {
 
 int translateQmouse(QMouseEvent *qm,osix::xxEvent *xm) {
 
-  xm->m_pos=aux::Vector3((double)qm->pos().x(),(double)qm->pos().y());
-  xm->m_globalpos=aux::Vector3((double)qm->globalX(),(double)qm->globalY());
+  xm->m_pos=num::Vector3((double)qm->pos().x(),(double)qm->pos().y());
+  xm->m_globalpos=num::Vector3((double)qm->globalX(),(double)qm->globalY());
   
   if (((int)qm->buttons()&(int)Qt::LeftButton)>0)
     xm->m_buttons|=osix::xxm_leftButton;

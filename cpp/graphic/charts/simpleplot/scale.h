@@ -3,7 +3,7 @@
 #define _scale_H_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 
 namespace simpleplot {
 

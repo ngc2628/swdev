@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 #include <graphic/shapes/sshape.h>
 #include <graphic/charts/simpleplot/axis.h>
 #include <graphic/charts/simpleplot/graph.h>
@@ -17,8 +17,8 @@ class DiagramSelection {
   public:
     aux::TypeId m_sel;
     int m_idx;
-    aux::Vector3 m_val;
-    DiagramSelection(aux::TypeId sel=aux::TypeId(),int idx=-1,aux::Vector3 val=aux::Vector3()) :
+    num::Vector3 m_val;
+    DiagramSelection(aux::TypeId sel=aux::TypeId(),int idx=-1,num::Vector3 val=num::Vector3()) :
       m_sel(sel),m_idx(idx),m_val(val) { }
     DiagramSelection(const DiagramSelection &ass) : m_sel(ass.m_sel),m_idx(ass.m_idx),m_val(ass.m_val) { }
     ~DiagramSelection() { }
@@ -27,7 +27,7 @@ class DiagramSelection {
     }
     bool operator==(const DiagramSelection &cmp) const { return (m_sel==cmp.m_sel && m_idx==cmp.m_idx); }
     bool operator<(const DiagramSelection &cmp) const { return (m_sel<cmp.m_sel || (m_sel==cmp.m_sel && m_idx<cmp.m_idx)); }
-    void set(aux::TypeId sel=aux::TypeId(),int idx=-1,aux::Vector3 val=aux::Vector3()) {
+    void set(aux::TypeId sel=aux::TypeId(),int idx=-1,num::Vector3 val=num::Vector3()) {
       m_sel=sel; m_idx=idx; m_val=val; 
     }
 
@@ -56,7 +56,7 @@ class Diagram : public aux::TypeId {
     virtual int setMouseMode(int,bool combine=false);
     int selected(aux::TVList<DiagramSelection> *) const; 
     virtual int setSelection(DiagramSelection,bool add=false) { return -1; } 
-    virtual aux::TypeId selectGraph(aux::Vector3,bool set=true,bool add=false) { return aux::TypeId(); } // scaled point
+    virtual aux::TypeId selectGraph(num::Vector3,bool set=true,bool add=false) { return aux::TypeId(); } // scaled point
         
   protected:
     Diagram(const Diagram &ass) : aux::TypeId((const aux::TypeId&)ass) { }
@@ -76,7 +76,7 @@ class DiagramXY : public Diagram {
     virtual aux::TypeId setGraph(Graph *graph) { return Diagram::setGraph(graph); }
     virtual aux::TypeId setAxis(Axis *axis) { return Diagram::setAxis(axis); }
     int setSelection(DiagramSelection,bool add=false);
-    virtual aux::TypeId selectGraph(aux::Vector3,bool set=true,bool add=false); // scaled point
+    virtual aux::TypeId selectGraph(num::Vector3,bool set=true,bool add=false); // scaled point
     virtual shapes::RectSize setup(shapes::RectSize,shapes::RectSize *excess=0);
     
   protected:

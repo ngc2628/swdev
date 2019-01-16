@@ -53,7 +53,7 @@ class NEllipse {
 
 static TPList<NEllipse> elL;
 
-int Ellipse::eval(TVList<Vector3> *pointL,int npoints) {
+int Ellipse::eval(num::VertexList *pointL,int npoints) {
 
   if (elL.size()<=0)
     elL.resize(127);
@@ -74,8 +74,7 @@ int Ellipse::eval(TVList<Vector3> *pointL,int npoints) {
     elL.inSort(el);
   }
   m_points.clear();
-  if (m_points.size()<npoints)
-    m_points.resize(npoints);
+  m_points.resize(npoints);
   TransformMatrix mm;
   mm.rotateZ(m_rotate);
   mm.translate(m_translate[0],m_translate[1]);

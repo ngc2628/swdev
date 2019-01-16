@@ -52,8 +52,8 @@ class Axis : public aux::TypeId {
     virtual double needExcess(shapes::RectSize) { return 0.; }
     virtual double needSize(shapes::RectSize) { return 0.; }
     virtual int resize(shapes::RectSize) { return 0; }   
-    virtual void sc2sz(aux::Vector3 *) const { }
-    virtual void sz2sc(aux::Vector3 *) const { }
+    virtual void sc2sz(num::Vector3 *) const { }
+    virtual void sz2sc(num::Vector3 *) const { }
              
   protected:
     Axis(const Axis &ass) : aux::TypeId((const aux::TypeId&)ass),
@@ -82,8 +82,8 @@ class Xaxis : public Axis {
     double needSize(shapes::RectSize);
     int resize(shapes::RectSize); 
     double len() const { return m_size.width(); }
-    void sc2sz(aux::Vector3 *) const;
-    void sz2sc(aux::Vector3 *) const;
+    void sc2sz(num::Vector3 *) const;
+    void sz2sc(num::Vector3 *) const;
         
   protected:
     Xaxis(const Xaxis &ass) : Axis((const Axis&)ass) { }
@@ -106,8 +106,8 @@ class Yaxis : public Axis {
     double needSize(shapes::RectSize);
     int resize(shapes::RectSize);
     double len() const { return m_size.height(); }
-    void sc2sz(aux::Vector3 *) const;
-    void sz2sc(aux::Vector3 *) const;
+    void sc2sz(num::Vector3 *) const;
+    void sz2sc(num::Vector3 *) const;
         
   protected:
     Yaxis(const Yaxis &ass) : Axis((const Axis&)ass) { }

@@ -3,7 +3,8 @@
 #define interpolation2d_h
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
+#include <numeric/matrix.h>
 
 // types :
 // none=0
@@ -25,24 +26,21 @@ namespace num {
 
 const int numinterpolationtypes=7;
 const char *const interpolationtypes[numinterpolationtypes]=
-{"none","const","linear","spline","polynomial","bezier","bicubic"};
+{"none","const","linear","cubicspline","polynomial","bezier","bicubic"};
 const int numinerpolationoptions=18;
 const char *const interpolationoptions[numinerpolationoptions]=
 {"notappl","steps","fwd","bwd","lin1","lin2","solve1st","solve2nd","parametric",
  "notaknot","nat","periodic","der1st","der2nd","monotonic","ctrl","eq","regr"};
 
 extern int numsmoothIntermediates;
-extern void oswinexp ellipse(int n,double *xx,double *yy);
 
 class oswinexp Interpolation {
 
   protected:
-    aux::Asciistr m_type;
-    double *m_x;
-    double *m_y;
-    double *m_z;
-    int m_nctrl;
     int m_ready;
+    VertexList m_ctrlL;
+    VertexList m_coeffL;
+    aux::Asciistr m_type;
 	  aux::TVList<aux::Asciistr> m_options;
 
   public:
@@ -50,16 +48,13 @@ class oswinexp Interpolation {
     void type(aux::Asciistr *) const;
     virtual int invalidate();
     virtual int clearCtrl();
-    virtual int setCtrl(int nctrl=0,double *xx=0,double *yy=0,double *zz=0);
-    virtual int setCtrl(aux::TVList<aux::Vector3> *);
+    virtual int setCtrl(VertexList *);
     int nctrl() const;
     virtual int setup();
-    virtual int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-												 double start=mk_dnan,double end=mk_dnan);
-    virtual int interpol(int,aux::TVList<aux::Vector3> *,
-												 double start=mk_dnan,double end=mk_dnan);
-    virtual double interp(double,double yy=mk_dnan) const;
-    virtual double extrap(double,double yy=mk_dnan) const;
+    virtual int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    virtual int interp(Vertex *) const;
+    virtual int extrap(Vertex *) const;
+    virtual int coeff(double,VertexList *);
     int options(aux::TVList<aux::Asciistr> *optL=0) const;
     int setOptions(aux::TVList<aux::Asciistr> *optL=0,int clr=0);
 
@@ -71,8 +66,7 @@ class oswinexp Interpolation {
       return *this;
     }
     void clearArr();
-    int setArr(int,double *,double *,double *);
-    int setArr(aux::TVList<aux::Vector3> *);
+    int setArr(VertexList *);
 
 };
 
@@ -82,13 +76,10 @@ extern int oswinexp numInterpolIntermediates(Interpolation *);
 class oswinexp InterpolationConst : public Interpolation {
 
   public:
-    InterpolationConst(int nctrl=0,double *xx=0,double *yy=0);
+    InterpolationConst(VertexList *ctrlL=0);
     virtual ~InterpolationConst();
-    int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=mk_dnan,double end=mk_dnan);
-    int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double,double yy=mk_dnan) const;
+    int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    int interp(Vertex *) const;
 
   protected:
     InterpolationConst(const InterpolationConst &) : Interpolation("none") {
@@ -102,13 +93,10 @@ class oswinexp InterpolationConst : public Interpolation {
 class oswinexp InterpolationLinear : public Interpolation {
 
   public:
-    InterpolationLinear(int nctrl=0,double *xx=0,double *yy=0);
+    InterpolationLinear(VertexList *ctrlL=0);
     virtual ~InterpolationLinear();
-    int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=mk_dnan,double end=mk_dnan);
-    int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double,double yy=mk_dnan) const;
+    int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    int interp(Vertex *) const;
 
   protected:
     InterpolationLinear(const InterpolationLinear &) : Interpolation("none") {
@@ -119,31 +107,27 @@ class oswinexp InterpolationLinear : public Interpolation {
 
 };
 
-class oswinexp Spline : public Interpolation {
+class oswinexp CubicSpline : public Interpolation {
 
   protected:
     double *m_der;
 
   public:
-    Spline(aux::TVList<aux::Asciistr> *optL=0);
-    virtual ~Spline();
+    CubicSpline(aux::TVList<aux::Asciistr> *optL=0);
+    virtual ~CubicSpline();
     int setup();
     int invalidate();
-    int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=mk_dnan,double end=mk_dnan);
-    int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double,double yy=mk_dnan) const;
-    double extrap(double,double yy=mk_dnan) const;
-
+    int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    int interp(Vertex *) const;
+    int extrap(Vertex *) const;
     int makeSpline(double *der=0);
     int setSpline(double *der=0);
-    int coeff(double,aux::TVList<double> *);
+    int coeff(double,VertexList *);
 
   protected:
-    Spline(const Spline &) : Interpolation("none") {
+    CubicSpline(const CubicSpline &) : Interpolation("none") {
     }
-    Spline &operator=(const Spline &) {
+    CubicSpline &operator=(const CubicSpline &) {
       return *this;
     }
     int makeSpline1st();
@@ -151,30 +135,26 @@ class oswinexp Spline : public Interpolation {
 
 };
 
-class oswinexp SplineP : public Interpolation {
+class oswinexp CubicSplineP : public Interpolation {
 
   protected:
-    Spline *m_pXspl;
-    Spline *m_pYspl;
+    CubicSpline *m_xspline;
+    CubicSpline *m_yspline;
 
   public:
-    SplineP(int nctrl=0,double *xx=0,double *yy=0);
-    virtual ~SplineP();
+    CubicSplineP(VertexList *ctrlL=0);
+    virtual ~CubicSplineP();
     int setup();
     int invalidate();
-    int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=mk_dnan,double end=mk_dnan);
-    int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double,double yy=mk_dnan) const;
-
+    int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    int interp(Vertex *) const;
     int makeSpline(double *der1=0,double *der2=0);
     int setSpline(double *der1=0,double *der2=0);
 
   protected:
-    SplineP(const SplineP &) : Interpolation("none") {
+    CubicSplineP(const CubicSplineP &) : Interpolation("none") {
     }
-    SplineP &operator=(const SplineP &) {
+    CubicSplineP &operator=(const CubicSplineP &) {
       return *this;
     }
 
@@ -185,20 +165,15 @@ class oswinexp Polynomial : public Interpolation {
   protected:
     double **m_c;
     double **m_d;
-		aux::TVList<double> m_coeff;
 
   public:
     Polynomial(aux::TVList<aux::Asciistr> *optL=0);
     virtual ~Polynomial();
     int invalidate();
-		int setCtrl(int nctrl=0,double *xx=0,double *yy=0,double *zz=0);
-    int setCtrl(aux::TVList<aux::Vector3> *);
-    int interpol(int,double *xint=0,double *yint=0,double *zint=0,
-								 double start=mk_dnan,double end=mk_dnan);
-    int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double,double yy=mk_dnan) const;
-    int coeff(double,aux::TVList<double> *);
+		int setCtrl(VertexList *);
+    int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    int interp(Vertex *) const;
+    int coeff(double,VertexList *);
     int rootsBrute(double *,double,double,int *effdeg=0);
 
   protected:
@@ -215,14 +190,11 @@ class oswinexp Polynomial : public Interpolation {
 class oswinexp Bezier : public Interpolation {
 
   public:
-    Bezier(int nctrl=0,double *xx=0,double *yy=0);
+    Bezier(VertexList *ctrlL=0);
     virtual ~Bezier ();
-    int interpol (int,double *xint=0, double *yint=0,double *zint=0,
-									double start=mk_dnan,double end=mk_dnan);
-    int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double dd,double yy=mk_dnan) const {
-      return dd;
+    int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    int interp(Vertex *) const {
+      return 0;
     }
 
   protected:
@@ -234,29 +206,36 @@ class oswinexp Bezier : public Interpolation {
 
 };
 
-class oswinexp BicubicPatch : public Interpolation {
-
-  protected:
-    double *m_derx;
-    double *m_dery;
-    double *m_derxy;
-    double **m_cij;
+class BicubicPatch {
 
   public:
-    BicubicPatch (double *xx=0,double *yy=0,double *zz=0);
-    virtual ~BicubicPatch ();
-    int setup();
-    int invalidate();
-    int interpol(int,double *xint=0, double *yint=0,double *zint=0,
-									double start=mk_dnan,double end=mk_dnan);
-    int interpol(int,aux::TVList<aux::Vector3> *,
-								 double start=mk_dnan,double end=mk_dnan);
-    double interp(double,double) const;
+    mk_list m_der;
+    SquareMatrix m_c;
+    BicubicPatch ();
+    ~BicubicPatch ();
 
   protected:
-    BicubicPatch(const BicubicPatch &) : Interpolation("none") {
+    BicubicPatch(const BicubicPatch &) {
     }
     BicubicPatch &operator=(const BicubicPatch &) {
+      return *this;
+    }
+
+}; 
+
+class oswinexp Bicubic : public Interpolation {
+
+  public:
+    Bicubic ();
+    virtual ~Bicubic ();
+    int setup();
+    int interpol(int,VertexList *,double start=mk_dnan,double end=mk_dnan);
+    int interp(Vertex *) const;
+
+  protected:
+    Bicubic(const Bicubic &) : Interpolation("none") {
+    }
+    Bicubic &operator=(const Bicubic &) {
       return *this;
     }
 

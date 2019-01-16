@@ -42,7 +42,7 @@ int xxdrawLine(void *disp,xxDrawable *dev,xxGC *gc) {
 
 }
 
-int xxdrawLines(void *disp,xxDrawable *dev,xxGC *gc,aux::Vector3 *pL,int pcnt,int opt) {
+int xxdrawLines(void *disp,xxDrawable *dev,xxGC *gc,num::Vector3 *pL,int pcnt,int opt) {
 
   if (xxdrawLinesExt)
     return xxdrawLinesExt(disp,dev,gc,pL,pcnt,opt);
@@ -69,7 +69,7 @@ int xxfillRect(void *disp,xxDrawable *dev,xxGC *gc) {
 
 }
 
-int xxfillPolygon(void *disp,xxDrawable *dev,xxGC *gc,aux::Vector3 *pL,int pcnt,int opt) {
+int xxfillPolygon(void *disp,xxDrawable *dev,xxGC *gc,num::Vector3 *pL,int pcnt,int opt) {
 
   if (xxfillPolygonExt)
     return xxfillPolygonExt(disp,dev,gc,pL,pcnt,opt);

@@ -1141,7 +1141,7 @@ template <class X> class TPList {
             m_sorted=0;
         }
       }
-      memmove(&m_list[idx+1],&m_list[idx],(m_cnt-idx)*sizeof(X));
+      memmove(&m_list[idx+1],&m_list[idx],(m_cnt-idx)*sizeof(X*));
       m_list[idx]=x;
       m_cnt++;
       return idx;

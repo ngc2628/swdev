@@ -2,9 +2,10 @@
 #ifndef _vertex_H_
 #define _vertex_H_
 
+#include <mkbase/mkla.h>
 #include <auxx/auxx.h>
 
-namespace aux {
+namespace num {
 
 const int typeX=1;
 const int typeY=2;
@@ -25,14 +26,13 @@ const int typeXYZW=15;
 class oswinexp Vertex {
   
   protected:
-    double m_xyzw[4];
+    mk_vertex m_tuple;
   
   public:
     Vertex();
     Vertex(double);
     Vertex(double,double);
     Vertex(double,double,double);
-    Vertex(double,double,double,double);
     Vertex(double *);
     Vertex(const Vertex &);
     ~Vertex();
@@ -56,14 +56,14 @@ class oswinexp Vertex {
     void setW(double);
     void setXY(double,double);
     void setXYZ(double,double,double);
-    void set(double,double,double,double);
+    void set(double *);
     double len() const;
     double dot(const Vertex &) const;
     Vertex norm() const;
     Vertex cross(const Vertex &) const;
     double angrad(const Vertex &) const;
     double angdeg(const Vertex &) const;
-    void toString(Asciistr *,int prec=3) const;
+    void toString(aux::Asciistr *,int prec=3) const;
 
 };
 
@@ -73,21 +73,38 @@ extern double oswinexp mindistpointline(Vertex,Vertex,Vertex,Vertex *vi=0);
 
 extern double oswinexp mindistpointplane(Vertex,Vertex,Vertex,Vertex,Vertex *vi=0);
 
-extern int oswinexp cmpVectorI(const void *,const void *,int);
-
-extern int oswinexp cmpVector0(const void *,const void *);
-
-extern int oswinexp cmpVector1(const void *,const void *);
-
-extern int oswinexp cmpVector2(const void *,const void *);
-
-extern int oswinexp cmpVector3(const void *,const void *);
-
-typedef int (*cmpVectorf)(const void *,const void *);
-
-const cmpVectorf cmpVector[4]={cmpVector0,cmpVector1,cmpVector2,cmpVector3};
-
 typedef Vertex Vector3;
+
+class oswinexp VertexList {
+
+  protected:
+    mk_list m_list;
+    
+  public:
+    VertexList(int sz=0);
+    VertexList(const VertexList &);
+    virtual ~VertexList() { }
+    VertexList &operator=(const VertexList &);
+    bool operator==(const VertexList &) const;
+    bool operator<(const VertexList &) const;
+    Vertex get(int,int *inlist=0) const;
+    Vertex operator[](int idx) const {
+      return get(idx);
+    }
+    int set(int,Vertex,int);
+    int append(Vertex);
+    int clear();
+    int resize(int);
+    int count(int *reserved=0) const;
+    int sort(int);
+    int sorted() const;
+    int find(Vertex) const;
+    int findNextIndex(Vertex) const;
+    int findInterval(Vertex,int *,int*) const;
+    int inSort(Vertex);
+    int remove(int); 
+
+};
 
 } // namespace
 

@@ -189,7 +189,7 @@ int Xaxis::resize(RectSize size) {
     
 }
 
-void Xaxis::sc2sz(aux::Vector3 *v) const {
+void Xaxis::sc2sz(num::Vector3 *v) const {
 
   if (m_scale && v) { 
     aux::MinMax b=m_scale->effBounds();
@@ -199,7 +199,7 @@ void Xaxis::sc2sz(aux::Vector3 *v) const {
 
 }
 
-void Xaxis::sz2sc(aux::Vector3 *v) const {
+void Xaxis::sz2sc(num::Vector3 *v) const {
 
   if (m_scale && v) { 
     aux::MinMax b=m_scale->effBounds();
@@ -261,7 +261,7 @@ int Yaxis::resize(RectSize size) {
     
 }
 
-void Yaxis::sc2sz(aux::Vector3 *v) const {
+void Yaxis::sc2sz(num::Vector3 *v) const {
 
   if (m_scale && v) { 
     aux::MinMax b=m_scale->effBounds();
@@ -271,7 +271,7 @@ void Yaxis::sc2sz(aux::Vector3 *v) const {
 
 }
 
-void Yaxis::sz2sc(aux::Vector3 *v) const {
+void Yaxis::sz2sc(num::Vector3 *v) const {
 
   if (m_scale && v) { 
     aux::MinMax b=m_scale->effBounds();

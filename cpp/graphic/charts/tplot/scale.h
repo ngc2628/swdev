@@ -4,7 +4,7 @@
 
 #include <auxx/auxx.h>
 #include <auxx/dbl.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 
 namespace tableplot {
 

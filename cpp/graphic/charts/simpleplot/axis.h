@@ -3,7 +3,7 @@
 #define _axis_h_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 #include <osix/xxstyle.h>
 #include <osix/xxtxt.h>
 
@@ -82,10 +82,10 @@ class oswinexp Axis : public aux::TypeId {
     virtual int resize(osix::xxRectSize) {
       return 0;
     }
-    virtual int sc2sz(aux::Vector3 *) const {
+    virtual int sc2sz(num::Vector3 *) const {
       return 0;
     }
-    virtual int sz2sc(aux::Vector3 *) const {
+    virtual int sz2sc(num::Vector3 *) const {
       return 0;
     }
              
@@ -120,7 +120,7 @@ class oswinexp Xaxis : public Axis {
     aux::TypeId assignGraph(Graph *);
     int setPos(int);
     int findAutoBounds(int,double *min,double *max) {
-      return Axis::findAutoBounds(aux::typeX,min,max);
+      return Axis::findAutoBounds(num::typeX,min,max);
     }
     double needExcess(osix::xxRectSize);
     double needSize(osix::xxRectSize);
@@ -128,8 +128,8 @@ class oswinexp Xaxis : public Axis {
     double len() const {
       return m_size.width();
     }
-    int sc2sz(aux::Vector3 *) const;
-    int sz2sc(aux::Vector3 *) const;
+    int sc2sz(num::Vector3 *) const;
+    int sz2sc(num::Vector3 *) const;
         
   protected:
     Xaxis(const Xaxis &) : Axis() {
@@ -158,7 +158,7 @@ class oswinexp Yaxis : public Axis {
     aux::TypeId assignGraph(Graph *);
     int setPos(int);
     int findAutoBounds(int,double *min,double *max) {
-      return Axis::findAutoBounds(aux::typeY,min,max);
+      return Axis::findAutoBounds(num::typeY,min,max);
     }
     double needExcess(osix::xxRectSize);
     double needSize(osix::xxRectSize);
@@ -166,8 +166,8 @@ class oswinexp Yaxis : public Axis {
     double len() const {
       return m_size.height();
     }
-    int sc2sz(aux::Vector3 *) const;
-    int sz2sc(aux::Vector3 *) const;
+    int sc2sz(num::Vector3 *) const;
+    int sz2sc(num::Vector3 *) const;
         
   protected:
     Yaxis(const Yaxis &) : Axis() {

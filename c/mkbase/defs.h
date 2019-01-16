@@ -5,7 +5,7 @@
 #include <stdarg.h>
 
 #ifdef __cplusplus
-#define xtern 
+#define xtern extern "C"
 #else
 #define xtern extern
 #endif

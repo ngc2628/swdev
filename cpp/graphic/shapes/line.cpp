@@ -11,7 +11,7 @@ namespace shapes {
 
 static const int defCntPoints=2;
 
-int Line2::eval(TVList<Vector3> *pointL,int npoints) {
+int Line2::eval(num::VertexList *pointL,int npoints) {
 
   if (npoints!=defCntPoints)
     npoints=defCntPoints;
@@ -21,9 +21,8 @@ int Line2::eval(TVList<Vector3> *pointL,int npoints) {
     return npoints; // cache
   }
   m_points.clear();
-  if (m_points.size()<npoints)
-    m_points.resize(npoints);
-  aux::Vector3 p0(m_l[0]),p1(m_l[1]),pc=center();
+  m_points.resize(npoints);
+  num::Vector3 p0(m_l[0]),p1(m_l[1]),pc=center();
   TransformMatrix m;
   m.translate(-pc[0],-pc[1]);
   m.scale(m_scale,m_scale);

@@ -4,7 +4,6 @@
 
 #include <mkbase/defs.h>
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
 #include <osix/xxkey.h>
 #include <osix/xxmouse.h>
 #include <osix/xxshape.h>
@@ -43,7 +42,7 @@ class oswinexp xxEvent {
   public:
     int m_type,m_mods,m_consumer,m_xxk,m_buttons;
     unsigned short m_xxsym;
-    aux::Vector3 m_pos,m_globalpos,m_lastpos,m_downpos;
+    num::Vector3 m_pos,m_globalpos,m_lastpos,m_downpos;
     xxRect m_r;
     aux::TVArr<aux::Asciistr> m_info;
     xxEvent() : 

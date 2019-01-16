@@ -74,8 +74,10 @@ void mk_indextab2(int num,double arr[],int indx[]) {
 /* ########## */
 int mk_heapsort(int typesize,int cnt,void *arr,int (*comp)(const void *,const void *)) {
 
-  if (cnt<2 || typesize<1 || !arr || !comp)
+  if (typesize<1 || !arr || !comp)
     return 1;
+  if (cnt<2)
+    return 0;
   int ii=0,jj=0,ub=cnt-1,mb=cnt/2;
   void *tmp=(void*)malloc(typesize);
   while (mb>-1) {
@@ -183,21 +185,57 @@ int mk_binsearch(
 }
 
 /* ########## */
-int mk_listalloc(struct mk_list *list,int typesize_,int reserve_) {
+int mk_binsearchinterval(
+  void *xx,int typesize,int cnt,void *arr,int (*comp)(const void *,const void *),
+  int *idxl,int *idxh,int sortedrev) {
 
-  if (!list || typesize_<=0)
+  if (!xx || cnt<1 || typesize<1 || !arr || !comp)
+    return 1;
+  int ii=0,ih=cnt,il=-1,cmp=0;
+  while ((ih-il)>1) {
+    ii=(ih+il)/2;
+    cmp=comp((const void*)(arr+ii*typesize),(const void*)xx);
+    if (sortedrev>0 ? cmp<0 : cmp>0)
+      ih=ii;
+    else
+      il=ii;
+  }
+  int ret=0;
+  if (ih>=cnt) {
+    ih=(cnt==0 ? 0 : cnt-1);
+    il=(cnt==0 ? 0 : (cnt>1 ? cnt-2 : cnt-1));
+  }
+  if (il<0) {
+    il=0;
+    ih=(cnt>1 ? 1 : 0);
+  }
+  if (idxl)
+    *idxl=il;
+  if (idxh)
+    *idxh=ih;
+  return ret;
+
+}
+
+/* ########## */
+int mk_listalloc(struct mk_list *list,int typesize_,int reserve) {
+
+  if (!list || typesize_<1)
     return 0;
   int ii=0,jj=0;
   list->typesize=typesize_;
-  list->reserve=1;
-  while (list->reserve<MAX(reserve_,1) && (ii++)<32)
-    list->reserve*=2;
+  list->reserved=(reserve==0 ? 0 : 1);
+  while (list->reserved<MAX(reserve,0) && (ii++)<32)
+    list->reserved*=2;
   list->count=0;
   list->sorted=0;
   list->cmp=0;
-  list->arr=(void *)malloc(list->reserve*list->typesize);
-  memset(list->arr,0,list->reserve*list->typesize);
-  return list->reserve;
+  list->arr=0;
+  if (list->reserved>0) {
+    list->arr=(void *)malloc(list->reserved*list->typesize);
+    memset(list->arr,0,list->reserved*list->typesize);
+  }
+  return list->reserved;
 
 }
 
@@ -216,6 +254,42 @@ int mk_listfree(struct mk_list *list) {
 
 }
 
+/* ########## */
+int mk_listrealloc(struct mk_list *list,int reserve) {
+
+  if (!list)
+    return 0;
+  int ii=0,len=list->count,sz=list->typesize;
+  if (sz==0)
+    return 0;
+  list->reserved=(reserve>0 ? 1 : 0);
+  while (list->reserved<MAX(reserve,0) && (ii++)<32)
+    list->reserved*=2;
+  void *cparr=0;
+  if (list->arr) {
+    if (len>0 && list->reserved>0) {
+      cparr=(void *)malloc(len*sz);
+      memcpy(cparr,list->arr,len*sz);
+    }
+    free(list->arr);
+    list->arr=0;
+    list->count=0;
+  }
+  if (list->reserved>0) {
+    list->arr=(void *)malloc(list->reserved*sz);
+    memset(list->arr,0,list->reserved*sz);
+  }
+  if (cparr) {
+    list->count=(len<list->reserved ? len : list->reserved);
+    if (list->count>0)
+      memcpy(list->arr,cparr,list->count*sz); 
+    free(cparr);
+  }
+  return list->reserved;
+
+}
+
+/* ########## */
 int mk_listclear(struct mk_list *list,void *itm) {
 
   if (!list)
@@ -238,19 +312,18 @@ int mk_listclear(struct mk_list *list,void *itm) {
 /* ########## */
 int mk_listsort(struct mk_list *list) {
 
-  int res=0;
-  if (list && list->arr && list->count>1 && list->cmp) {
-    mk_heapsort(list->typesize,list->count,list->arr,list->cmp);
+  list->sorted=0;
+  if (!list || !list->cmp)
+    return 1;
+  if (!list->arr || list->count<2 || 
+    mk_heapsort(list->typesize,list->count,list->arr,list->cmp)==0)
     list->sorted=1;
-  }
-  else
-    res=1;
-  return res;
+  return 0;
 
 }
 
 /* ########## */
-int mk_listfind(struct mk_list *list,void *itm) {
+int mk_listfind(const struct mk_list *list,void *itm) {
 
   if (!list || !list->arr || list->count==0 || !itm)
     return -1;
@@ -268,13 +341,13 @@ int mk_listfind(struct mk_list *list,void *itm) {
 }
 
 /* ########## */
-int mk_listfindnextindex(struct mk_list *list,void *itm) {
+int mk_listfindnextindex(const struct mk_list *list,void *itm) {
 
-  if (!list || !list->arr)
+  if (!list)
     return -1;
-  if (list->count==0)
+  if (!list->arr || list->count==0)
     return 0;
-  if (list->sorted==0 || !itm)
+  if (list->sorted==0 || !list->cmp || !itm)
     return list->count;
   int lb=-1,mb=0,mblast=-1,ub=list->count,cmpres=0,sz=list->typesize;
   while ((ub-lb)>1) {
@@ -300,11 +373,12 @@ int mk_listfindnextindex(struct mk_list *list,void *itm) {
 }
 
 /* ########## */
-int mk_listat(struct mk_list *list,int idx,void *itm) {
+int mk_listat(const struct mk_list *list,int idx,void *itm) {
 
+  if (itm)
+    memset(itm,0,list->typesize);
   if (!list || !list->arr || !itm)
     return 1;
-  memset(itm,0,list->typesize);
   if (idx>=0 && idx<list->count)
     memcpy(itm,list->arr+idx*list->typesize,list->typesize);
   return (idx>=0 && idx<list->count ? 0 : 1);
@@ -314,8 +388,9 @@ int mk_listat(struct mk_list *list,int idx,void *itm) {
 /* ########## */
 int mk_listsetat(struct mk_list *list,void *itm,int idx,int insert) {
 
-  if (!list || !list->arr || idx<0 || idx>list->count || 
-       (list->count==list->reserve && (insert&1)>0))
+  if (!list || !list->arr || idx<0 || idx>list->count)
+    return 1;
+  if (((insert&1)>0 && list->count==list->reserved) || ((insert&1)==0 && list->count==idx))
     return 1;
   int sz=list->typesize;
   if ((insert&1)>0 && idx<list->count) 
@@ -324,7 +399,7 @@ int mk_listsetat(struct mk_list *list,void *itm,int idx,int insert) {
     memcpy(list->arr+idx*sz,itm,sz);
   else
     memset(list->arr+idx*sz,0,sz);
-  if ((insert&1)>0 || idx==list->count)
+  if ((insert&1)>0)
     list->count++;
   list->sorted=0;
   return 0;
@@ -348,12 +423,26 @@ int mk_listprepend(struct mk_list *list,void *itm) {
 /* ########## */
 int mk_listinsort(struct mk_list *list,void *itm) {
 
-  if (!list || !list->arr || !itm || list->count==list->reserve)
+  if (!list || !list->arr || !list->cmp || !itm || list->count==list->reserved)
     return -1;
   if ((list->sorted&1)==0)
     mk_listsort(list);
   int idx=mk_listfindnextindex(list,itm);
   mk_listsetat(list,itm,idx,1);  
   return mk_listfind(list,itm);
+
+}
+
+/* ########## */
+int oswinexp mk_listremove(struct mk_list *list,int idx) {
+
+  if (!list || !list->arr || idx<0 || idx>=list->count)
+    return 1;
+  int sz=list->typesize;
+  if (idx<list->count-1)
+    memmove(list->arr+idx*sz,list->arr+(idx+1)*sz,(list->count-idx-1)*sz);
+  memset(list->arr+(list->count-1)*sz,0,sz);
+  list->count--;
+  return 0;
 
 }

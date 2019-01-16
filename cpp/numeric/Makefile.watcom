@@ -7,9 +7,9 @@ WFLAGS        = -w3
 LFLAGS        = -dll
 INCPATH       = -i"$(SWDIR)\cpp" -i"$(SWDIR)\c"
 LIBS          = $(LIBDIR)\libauxx.lib $(LIBDIR)\libmkbase.lib 
-HEADER        = matrix.h interpolation.h
-SOURCES       = matrix.cpp interpolation.cpp
-OBJECTS       = matrix.obj interpolation.obj
+HEADER        = matrix.h interpolation.h vertex.h
+SOURCES       = matrix.cpp interpolation.cpp vertex.cpp
+OBJECTS       = matrix.obj interpolation.obj vertex.obj
 TARGET        = lib$(PRJ).dll
 TARGETLIB     = lib$(PRJ).lib
 

@@ -3,7 +3,7 @@
 #define _shape_h_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 #include <numeric/matrix.h>
 #include <osix/xxstyle.h>
 
@@ -17,8 +17,8 @@ class oswinexp Shape2 : public aux::TypeId {
   protected:
     double m_scale;
     double m_rotate;
-    aux::Vector3 m_translate;
-    aux::TVList<aux::Vector3> m_points;
+    num::Vector3 m_translate;
+    num::VertexList m_points;
     aux::Asciistr m_descr;
        
   public:
@@ -26,7 +26,7 @@ class oswinexp Shape2 : public aux::TypeId {
     osix::xxStyle m_styleF;
     Shape2(const char *type) : 
       aux::TypeId(type),m_scale(1.),m_rotate(.0),
-      m_translate(aux::Vector3(0.,0.)),m_descr(type) {
+      m_translate(num::Vector3(0.,0.)),m_descr(type) {
     }
     Shape2(const Shape2 &ass) : 
       aux::TypeId((const aux::TypeId &)ass),m_scale(ass.m_scale),
@@ -50,17 +50,17 @@ class oswinexp Shape2 : public aux::TypeId {
       return m_rotate;
     }
     virtual double rotate(double); 
-    aux::Vector3 translate() const {
+    num::Vector3 translate() const {
       return m_translate;
     }
-    virtual aux::Vector3 translate(aux::Vector3); 
-    virtual aux::Vector3 center() const {
-      return aux::Vector3(.0,.0,.0);
+    virtual num::Vector3 translate(num::Vector3); 
+    virtual num::Vector3 center() const {
+      return num::Vector3(.0,.0,.0);
     }
     virtual double circradius() const {
       return .0;
     }
-    virtual int eval(aux::TVList<aux::Vector3> *pointL,int npoints=-1)=0;
+    virtual int eval(num::VertexList *pointL,int npoints=-1)=0;
     void setDescr(const char *);
     const char * descr() {
       return m_descr.data();
@@ -89,7 +89,7 @@ class oswinexp NoShape2 : public Shape2 {
     aux::TypeId *clone() const {
       return new NoShape2((const NoShape2 &)(*this));
     }
-    int eval(aux::TVList<aux::Vector3> *pointL,int npoints=-1);
+    int eval(num::VertexList *,int npoints=-1);
     
 };
 

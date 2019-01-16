@@ -55,7 +55,7 @@ int xxdrawLineQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc) {
 
 }
 
-int xxdrawLinesQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,aux::Vector3 *pL,int pcnt,int) {
+int xxdrawLinesQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,num::Vector3 *pL,int pcnt,int) {
 
   if (!xxdrawable->m_extra)
     return 1;
@@ -108,7 +108,7 @@ int xxfillRectQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc) {
 
 }
 
-int xxfillPolygonQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,aux::Vector3 *pL,int pcnt,int opt) {
+int xxfillPolygonQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,num::Vector3 *pL,int pcnt,int opt) {
 
   if (!xxdrawable->m_extra)
     return 1;

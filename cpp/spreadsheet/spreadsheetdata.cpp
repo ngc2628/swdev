@@ -83,26 +83,26 @@ int SpreadsheetDataItem::draw(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC
   osix::xxRect rect=gc.m_r;
   aux::Asciistr dbgstr;
   if (doframe[0]>0) {
-    gc.m_r=osix::xxRect(aux::Vector3(rect.left()+frext[0],rect.top()+frext[0]),
-                        aux::Vector3(rect.left()+frext[0],rect.bottom()-frext[0]+1.));
+    gc.m_r=osix::xxRect(num::Vector3(rect.left()+frext[0],rect.top()+frext[0]),
+                        num::Vector3(rect.left()+frext[0],rect.bottom()-frext[0]+1.));
     gc.m_fg=m_style[2];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
   if (doframe[1]>0) {
-    gc.m_r=osix::xxRect(aux::Vector3(rect.left()+(double)doframe[0]+frext[1],rect.top()+frext[1]),
-                        aux::Vector3(rect.right()-(double)doframe[2]-frext[1]+1.,rect.top()+frext[1]));
+    gc.m_r=osix::xxRect(num::Vector3(rect.left()+(double)doframe[0]+frext[1],rect.top()+frext[1]),
+                        num::Vector3(rect.right()-(double)doframe[2]-frext[1]+1.,rect.top()+frext[1]));
     gc.m_fg=m_style[3];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
   if (doframe[2]>0) {
-    gc.m_r=osix::xxRect(aux::Vector3(rect.right()-frext[2]+1.,rect.top()+frext[2]),
-                        aux::Vector3(rect.right()-frext[2]+1.,rect.bottom()-frext[2]+1.));
+    gc.m_r=osix::xxRect(num::Vector3(rect.right()-frext[2]+1.,rect.top()+frext[2]),
+                        num::Vector3(rect.right()-frext[2]+1.,rect.bottom()-frext[2]+1.));
     gc.m_fg=m_style[4];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
   if (doframe[3]>0) {
-    gc.m_r=osix::xxRect(aux::Vector3(rect.left()+(double)doframe[0]+frext[3],rect.bottom()-frext[3]+1.),
-                        aux::Vector3(rect.right()-(double)doframe[2]-frext[3]+1.,rect.bottom()-frext[3]+1.));
+    gc.m_r=osix::xxRect(num::Vector3(rect.left()+(double)doframe[0]+frext[3],rect.bottom()-frext[3]+1.),
+                        num::Vector3(rect.right()-(double)doframe[2]-frext[3]+1.,rect.bottom()-frext[3]+1.));
     gc.m_fg=m_style[5];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }

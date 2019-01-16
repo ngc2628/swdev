@@ -72,17 +72,49 @@ double mk_vertexlen(const mk_vertex vertex) {
 }
 
 /* ########## */
-int mk_vertexcmpx(const void *cmp1,const void *cmp2) {
+int mk_vertexcmpidx(const void *cmp1,const void *cmp2,int idx) {
 
+  idx=MIN(3,MAX(0,idx));
   const mk_vertex *vv1=(const mk_vertex*)cmp1;
   const mk_vertex *vv2=(const mk_vertex*)cmp2;
-  if ((*vv1)[0]<(*vv2)[0])
+  if ((*vv1)[idx]<(*vv2)[idx])
     return -1;
-  if ((*vv2)[0]<(*vv1)[0])
+  if ((*vv2)[idx]<(*vv1)[idx])
     return 1;
   return 0;
 
 }
+
+/* ########## */
+int mk_vertexcmpx(const void *cmp1,const void *cmp2) {
+
+  return mk_vertexcmpidx(cmp1,cmp2,0);
+
+}
+
+/* ########## */
+int mk_vertexcmpy(const void *cmp1,const void *cmp2) {
+
+  return mk_vertexcmpidx(cmp1,cmp2,1);
+
+}
+
+/* ########## */
+int mk_vertexcmpz(const void *cmp1,const void *cmp2) {
+
+  return mk_vertexcmpidx(cmp1,cmp2,2);
+
+}
+
+/* ########## */
+int mk_vertexcmpw(const void *cmp1,const void *cmp2) {
+
+  return mk_vertexcmpidx(cmp1,cmp2,3);
+
+}
+
+/* ########## */
+mk_vertexcmpf mk_vertexcmp[4]={mk_vertexcmpx,mk_vertexcmpy,mk_vertexcmpz,mk_vertexcmpw};
 
 /* ########## */
 int mk_vertexadd(mk_vertex vertex,const mk_vertex addend) {
@@ -494,7 +526,7 @@ int mk_ellipse(struct mk_list *vertices,int nn) {
 
   if (!vertices)
     return 1;
-  nn=MAX(1,MIN(vertices->reserve,nn));
+  nn=MAX(1,MIN(vertices->reserved,nn));
   int ii=0,off=nn/2;
   double sc=360./(double)nn;
   mk_vertexnan(vv);
@@ -521,7 +553,7 @@ int mk_polygonintersection(struct mk_list *poly1,struct mk_list *poly2,struct mk
   int ii=0,jj=0,kk=0;
   double m1=.0,m2=.0,mdiff=.0,b1=.0,b2=.0,xinter=.0;
   mk_vertexnan(interp);
-  mk_listclear(pinter,(void*)&pinter);
+  mk_listclear(pinter,(void*)&interp);
   mk_vertexnan(vv1);
   mk_vertexnan(vv2);
   /* line equation :

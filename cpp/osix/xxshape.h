@@ -3,7 +3,7 @@
 #define _xxshape_h_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 
 namespace osix {
 
@@ -72,10 +72,10 @@ class oswinexp xxRectSize {
 class oswinexp xxLine {
 
   protected:
-    aux::Vector3 m_l[2];
+    num::Vector3 m_l[2];
     
   public:
-    xxLine(aux::Vector3 p0=aux::Vector3(),aux::Vector3 p1=aux::Vector3()) {
+    xxLine(num::Vector3 p0=num::Vector3(),num::Vector3 p1=num::Vector3()) {
       set(p0,p1);
     }
     xxLine(const xxLine &ass) {
@@ -94,20 +94,20 @@ class oswinexp xxLine {
     bool operator<(const xxLine &cmp) const {
       return (mk_dlt(len(),cmp.len())==0 ? false : true);
     }
-    aux::Vector3 &operator[](int idx) {
+    num::Vector3 &operator[](int idx) {
       return m_l[idx];
     }
-    void set(aux::Vector3 p0=aux::Vector3(),aux::Vector3 p1=aux::Vector3()) {
+    void set(num::Vector3 p0=num::Vector3(),num::Vector3 p1=num::Vector3()) {
       if (mk_dlt(p1.x(),p0.x()))
         aux::swap(&p0,&p1);
       m_l[0]=p0; m_l[1]=p1;
     }
-    void setP0(aux::Vector3);
-    void setP1(aux::Vector3);
-    aux::Vector3 p0() const {
+    void setP0(num::Vector3);
+    void setP1(num::Vector3);
+    num::Vector3 p0() const {
       return m_l[0];
     }
-    aux::Vector3 p1() const {
+    num::Vector3 p1() const {
       return m_l[1];
     }
     double len() const;
@@ -126,9 +126,9 @@ class oswinexp xxRect {
 
   public:
     xxRect(double left=mk_dnan,double top=mk_dnan,double right=mk_dnan,double bottom=mk_dnan);
-    xxRect(aux::Vector3,aux::Vector3);
+    xxRect(num::Vector3,num::Vector3);
     xxRect(double,double,xxRectSize);
-    xxRect(aux::Vector3,xxRectSize);
+    xxRect(num::Vector3,xxRectSize);
     xxRect(const xxRect &ass) {
       memcpy(&m_r[0],&ass.m_r[0],4*sizeof(double));
     }
@@ -148,7 +148,7 @@ class oswinexp xxRect {
       return &m_r[0];
     }
     void set(double left=mk_dnan,double top=mk_dnan,double right=mk_dnan,double bottom=mk_dnan);
-    void set(aux::Vector3,aux::Vector3);
+    void set(num::Vector3,num::Vector3);
     void set(double,double,xxRectSize);
     int busted() const;
     int empty() const;
@@ -168,30 +168,30 @@ class oswinexp xxRect {
       return m_r[3];
     }
     double setBottom(double);
-    aux::Vector3 leftTop() const {
-      return aux::Vector3(m_r[0],m_r[1]);
+    num::Vector3 leftTop() const {
+      return num::Vector3(m_r[0],m_r[1]);
     }
-    xxRectSize setLeftTop(aux::Vector3);
-    aux::Vector3 leftBottom() const {
-      return aux::Vector3(m_r[0],m_r[3]);
+    xxRectSize setLeftTop(num::Vector3);
+    num::Vector3 leftBottom() const {
+      return num::Vector3(m_r[0],m_r[3]);
     }
-    xxRectSize setLeftBottom(aux::Vector3);
-    aux::Vector3 rightTop() const {
-      return aux::Vector3(m_r[2],m_r[1]);
+    xxRectSize setLeftBottom(num::Vector3);
+    num::Vector3 rightTop() const {
+      return num::Vector3(m_r[2],m_r[1]);
     }
-    xxRectSize setRightTop(aux::Vector3);
-    aux::Vector3 rightBottom() const {
-      return aux::Vector3(m_r[2],m_r[3]);
+    xxRectSize setRightTop(num::Vector3);
+    num::Vector3 rightBottom() const {
+      return num::Vector3(m_r[2],m_r[3]);
     }
-    xxRectSize setRightBottom(aux::Vector3);
+    xxRectSize setRightBottom(num::Vector3);
     xxRectSize size() const {
       return (busted() ? xxRectSize() : xxRectSize(m_r[2]-m_r[0],m_r[3]-m_r[1]));
     }
     xxRectSize resize(double w=-1.,double h=-1.,unsigned char type=3); // type, 1:left 2:top 4:right 8:bottom any:center
-    aux::Vector3 center() const {
-      return aux::Vector3((m_r[0]+m_r[2])/2.,(m_r[3]+m_r[1])/2.);
+    num::Vector3 center() const {
+      return num::Vector3((m_r[0]+m_r[2])/2.,(m_r[3]+m_r[1])/2.);
     }
-    aux::Vector3 translate(double,double,unsigned char type=0); // type, 1:left 2:top 4:right 8:bottom any:center
+    num::Vector3 translate(double,double,unsigned char type=0); // type, 1:left 2:top 4:right 8:bottom any:center
     xxRect unite(const xxRect &) const;
     xxRect intersect(const xxRect &) const;
     double circ() const {
@@ -201,7 +201,7 @@ class oswinexp xxRect {
       return ((m_r[2]-m_r[0])*(m_r[3]-m_r[1]));
     }
     double scale(double,unsigned char type=0); // type, 1:left 2:top 4:right 8:bottom any:center
-    void rotate(double,aux::Vector3 *,aux::Vector3 *,aux::Vector3 *,aux::Vector3 *) const;
+    void rotate(double,num::Vector3 *,num::Vector3 *,num::Vector3 *,num::Vector3 *) const;
     void toString(aux::Asciistr *) const;
     
 };

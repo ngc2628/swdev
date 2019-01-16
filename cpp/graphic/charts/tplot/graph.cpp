@@ -50,9 +50,9 @@ shapes::Shape2 *buildMarkshape2(const char *type,double size) {
   shapes::Shape2 *s=0;
   switch (idx) {
     case 0: break;
-    case 1: s=new shapes::Ellipse(aux::Vector3(size,size)); break;
+    case 1: s=new shapes::Ellipse(num::Vector3(size,size)); break;
     case 2: s=new shapes::Rect(shapes::RectSize(1.414*size,1.414*size)); break;
-    case 3: s=new shapes::Triangle(aux::Vector3(.0,size),aux::Vector3(-.866*size,-.5*size),aux::Vector3(.866*size,-.5*size)); break;
+    case 3: s=new shapes::Triangle(num::Vector3(.0,size),num::Vector3(-.866*size,-.5*size),num::Vector3(.866*size,-.5*size)); break;
     case 4: s=new shapes::Rect(shapes::RectSize(1.414*size,1.414*size)); s->rotate(45.); break;
     default: s=new shapes::NoShape2();
   }
@@ -85,7 +85,7 @@ GraphData2 &GraphData2::operator=(const GraphData2 &ass) {
   
 }
 
-aux::Vector3 GraphData2::data(int idx,int *avail) {
+num::Vector3 GraphData2::data(int idx,int *avail) {
 
   if (avail) *avail=(int)m_data.at(idx);
   return m_data[idx];
@@ -153,12 +153,12 @@ int GraphData2::findBounds(aux::MinMax *bx,aux::MinMax *by) {
   
 }
 
-int GraphData2::match(aux::Vector3 p,aux::Vector3 md) {
+int GraphData2::match(num::Vector3 p,num::Vector3 md) {
 
   int i=0,idxl=-1,idxh=-1,cnt=m_data.count(),sortype=(m_sortype>=0 && m_data.sorted() ? m_sortype : -1);
   if (cnt==0) return -1;
-  aux::Vector3 *pl=0;
-  aux::Vector3 *ph=0;
+  num::Vector3 *pl=0;
+  num::Vector3 *ph=0;
   if (sortype>=0) {
     idxh=m_data.findNextIndex(p);
     if (idxh==0 || idxh==cnt) return -1; 
@@ -218,7 +218,7 @@ int GraphData2::setSortype(int coor) {
 
 // ***
 
-void Graph::sc2sz(aux::Vector3 *v) const {
+void Graph::sc2sz(num::Vector3 *v) const {
 
   if (!m_graphdata) return;
   int i=0;
@@ -231,7 +231,7 @@ void Graph::sc2sz(aux::Vector3 *v) const {
 
 }
 
-void Graph::sz2sc(aux::Vector3 *v) const {
+void Graph::sz2sc(num::Vector3 *v) const {
 
   if (!m_graphdata) return;
   int i=0;
@@ -243,14 +243,14 @@ void Graph::sz2sc(aux::Vector3 *v) const {
 
 }
 
-int Graph::match(aux::Vector3 p) const {
+int Graph::match(num::Vector3 p) const {
 
   if (!m_graphdata) return -1;
-  aux::Vector3 md1(matchdist,matchdist),md0(.0,.0);
+  num::Vector3 md1(matchdist,matchdist),md0(.0,.0);
   sz2sc(&md0);
   sz2sc(&md1);
   sz2sc(&p);
-  return m_graphdata->match(p,aux::Vector3(md1.x()-md0.x(),md1.y()-md0.y()));
+  return m_graphdata->match(p,num::Vector3(md1.x()-md0.x(),md1.y()-md0.y()));
  
 }
 
@@ -274,15 +274,15 @@ aux::MinMax GraphXY::findBounds(int type) {
 
 }
 
-aux::Vector3 GraphXY::value(int idx,int *avail) const { 
+num::Vector3 GraphXY::value(int idx,int *avail) const { 
 
   if (m_graphdata) return m_graphdata->data(idx,avail);
   if (avail) *avail=0;
-  return aux::Vector3();
+  return num::Vector3();
   
 }
 
-int GraphXY::setValue(int idx,aux::Vector3 *v,int *modbounds) {
+int GraphXY::setValue(int idx,num::Vector3 *v,int *modbounds) {
 
   if (!m_graphdata) return -1;
   int avail=0;

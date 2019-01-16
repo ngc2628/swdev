@@ -20,7 +20,7 @@ Polygon2::Polygon2(int npoints) : Shape2("polygon2") {
 
 }
 
-int Polygon2::eval(TVList<Vector3> *pointL,int npoints) {
+int Polygon2::eval(num::VertexList *pointL,int npoints) {
 
   int cnt=m_points.count();
   if (npoints<=cnt) {
@@ -37,8 +37,7 @@ int Polygon2::eval(TVList<Vector3> *pointL,int npoints) {
   int ii=0;
   cnt=m_ppoints.count();
   m_points.clear();
-  if (m_points.size()<cnt)
-    m_points.resize(cnt);
+  m_points.resize(cnt);
   Vector3 pp;
   TransformMatrix mm;
   mm.rotateZ(m_rotate);

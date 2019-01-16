@@ -8,9 +8,9 @@ WFLAGS        =
 LFLAGS        = /DLL /LIBPATH:"$(LIBDIR)"   
 INCPATH       = -I"$(SWDIR)\cpp" -I"$(SWDIR)\c"
 LIBS          = $(LIBDIR)\libmkbase.lib 
-HEADER        = auxx.h vertex.h
-SOURCES       = auxx.cpp vertex.cpp
-OBJECTS       = auxx.obj vertex.obj
+HEADER        = auxx.h
+SOURCES       = auxx.cpp 
+OBJECTS       = auxx.obj 
 TARGET        = lib$(PRJ).dll
 
 CC            = cl

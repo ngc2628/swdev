@@ -3,7 +3,7 @@
 #define _ellipse_h_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 #include <graphic/shapes/shape.h>
 
 namespace shapes {
@@ -11,10 +11,10 @@ namespace shapes {
 class oswinexp Ellipse : public Shape2 {
 
   protected:
-    aux::Vector3 m_ab;
+    num::Vector3 m_ab;
       
   public:
-    Ellipse(aux::Vector3 ab) : Shape2("ellipse"),m_ab(fabs(ab[0]),fabs(ab[1])) {
+    Ellipse(num::Vector3 ab) : Shape2("ellipse"),m_ab(fabs(ab[0]),fabs(ab[1])) {
 	  double *vab=m_ab.data();
       if (vab[0]>vab[1]) 
 	    aux::swap(&vab[0],&vab[1]);
@@ -39,10 +39,10 @@ class oswinexp Ellipse : public Shape2 {
     aux::TypeId *clone() const {
       return new Ellipse((const Ellipse &)(*this));
     }
-    aux::Vector3 get() const {
+    num::Vector3 get() const {
       return m_ab;
     }
-    aux::Vector3 set(aux::Vector3 ab) {
+    num::Vector3 set(num::Vector3 ab) {
       double *vab=m_ab.data();	
       if (vab[0]>vab[1])
         mk_swapf(&vab[0],&vab[1]);
@@ -63,7 +63,7 @@ class oswinexp Ellipse : public Shape2 {
     double circradius() const {
       return (m_ab.x()>m_ab.y() ? m_ab.x() : m_ab.y());
     }
-    int eval(aux::TVList<aux::Vector3> *,int npoints=-1);
+    int eval(num::VertexList *,int npoints=-1);
 
 };
 

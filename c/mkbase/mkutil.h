@@ -9,7 +9,7 @@
    cnt:num-current-items , sorted:0,1 , cmp:item-compare-function , arr:array of items
 */
 struct oswinexp mk_list {
-  int typesize,reserve,count,sorted;
+  int typesize,reserved,count,sorted;
   int (*cmp)(const void *,const void *);
   void *arr;
 };
@@ -25,15 +25,25 @@ xtern int oswinexp mk_heapsort(int,int,void *,int (*)(const void *,const void *)
 
 /*
   in *look-for , in mem-size of item , in numberitems , in array , 
-  in item-compare-function , in guess-likely-index=-1 , return index-in-array
+  in item-compare-function , in guess-likely-index -1=none , return index-in-array
 */
 xtern int oswinexp mk_binsearch(void *,int,int,void *,int (*)(const void *,const void *),int);
+
+/*
+  in *look-for , in mem-size of item , in numberitems , in array , in item-compare-function , 
+  out left-index , out right-index , in sortedreverse 0|1 , return 0|1
+*/
+xtern int oswinexp mk_binsearchinterval(
+  void *,int,int,void *,int (*)(const void *,const void *),int *,int *,int);
 
 /* inout list* , in mem-size of item , in number items */
 xtern int oswinexp mk_listalloc(struct mk_list *,int,int);
 
 /* inout list* */
 xtern int oswinexp mk_listfree(struct mk_list *);
+
+/* inout list* , in new size* , return new size */
+xtern int oswinexp mk_listrealloc(struct mk_list *,int);
 
 /* inout list* in itm-to-clear-with|0 */
 xtern int oswinexp mk_listclear(struct mk_list *,void *);
@@ -42,16 +52,16 @@ xtern int oswinexp mk_listclear(struct mk_list *,void *);
 xtern int oswinexp mk_listsort(struct mk_list *);
 
 /* in list* , in item* , return index|-1 */
-xtern int oswinexp mk_listfind(struct mk_list *,void *);
+xtern int oswinexp mk_listfind(const struct mk_list *,void *);
 
 /* in list* , in item* , return 0|list-cnt|index */
-xtern int oswinexp mk_listfindnextindex(struct mk_list *,void *);
+xtern int oswinexp mk_listfindnextindex(const struct mk_list *,void *);
 
 /* in list* , in index , out item-at-index* , return 0,1 */
-xtern int oswinexp mk_listat(struct mk_list *,int,void *);
+xtern int oswinexp mk_listat(const struct mk_list *,int,void *);
 
 /* inout list* , in itm* , in index , in replace|insert 0|1 , return 0,1 */
-int mk_listsetat(struct mk_list *,void *,int,int);
+xtern int oswinexp mk_listsetat(struct mk_list *,void *,int,int);
 
 /* inout list* , in new item* , return 0|1  */
 xtern int oswinexp mk_listappend(struct mk_list *,void *);
@@ -61,5 +71,8 @@ xtern int oswinexp mk_listprepend(struct mk_list *,void *);
 
 /* inout list* , in new item* , return new-item-index|-1 */
 xtern int oswinexp mk_listinsort(struct mk_list *,void *);
+
+/* inout list* , in index , return 0|1 */
+xtern int oswinexp mk_listremove(struct mk_list *,int);
 
 #endif

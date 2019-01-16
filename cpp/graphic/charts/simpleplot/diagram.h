@@ -3,7 +3,7 @@
 #define _diagram_h_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 #include <osix/xxevent.h>
 #include <osix/xxshape.h>
 #include <osix/xxpaint.h>
@@ -30,8 +30,8 @@ class oswinexp DiagramSelection {
   public:
     aux::TypeId m_sel;
     int m_idx;
-    aux::Vector3 m_val;
-    DiagramSelection(aux::TypeId sel=aux::TypeId(),int idx=-1,aux::Vector3 val=aux::Vector3()) :
+    num::Vector3 m_val;
+    DiagramSelection(aux::TypeId sel=aux::TypeId(),int idx=-1,num::Vector3 val=num::Vector3()) :
       m_sel(sel),m_idx(idx),m_val(val) {
     }
     DiagramSelection(const DiagramSelection &ass) : 
@@ -51,7 +51,7 @@ class oswinexp DiagramSelection {
     bool operator<(const DiagramSelection &cmp) const {
       return (m_sel<cmp.m_sel || (m_sel==cmp.m_sel && m_idx<cmp.m_idx));
     }
-    void clear(aux::TypeId sel=aux::TypeId(),int idx=-1,aux::Vector3 val=aux::Vector3()) {
+    void clear(aux::TypeId sel=aux::TypeId(),int idx=-1,num::Vector3 val=num::Vector3()) {
       m_sel=sel;
       m_idx=idx;
       m_val=val;
@@ -90,7 +90,7 @@ class oswinexp Diagram : public aux::TypeId {
     virtual int typeaxes(const char *,aux::TPList<Axis> *);
     virtual int selected(aux::TVList<DiagramSelection> *) const;
     virtual int setSelection(DiagramSelection,int add=0);
-    virtual aux::TypeId selectGraph(aux::Vector3,int set=1,int add=0); // scaled point
+    virtual aux::TypeId selectGraph(num::Vector3,int set=1,int add=0); // scaled point
     virtual int mouseMode(int *mod=0);
     virtual int redraw(int flag=0);
         
@@ -160,7 +160,7 @@ class oswinexp DiagramXY : public Diagram {
       return osix::xxRectSize();
     }
     virtual int setSelection(DiagramSelection,int add=0);
-    virtual aux::TypeId selectGraph(aux::Vector3,int set=1,int add=0); // scaled point
+    virtual aux::TypeId selectGraph(num::Vector3,int set=1,int add=0); // scaled point
     virtual osix::xxRectSize setup(osix::xxRectSize,osix::xxRectSize *excess=0);
     
   protected:

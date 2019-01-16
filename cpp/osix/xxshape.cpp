@@ -8,9 +8,9 @@
 
 namespace osix {
 
-void xxLine::setP0(aux::Vector3 p) {
+void xxLine::setP0(num::Vector3 p) {
 
-  if (p.busted(aux::typeX|aux::typeY)!=0) {
+  if (p.busted(num::typeX|num::typeY)!=0) {
     set();
     return;
   }
@@ -22,9 +22,9 @@ void xxLine::setP0(aux::Vector3 p) {
 
 }
 
-void xxLine::setP1(aux::Vector3 p) {
+void xxLine::setP1(num::Vector3 p) {
 
-  if (p.busted(aux::typeX|aux::typeY)!=0) {
+  if (p.busted(num::typeX|num::typeY)!=0) {
     set();
     return;
   }
@@ -42,7 +42,7 @@ double xxLine::len() const {
     return .0;
   num::TransformMatrix m;
   m.translate(-m_l[0].x(),-m_l[0].y());
-  aux::Vector3 p1(m_l[1]);
+  num::Vector3 p1(m_l[1]);
   m.transform(&p1);
   return p1.len();  
 
@@ -50,8 +50,8 @@ double xxLine::len() const {
 
 int xxLine::busted() const {
       
-  return ((m_l[0].busted(aux::typeX|aux::typeY)>0 || 
-          m_l[1].busted(aux::typeX|aux::typeY)>0) ? 1 : 0);
+  return ((m_l[0].busted(num::typeX|num::typeY)>0 || 
+          m_l[1].busted(num::typeX|num::typeY)>0) ? 1 : 0);
     
 }
 
@@ -67,7 +67,7 @@ double xxLine::angdeg() const {
     return .0;
   num::TransformMatrix m;
   m.translate(-m_l[0].x(),-m_l[0].y());
-  aux::Vector3 p0(0.,1.),p1(m_l[1]);
+  num::Vector3 p0(0.,1.),p1(m_l[1]);
   m.transform(&p1);
   return p1.angdeg(p0);
 
@@ -79,7 +79,7 @@ double xxLine::angrad() const {
     return .0;
   num::TransformMatrix m;
   m.translate(-m_l[0].x(),-m_l[0].y());
-  aux::Vector3 p0(0.,1.),p1(m_l[1]);
+  num::Vector3 p0(0.,1.),p1(m_l[1]);
   m.transform(&p1);
   return p1.angrad(p0);
 
@@ -119,9 +119,9 @@ xxRect::xxRect(double left,double top,double right,double bottom) {
 
 }
 
-xxRect::xxRect(aux::Vector3 lt,aux::Vector3 br) {
+xxRect::xxRect(num::Vector3 lt,num::Vector3 br) {
 
-  if (lt.busted(aux::typeX|aux::typeY)!=0 || br.busted(aux::typeX|aux::typeY)!=0) {
+  if (lt.busted(num::typeX|num::typeY)!=0 || br.busted(num::typeX|num::typeY)!=0) {
     set();
     return;
   }
@@ -145,9 +145,9 @@ xxRect::xxRect(double left,double top,xxRectSize size) {
   
 } 
       
-xxRect::xxRect(aux::Vector3 lt,xxRectSize size) {
+xxRect::xxRect(num::Vector3 lt,xxRectSize size) {
 
-  if (lt.busted(aux::typeX|aux::typeY)!=0) {
+  if (lt.busted(num::typeX|num::typeY)!=0) {
     set();
     return;
   }
@@ -252,9 +252,9 @@ void xxRect::set(double left,double top,xxRectSize sz) {
   
 }
 
-void xxRect::set(aux::Vector3 lt,aux::Vector3 br) {
+void xxRect::set(num::Vector3 lt,num::Vector3 br) {
 
-  if (lt.busted(aux::typeX|aux::typeY)!=0 || br.busted(aux::typeX|aux::typeY)!=0) {
+  if (lt.busted(num::typeX|num::typeY)!=0 || br.busted(num::typeX|num::typeY)!=0) {
     set();
     return;
   }
@@ -333,9 +333,9 @@ double xxRect::setBottom(double bottom) {
 
 }
 
-xxRectSize xxRect::setLeftTop(aux::Vector3 lt) {
+xxRectSize xxRect::setLeftTop(num::Vector3 lt) {
 
-  if (lt.busted(aux::typeX|aux::typeY)!=0) {
+  if (lt.busted(num::typeX|num::typeY)!=0) {
     set();
     return xxRectSize();
   }
@@ -353,9 +353,9 @@ xxRectSize xxRect::setLeftTop(aux::Vector3 lt) {
   
 }
 
-xxRectSize xxRect::setLeftBottom(aux::Vector3 lb) {
+xxRectSize xxRect::setLeftBottom(num::Vector3 lb) {
 
-  if (lb.busted(aux::typeX|aux::typeY)!=0) {
+  if (lb.busted(num::typeX|num::typeY)!=0) {
     set();
     return xxRectSize();
   }
@@ -373,9 +373,9 @@ xxRectSize xxRect::setLeftBottom(aux::Vector3 lb) {
 
 }
 
-xxRectSize xxRect::setRightTop(aux::Vector3 rt) {
+xxRectSize xxRect::setRightTop(num::Vector3 rt) {
 
-  if (rt.busted(aux::typeX|aux::typeY)!=0) {
+  if (rt.busted(num::typeX|num::typeY)!=0) {
     set();
     return xxRectSize();
   }
@@ -393,9 +393,9 @@ xxRectSize xxRect::setRightTop(aux::Vector3 rt) {
 
 }
 
-xxRectSize xxRect::setRightBottom(aux::Vector3 rb) {
+xxRectSize xxRect::setRightBottom(num::Vector3 rb) {
 
-  if (rb.busted(aux::typeX|aux::typeY)!=0) {
+  if (rb.busted(num::typeX|num::typeY)!=0) {
     set();
     return xxRectSize();
   }
@@ -478,7 +478,7 @@ xxRectSize xxRect::resize(double w,double h,unsigned char type) {
       m_r[1]=m_r[3]-h;
   }
   else {
-    aux::Vector3 c(m_r[0]+myw/2.,m_r[1]+myh/2.);
+    num::Vector3 c(m_r[0]+myw/2.,m_r[1]+myh/2.);
     m_r[0]=c[0]-w/2.; 
     m_r[2]=c[0]+w/2.;
     m_r[1]=c[1]-h/2.; 
@@ -488,13 +488,13 @@ xxRectSize xxRect::resize(double w,double h,unsigned char type) {
   
 }
 
-aux::Vector3 xxRect::translate(double hor,double ver,unsigned char type) {
+num::Vector3 xxRect::translate(double hor,double ver,unsigned char type) {
 
   if (busted()!=0)
-    return aux::Vector3();
+    return num::Vector3();
   if (mk_isbusted(hor)!=0 || mk_isbusted(ver)!=0) {
     set();
-    return aux::Vector3();
+    return num::Vector3();
   }
   double w=m_r[2]-m_r[0],h=m_r[3]-m_r[1];
   if ((type&15)>0) {
@@ -516,27 +516,27 @@ aux::Vector3 xxRect::translate(double hor,double ver,unsigned char type) {
     }
   }
   else {
-    aux::Vector3 c(hor+m_r[0]+w/2.,ver+m_r[1]+h/2.);
+    num::Vector3 c(hor+m_r[0]+w/2.,ver+m_r[1]+h/2.);
     m_r[0]=c[0]-w/2.;
     m_r[1]=c[1]-h/2.;
     m_r[2]=c[0]+w/2.;
     m_r[3]=c[1]+h/2.;
   }
-  return aux::Vector3(m_r[0],m_r[1]);
+  return num::Vector3(m_r[0],m_r[1]);
   
 }
 
-void xxRect::rotate(double rot,aux::Vector3 *lt,aux::Vector3 *rt,aux::Vector3 *lb,aux::Vector3 *rb) const {
+void xxRect::rotate(double rot,num::Vector3 *lt,num::Vector3 *rt,num::Vector3 *lb,num::Vector3 *rb) const {
 
   if (busted()!=0 || mk_isbusted(rot)!=0) {
     if (lt)
-      *lt=aux::Vector3();
+      *lt=num::Vector3();
     if (rt)
-      *rt=aux::Vector3();
+      *rt=num::Vector3();
     if (lb)
-      *lb=aux::Vector3();
+      *lb=num::Vector3();
     if (rb)
-      *rb=aux::Vector3();
+      *rb=num::Vector3();
     return;
   }
   rot=mk_dsign(rot)*fmod(fabs(rot),180.); 
@@ -588,7 +588,7 @@ double xxRect::scale(double sc,unsigned char type) {
     }
   }
   else {
-    aux::Vector3 c((m_r[0]+m_r[2])/2.,(m_r[3]+m_r[1])/2.);
+    num::Vector3 c((m_r[0]+m_r[2])/2.,(m_r[3]+m_r[1])/2.);
     m_r[0]=c[0]-w/2.; m_r[1]=c[1]-h/2.; m_r[2]=c[0]+w/2.; m_r[3]=c[1]+h/2.;
   }
   return ((m_r[2]-m_r[0])*(m_r[3]-m_r[1]));

@@ -4,7 +4,7 @@
 //..end "Ifdef"
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 #include <numeric/interpolation.h>
 #include <graphic/shapes/style.h>
 #include <graphic/shapes/polygon.h>
@@ -21,16 +21,16 @@ class GraphData {
     GraphData() { }
     virtual ~GraphData() { }
     virtual int count() const=0;
-    virtual aux::Vector3 data(int,int *avail=0)=0;
-    virtual int data(aux::TVList<aux::Vector3> *) { return 0; };
-    virtual int setData(int,aux::Vector3*) { return -1; }
+    virtual num::Vector3 data(int,int *avail=0)=0;
+    virtual int data(aux::TVList<num::Vector3> *) { return 0; };
+    virtual int setData(int,num::Vector3*) { return -1; }
     virtual int findBounds(aux::MinMax *,aux::MinMax *)=0;
     virtual shapes::Shape2 *mark(int)=0;
     virtual int setMark(int,shapes::Shape2 *) { return -1; }
     virtual void setCmp(int (*fcmp)(const void*,const void*)) { }
     virtual int sortype() const { return -1; }
     virtual int setSortype(int) { return -1; }
-    virtual int match(aux::Vector3,aux::Vector3) { return -1; }
+    virtual int match(num::Vector3,num::Vector3) { return -1; }
     
   protected:
     GraphData(const GraphData &) { }
@@ -45,7 +45,7 @@ extern const char *idx2markshape2(int);
 class GraphData2 : public GraphData {
 
   protected:
-    aux::TVList<aux::Vector3> m_data; 
+    aux::TVList<num::Vector3> m_data; 
     aux::TPArr<shapes::Shape2> m_mark;
     int m_sortype;
 
@@ -55,15 +55,15 @@ class GraphData2 : public GraphData {
     virtual ~GraphData2() { m_mark.resize(0,true); }
     GraphData2 &operator=(const GraphData2 &ass);
     virtual int count() const { return m_data.count(); }
-    virtual aux::Vector3 data(int idx,int *avail=0);
-    virtual int data(aux::TVList<aux::Vector3> *);
-    virtual int setData(int,aux::Vector3*);
+    virtual num::Vector3 data(int idx,int *avail=0);
+    virtual int data(aux::TVList<num::Vector3> *);
+    virtual int setData(int,num::Vector3*);
     virtual int findBounds(aux::MinMax *,aux::MinMax *);
     virtual shapes::Shape2 *mark(int);
     virtual  int setMark(int,shapes::Shape2 *);
     virtual int sortype() const { return m_sortype; }
     virtual int setSortype(int);
-    virtual int match(aux::Vector3,aux::Vector3);
+    virtual int match(num::Vector3,num::Vector3);
     
 };
 
@@ -79,15 +79,15 @@ class Graph : public aux::TypeId {
     shapes::Style m_linestyle;
     TypeId *m_axis[3];
     virtual aux::MinMax findBounds(int) { return aux::MinMax(); }
-    virtual int match(aux::Vector3 p) const;
-    virtual aux::Vector3 value(int,int *avail=0) const { if (avail) *avail=0; return aux::Vector3(); }
-    virtual int setValue(int,aux::Vector3*,int *modbounds=0) { return -1; }
+    virtual int match(num::Vector3 p) const;
+    virtual num::Vector3 value(int,int *avail=0) const { if (avail) *avail=0; return num::Vector3(); }
+    virtual int setValue(int,num::Vector3*,int *modbounds=0) { return -1; }
     virtual int rescale() { return 0; }
-    aux::TVList<aux::Vector3> m_scData;
-    aux::TPList<aux::TVList<aux::Vector3> > m_scDataI;
+    aux::TVList<num::Vector3> m_scData;
+    aux::TPList<aux::TVList<num::Vector3> > m_scDataI;
     aux::TPArr<shapes::Shape2> m_scMark;
-    virtual void sc2sz(aux::Vector3 *) const;
-    virtual void sz2sc(aux::Vector3 *) const;
+    virtual void sc2sz(num::Vector3 *) const;
+    virtual void sz2sc(num::Vector3 *) const;
     
 	protected:
     Graph(const Graph &ass) : aux::TypeId((const aux::TypeId&)ass),m_graphdata(0) { m_axis[0]=m_axis[1]=m_axis[2]=0; }
@@ -108,8 +108,8 @@ class GraphXY : public Graph {
     bool operator<(const GraphXY &cmp) const { return ((const Graph*)this)->operator<((const Graph&)cmp); }
     num::Interpolation *m_interpolation;
     virtual aux::MinMax findBounds(int type);
-    virtual aux::Vector3 value(int,int *avail=0) const;
-    virtual int setValue(int,aux::Vector3 *,int *modbounds=0);
+    virtual num::Vector3 value(int,int *avail=0) const;
+    virtual int setValue(int,num::Vector3 *,int *modbounds=0);
     int rescale();
     
   protected:

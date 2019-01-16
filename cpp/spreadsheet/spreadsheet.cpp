@@ -394,7 +394,7 @@ int Spreadsheet::calcPositions() {
 }
 
 // **********
-Coords Spreadsheet::cellAt(aux::Vector3 pos,int *dir) const {
+Coords Spreadsheet::cellAt(num::Vector3 pos,int *dir) const {
 
   Coords coords(-1,-1);
   if (dir)
@@ -1339,7 +1339,7 @@ pr->m_rect.left(),pr->m_rect.top(),pr->m_rect.right(),pr->m_rect.bottom());*/
 }
 
 // **********
-int Spreadsheet::scrollAction(int,aux::Vector3 vpos) {
+int Spreadsheet::scrollAction(int,num::Vector3 vpos) {
 
   int out=0,rows=0,cols=0;
   if (!validView(&rows,&cols))

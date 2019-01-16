@@ -7,9 +7,9 @@ WFLAGS        = -w3
 LFLAGS        = -nologo -dll 
 INCPATH       = -i"$(SWDIR)\cpp" -i"$(SWDIR)\c"
 LIBS          = $(LIBDIR)\libmkbase.lib 
-HEADER        = auxx.h vertex.h
-SOURCES       = auxx.cpp vertex.cpp
-OBJECTS       = auxx.obj vertex.obj
+HEADER        = auxx.h 
+SOURCES       = auxx.cpp 
+OBJECTS       = auxx.obj 
 TARGET        = lib$(PRJ).dll
 TARGETLIB     = lib$(PRJ).lib
 

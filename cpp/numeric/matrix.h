@@ -3,7 +3,7 @@
 #define _matrix_H_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 
 namespace num {
 
@@ -83,7 +83,7 @@ class oswinexp TransformMatrix : public SquareMatrix {
     int shearXY(double x=.0,double y=.0);
     int shearXZ(double x=.0,double z=.0);
     int shearYZ(double y=.0,double z=.0);
-    int transform(aux::Vertex *);
+    int transform(Vertex *);
 
 };
 

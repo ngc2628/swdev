@@ -3,7 +3,7 @@
 #define _line_h_
 
 #include <auxx/auxx.h>
-#include <auxx/vertex.h>
+#include <numeric/vertex.h>
 #include <graphic/shapes/shape.h>
 
 namespace shapes {
@@ -11,12 +11,12 @@ namespace shapes {
 class oswinexp Line2 : public Shape2 {
 
   protected:
-    aux::Vector3 m_l[2]; 
+    num::Vector3 m_l[2]; 
             
   public:
-    Line2(aux::Vector3 p0=aux::Vector3(),aux::Vector3 p1=aux::Vector3()) : Shape2("Line2") {
-      if (p0.busted(aux::typeX|aux::typeY)!=0 || p1.busted(aux::typeX|aux::typeY)!=0)
-        p0=p1=aux::Vector3(0.,0.);
+    Line2(num::Vector3 p0=num::Vector3(),num::Vector3 p1=num::Vector3()) : Shape2("Line2") {
+      if (p0.busted(num::typeX|num::typeY)!=0 || p1.busted(num::typeX|num::typeY)!=0)
+        p0=p1=num::Vector3(0.,0.);
       m_l[0]=p0;
       m_l[1]=p1;
     }
@@ -40,7 +40,7 @@ class oswinexp Line2 : public Shape2 {
     operator bool() const {
       return !(m_l[0]==m_l[1]);
     }
-    aux::Vector3 operator[](int i) const {
+    num::Vector3 operator[](int i) const {
       return m_l[i];
     }
     aux::TypeId *clone() const {
@@ -50,24 +50,24 @@ class oswinexp Line2 : public Shape2 {
       double x=m_l[1][0]-m_l[0][0],y=m_l[1][1]-m_l[0][1];
       return sqrt(x*x+y*y); 
     }
-    void set(aux::Vector3 p0,aux::Vector3 p1) {
-      if (!p0.busted(aux::typeX|aux::typeY)!=0)
+    void set(num::Vector3 p0,num::Vector3 p1) {
+      if (!p0.busted(num::typeX|num::typeY)!=0)
         m_l[0]=p0;
-      if (!p1.busted(aux::typeX|aux::typeY)!=0)
+      if (!p1.busted(num::typeX|num::typeY)!=0)
         m_l[1]=p1;
     }
-    void get(aux::Vector3 *p0,aux::Vector3 *p1) const {
+    void get(num::Vector3 *p0,num::Vector3 *p1) const {
       *p0=m_l[0];
       *p1=m_l[1];
     }
-    double ang() const { aux::Vector3 n(.0,1.),d=m_l[1]-m_l[0]; return d.angdeg(n); } 
-    aux::Vector3 center() const { 
-      return aux::Vector3((m_l[1][0]+m_l[0][0])/2.,(m_l[1][1]+m_l[0][1])/2.,.0); 
+    double ang() const { num::Vector3 n(.0,1.),d=m_l[1]-m_l[0]; return d.angdeg(n); } 
+    num::Vector3 center() const { 
+      return num::Vector3((m_l[1][0]+m_l[0][0])/2.,(m_l[1][1]+m_l[0][1])/2.,.0); 
     }
     double circradius() const {
       return len()/2.;
     }
-    int eval(aux::TVList<aux::Vector3> *,int npoints=-1);
+    int eval(num::VertexList *,int npoints=-1);
     void toStringType(aux::Asciistr *) const;
     
 };

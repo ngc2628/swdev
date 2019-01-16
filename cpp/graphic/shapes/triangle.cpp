@@ -13,14 +13,14 @@ namespace shapes {
 
 static const int defCntPoints=3;
 
-void Triangle::set(aux::Vector3 t0,aux::Vector3 t1,aux::Vector3 t2) {
+void Triangle::set(num::Vector3 t0,num::Vector3 t1,num::Vector3 t2) {
 
-  if (t0.busted(aux::typeX|aux::typeY)!=0)
-    t0=aux::Vector3(0.,0.);
-  if (t1.busted(aux::typeX|aux::typeY)!=0)
-    t1=aux::Vector3(0.,0.);
-  if (t2.busted(aux::typeX|aux::typeY)!=0)
-    t2=aux::Vector3(0.,0.);
+  if (t0.busted(num::typeX|num::typeY)!=0)
+    t0=num::Vector3(0.,0.);
+  if (t1.busted(num::typeX|num::typeY)!=0)
+    t1=num::Vector3(0.,0.);
+  if (t2.busted(num::typeX|num::typeY)!=0)
+    t2=num::Vector3(0.,0.);
   if (t1[0]<t0[0])
     aux::swap(&t0,&t1);
   if (t2[0]<t1[0])
@@ -40,10 +40,10 @@ double Triangle::circradius() const {
   
 }
 
-aux::Vector3 Triangle::center() const {
+num::Vector3 Triangle::center() const {
 
   TransformMatrix mm;
-  aux::Vector3 mt0(m_t[0]),mt1(m_t[1]),mt2(m_t[2]),
+  num::Vector3 mt0(m_t[0]),mt1(m_t[1]),mt2(m_t[2]),
                m10(mt1-mt0),m21(mt2-mt1),nn(.0,.0,1.),
                n10=m10.cross(nn),n21=m21.cross(nn);
   double xm10=(mt1[0]+mt0[0])/2.,ym10=(mt1[1]+mt0[1])/2.,
@@ -59,11 +59,11 @@ aux::Vector3 Triangle::center() const {
     vm2={xm21,ym21,mk_dnan,mk_dnan},n2={n21[0],n21[1],mk_dnan,mk_dnan},
     ss={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
   mk_linesintersection(vm1,n1,vm2,n2,ss,3,0);
-  return aux::Vector3(ss[0],ss[1]);
+  return num::Vector3(ss[0],ss[1]);
 
 }
 
-int Triangle::eval(TVList<Vector3> *pointL,int npoints) {
+int Triangle::eval(num::VertexList *pointL,int npoints) {
 
   if (npoints!=defCntPoints)
     npoints=defCntPoints;
@@ -73,10 +73,9 @@ int Triangle::eval(TVList<Vector3> *pointL,int npoints) {
     return npoints; // cache
   }
   m_points.clear();
-  if (m_points.size()<npoints)
-    m_points.resize(npoints);
+  m_points.resize(npoints);
   TransformMatrix mm;
-  aux::Vector3 mt0(m_t[0]),mt1(m_t[1]),mt2(m_t[2]),
+  num::Vector3 mt0(m_t[0]),mt1(m_t[1]),mt2(m_t[2]),
                m10(mt1-mt0),m21(mt2-mt1),nn(.0,.0,1.),
                n10=m10.cross(nn),n21=m21.cross(nn);
   double xm10=(mt1[0]+mt0[0])/2.,ym10=(mt1[1]+mt0[1])/2.,
@@ -129,7 +128,7 @@ void Triangle::toStringType(Asciistr *buf) const {
 
 }
 
-int TriangleEq::eval(TVList<Vector3> *pointL,int npoints) {
+int TriangleEq::eval(num::VertexList *pointL,int npoints) {
 
   if (npoints!=defCntPoints)
     npoints=defCntPoints;
@@ -139,8 +138,7 @@ int TriangleEq::eval(TVList<Vector3> *pointL,int npoints) {
     return npoints; // cache
   }
   m_points.clear();
-  if (m_points.size()<npoints)
-    m_points.resize(npoints);
+  m_points.resize(npoints);
   double xx=m_a/2.,yy=m_a*sqrt(3.)/6.;
   Vector3 tt[3]={Vector3(-xx,-yy),Vector3(xx,-yy),Vector3(0.,2.*yy)};
   TransformMatrix mm;

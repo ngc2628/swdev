@@ -50,13 +50,13 @@ shapes::Shape2 *buildMarkshape2(const char *type,double size) {
     case 0:
       break;
     case 1:
-      ss=new shapes::Ellipse(aux::Vector3(size,size));
+      ss=new shapes::Ellipse(num::Vector3(size,size));
       break;
     case 2:
       ss=new shapes::Rect(shapes::RectSize(1.414*size,1.414*size));
       break;
     case 3:
-      ss=new shapes::Triangle(aux::Vector3(.0,size),aux::Vector3(-.866*size,-.5*size),aux::Vector3(.866*size,-.5*size));
+      ss=new shapes::Triangle(num::Vector3(.0,size),num::Vector3(-.866*size,-.5*size),num::Vector3(.866*size,-.5*size));
       break;
     case 4:
       ss=new shapes::Rect(shapes::RectSize(1.414*size,1.414*size));
@@ -105,43 +105,36 @@ GraphData2 &GraphData2::operator=(const GraphData2 &ass) {
   
 }
 
-aux::Vector3 GraphData2::data(int idx,int *avail) {
+num::Vector3 GraphData2::data(int idx,int *avail) {
 
-  if (avail)
-    *avail=(m_data.at(idx) ? 1 : 0);
-  return m_data[idx];
+  return m_data.get(idx,avail);
 
 }
 
-int GraphData2::data(aux::TVList<aux::Vector3> *vL) {
+int GraphData2::data(num::VertexList *vL) {
 
   int ii=0,cnt=m_data.count();
   if (!vL)
     return cnt;
-  if (vL->size()<cnt)
-    vL->resize(cnt);
   vL->clear();
+  vL->resize(cnt);
   if(cnt==0)
     return cnt;
-  if (m_data.sorted()) {
-    vL->setCmp(aux::cmpVector[m_sortype]);
-    vL->inSort(m_data[0]);
-  }
-  else
-    vL->append(m_data[0]);
-  for (ii=1;ii<cnt;ii++)
+  for (ii=0;ii<cnt;ii++)
     vL->append(m_data[ii]);
+  if (m_data.sorted()>0)
+    vL->sort(m_sortype);
   return cnt;
 
 }
 
-int GraphData2::setData(int idx,aux::Vector3 *vv) {
+int GraphData2::setData(int idx,num::Vector3 *vv) {
 
   if (!vv)
-    idx=m_data.remove(idx);
+    m_data.remove(idx);
   else if (idx>=0 && idx<m_data.count())
-    m_data.replace(idx,*vv);
-  else
+    m_data.set(idx,*vv,0);
+  else 
     idx=m_data.inSort(*vv);
   return idx;
 
@@ -149,7 +142,7 @@ int GraphData2::setData(int idx,aux::Vector3 *vv) {
 
 int GraphData2::findBounds(int type,double *bmin,double *bmax) {
 
-  type&=(aux::typeX|aux::typeY);
+  type&=(num::typeX|num::typeY);
   int ii=0,cnt=m_data.count();
   if (type==0 || cnt==0 || (!bmin && !bmax))
     return cnt;
@@ -157,27 +150,31 @@ int GraphData2::findBounds(int type,double *bmin,double *bmax) {
     *bmin=mk_dinf;
   if (bmax)
     *bmax=mk_dsinf;
+  num::Vector3 vv;
   if (m_data.sorted()>0 && type==m_sortype) {
-    if (bmin)
-      *bmin=(type==aux::typeX ? m_data.at(0)->x() : m_data.at(0)->y());
-    if (bmax)
-      *bmax=(type==aux::typeX ? m_data.at(cnt-1)->x() : m_data.at(cnt-1)->y());
+    if (bmin) {
+      vv=m_data.get(0);
+      *bmin=(type==num::typeX ? vv.x() : vv.y());
+    }
+    if (bmax) {
+      vv=m_data.get(cnt-1);
+      *bmax=(type==num::typeX ? vv.x() : vv.y());
+    }
   }
   else {
-    aux::Vector3 *vv=0;
     for (ii=0;ii<cnt;ii++) {
-      vv=m_data.at(ii);
+      vv=m_data.get(ii);
       if (bmin) {
-        if (type==aux::typeX && mk_dlt(vv->x(),*bmin))
-          *bmin=vv->x();
-        else if (type==aux::typeY && mk_dlt(vv->y(),*bmin))
-          *bmin=vv->y();
+        if (type==num::typeX && mk_dlt(vv.x(),*bmin))
+          *bmin=vv.x();
+        else if (type==num::typeY && mk_dlt(vv.y(),*bmin))
+          *bmin=vv.y();
       }
       if (bmax) {
-        if (type==aux::typeX && mk_dlt(*bmax,vv->x()))
-          *bmax=vv->x();
-        else if (type==aux::typeY && mk_dlt(*bmin,vv->y()))
-          *bmax=vv->y();
+        if (type==num::typeX && mk_dlt(*bmax,vv.x()))
+          *bmax=vv.x();
+        else if (type==num::typeY && mk_dlt(*bmin,vv.y()))
+          *bmax=vv.y();
       }
     }
   }
@@ -186,41 +183,40 @@ int GraphData2::findBounds(int type,double *bmin,double *bmax) {
   
 }
 
-int GraphData2::match(aux::Vector3 pp,aux::Vector3 md) {
+int GraphData2::match(num::Vector3 pp,num::Vector3 md) {
 
   int ii=0,idxl=-1,idxh=-1,cnt=m_data.count(),sortype=(m_data.sorted() ? m_sortype : -1);
   if (cnt==0)
     return -1;
-  aux::Vector3 *pl=0;
-  aux::Vector3 *ph=0;
+  num::Vector3 pl,ph;
   if (sortype>=0) {
     idxh=m_data.findNextIndex(pp);
     if (idxh==0 || idxh==cnt)
       return -1;
     idxl=idxh-1;
-    pl=m_data.at(idxl);
-    ph=m_data.at(idxh);
+    pl=m_data.get(idxl);
+    ph=m_data.get(idxh);
     if (sortype==0) {
 //printf ("p=%f,%f pl=%f,%f ph=%f,%f md=%f,%f distl=%d disth=%d plbust=%d\n",
 //p.x(),p.y(),pl->x(),pl->y(),ph->x(),ph->y(),md.x(),md.y(),fabs(p.y()-pl->y())<md.y(),fabs(p.y()-ph->y())<md.y(),pl->busted(2));
-      if (!pl->busted(1) && fabs(pp.y()-pl->y())<md.y())
+      if (!pl.busted(1) && fabs(pp.y()-pl.y())<md.y())
         return idxl;
-      else if (!ph->busted(1) && fabs(pp.y()-ph->y())<md.y())
+      else if (!ph.busted(1) && fabs(pp.y()-ph.y())<md.y())
         return idxh;
     }
     else if (sortype==1) {
-      if (!pl->busted(0) && fabs(pp.x()-pl->x())<md.x())
+      if (!pl.busted(0) && fabs(pp.x()-pl.x())<md.x())
         return idxl;
-      else if (!ph->busted(0) && fabs(pp.x()-ph->x())<md.x())
+      else if (!ph.busted(0) && fabs(pp.x()-ph.x())<md.x())
         return idxh;
     }
   }
   else {
     for (ii=0;ii<cnt;ii++) {
-      pl=m_data.at(ii);
-      if (pl->busted(3))
+      pl=m_data.get(ii);
+      if (pl.busted(3))
         continue;
-      if (fabs(pp.x()-pl->x())<md.x() && fabs(pp.y()-pl->y())<md.y())
+      if (fabs(pp.x()-pl.x())<md.x() && fabs(pp.y()-pl.y())<md.y())
         return ii;
     }
   }
@@ -248,12 +244,7 @@ int GraphData2::setMark(int idx,shapes::Shape2 *mark) {
 int GraphData2::setSortype(int coor) {
 
   int sortype=m_sortype;
-  if (coor<0 || coor>2)
-    m_data.setCmp(0);
-  else {
-    m_data.setCmp(aux::cmpVector[coor]);
-    m_data.sort(true);
-  }
+  m_data.sort(coor);
   m_sortype=coor;
   return sortype;
 
@@ -261,7 +252,7 @@ int GraphData2::setSortype(int coor) {
 
 // ***
 
-int Graph::sc2sz(aux::Vector3 *vv) const {
+int Graph::sc2sz(num::Vector3 *vv) const {
 
   if (!m_graphdata)
     return -1;
@@ -277,7 +268,7 @@ int Graph::sc2sz(aux::Vector3 *vv) const {
 
 }
 
-int Graph::sz2sc(aux::Vector3 *vv) const {
+int Graph::sz2sc(num::Vector3 *vv) const {
 
   if (!m_graphdata)
     return -1;
@@ -293,15 +284,15 @@ int Graph::sz2sc(aux::Vector3 *vv) const {
 
 }
 
-int Graph::match(aux::Vector3 pp) const {
+int Graph::match(num::Vector3 pp) const {
 
   if (!m_graphdata)
     return -1;
-  aux::Vector3 md1(matchdist,matchdist),md0(.0,.0);
+  num::Vector3 md1(matchdist,matchdist),md0(.0,.0);
   sz2sc(&md0);
   sz2sc(&md1);
   sz2sc(&pp);
-  return m_graphdata->match(pp,aux::Vector3(md1.x()-md0.x(),md1.y()-md0.y()));
+  return m_graphdata->match(pp,num::Vector3(md1.x()-md0.x(),md1.y()-md0.y()));
  
 }
 
@@ -324,28 +315,29 @@ int GraphXY::findBounds(int type,double *min,double *max) {
 
 }
 
-aux::Vector3 GraphXY::value(int idx,int *avail) const { 
+num::Vector3 GraphXY::value(int idx,int *avail) const { 
 
   if (m_graphdata)
     return m_graphdata->data(idx,avail);
   if (avail)
     *avail=0;
-  return aux::Vector3();
+  return num::Vector3();
   
 }
 
-int GraphXY::setValue(int idx,aux::Vector3 *vv,int *modbounds) {
+int GraphXY::setValue(int idx,num::Vector3 *vv,int *modbounds) {
 
   if (!m_graphdata)
     return -1;
-  int avail=0,nidx=m_graphdata->setData(idx,vv),modb=0;
-  aux::Vector3 vold=m_graphdata->data(idx,&avail);
+  int avail=0;
+  num::Vector3 vold=m_graphdata->data(idx,&avail);
+  int nidx=m_graphdata->setData(idx,vv),modb=0;
   Axis *ax0=dynamic_cast<Axis*>(m_axis[0]),*ax1=dynamic_cast<Axis*>(m_axis[1]);
   if (nidx==idx) {
     if (avail && vold.busted(0)==0 && ax0 && ax0->checkAutoBounds(vold[0],vold[0])>0)
-      modb|=ax0->findAutoBounds(aux::typeX,0,0);
+      modb|=ax0->findAutoBounds(num::typeX,0,0);
     if (avail && !vold.busted(1) && ax1 && ax1->checkAutoBounds(vold[1],vold[1])>0)
-      modb|=ax1->findAutoBounds(aux::typeY,0,0);
+      modb|=ax1->findAutoBounds(num::typeY,0,0);
   }
   if (vv) {
     if (ax0)
@@ -374,32 +366,34 @@ int GraphXY::rescale() {
   if (m_scMark.size()<cnt)
     m_scMark.resize(cnt);
   shapes::Shape2 *scm=0;
-  aux::Vector3 *vv=0;
+  num::Vector3 vv;
   if (!m_interpolation) {
     for (ii=0;ii<cnt;ii++) {
-      vv=m_scData.at(ii);
-      sc2sz(vv);
+      vv=m_scData.get(ii);
+      sc2sz(&vv);
+      m_scData.set(ii,vv,0);
       if (m_graphdata->mark(ii)) {
         scm=(shapes::Shape2*)(m_graphdata->mark(ii)->clone());
-        scm->translate(*vv);
+        scm->translate(vv);
         m_scMark.set(ii,scm);
       }
     }
     return cnt;
   }
-  aux::TVList<aux::Vector3> viL(cnt);
+  num::VertexList viL(cnt);
   for (ii=0;ii<cnt;ii++) {
-    vv=m_scData.at(ii);
-    if (vv->busted(3)>0) {
+    vv=m_scData.get(ii);
+    if (vv.busted(3)>0) {
       m_scDataI.append(viL);
       viL.clear();
     }
     else
-      viL.append(*vv);
-    sc2sz(vv); 
-    if (m_graphdata->mark(ii) && vv->busted(3)==0) {
+      viL.append(vv);
+    sc2sz(&vv); 
+    m_scData.set(ii,vv,0);
+    if (m_graphdata->mark(ii) && vv.busted(3)==0) {
       scm=(shapes::Shape2*)(m_graphdata->mark(ii)->clone());
-      scm->translate(*vv);
+      scm->translate(vv);
       m_scMark.set(ii,scm);
     }
   }
@@ -412,8 +406,9 @@ int GraphXY::rescale() {
     ni=num::numInterpolIntermediates(m_interpolation);
     res=m_interpolation->interpol(ni,m_scDataI.at(ii));
     for (jj=0;jj<ni;jj++) {
-      vv=m_scDataI.at(ii)->at(jj);
-      sc2sz(vv);
+      vv=m_scDataI.at(ii)->get(jj);
+      sc2sz(&vv);
+      m_scDataI.at(ii)->set(jj,vv,0);
     }
   }
 
@@ -422,17 +417,16 @@ int GraphXY::rescale() {
   aux::TVList<aux::Asciistr> optL;
   m_interpolation->options(&optL);
   if (strInterpoltype==strInterpoltypeConst && optL.find(strOptSteps)<0) {
-    aux::TVList<aux::TVList<aux::Vector3> > scDataI=m_scDataI;
+    aux::TVList<num::VertexList> scDataI=m_scDataI;
     m_scDataI.clear();
     viL.clear();
     for (ii=0;ii<scDataI.count();ii++) {
       for (jj=0;jj<scDataI.at(ii)->count();jj++) {
-
         if (jj>0 && (jj%2)>0) {
           m_scDataI.append(viL);
           viL.clear();
         }        
-        viL.append(scDataI.at(ii)->operator[](jj));
+        viL.append(scDataI.at(ii)->get(jj));
       }
       if (viL.count()>0) {
         m_scDataI.append(viL); 
