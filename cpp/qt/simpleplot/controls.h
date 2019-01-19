@@ -29,8 +29,7 @@ class oswinexp GraphInterpolationOptions : public QDialog {
   protected:
     QGridLayout *m_layout;
     qtutil::CustomCheckBox **m_checkoption;
-    aux::TVList<aux::Asciistr> *m_optionL;
-
+    mk_ulreal m_optionL;
     GraphInterpolationOptions(const GraphInterpolationOptions &) : QDialog(0) {
     }
     GraphInterpolationOptions &operator=(const GraphInterpolationOptions &) {
@@ -40,10 +39,10 @@ class oswinexp GraphInterpolationOptions : public QDialog {
   public:
     GraphInterpolationOptions(QWidget *);
     virtual ~GraphInterpolationOptions();
-    void setOptionL(aux::TVList<aux::Asciistr> *);
+    void setOptionL(mk_ulreal);
   
   signals:
-    void dismiss();
+    void dismiss(mk_ulreal);
 
   protected slots:
     void slotOptionCheck(qtutil::CustomCheckBox*,int);   
@@ -80,7 +79,7 @@ class oswinexp GraphProps : public QFrame {
     unsigned int m_markcolorO;
     unsigned int m_markcolorF;
     unsigned int m_fillcolor;
-    aux::TVList<aux::Asciistr> m_interpolationoptionL; 
+    mk_ulreal m_interpolationoptionL; 
 
     GraphProps(const GraphProps &) : QFrame(0) {
     }
@@ -105,7 +104,7 @@ class oswinexp GraphProps : public QFrame {
     void slotColorMarkF();
     void slotColorMarkO();
     void slotInterpolationOptions(int);
-    void slotInterpolationOptionsDismiss();
+    void slotInterpolationOptionsDismiss(mk_ulreal);
     void slotSetColorLine(unsigned int);
     void slotSetColorFill(unsigned int);
     void slotSetColorMarkF(unsigned int);

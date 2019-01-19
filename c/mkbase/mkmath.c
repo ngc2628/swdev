@@ -852,7 +852,7 @@ double mk_factorial(int nn) {
 }
 
 /* ########## */
-double mk_binomialCoeff(int up,int down) {
+double mk_binomialcoeff(int up,int down) {
 
   return mk_factorial(up)/(mk_factorial(down)*mk_factorial(up-down));
 

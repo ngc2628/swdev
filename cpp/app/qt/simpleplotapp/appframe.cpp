@@ -347,15 +347,14 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
 
-  aux::TVList<aux::Asciistr> interpoloptL(1);
-  interpoloptL.inSort("ctrl");
-  graph->m_interpolation=new num::Polynomial(&interpoloptL);
+  mk_ulreal interpoloptL=num::interpolation_ctrl;
+  graph->m_interpolation=new num::Polynomial(interpoloptL);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
   m_graphs.inSort(m_chart2[idx]->setGraph(graph));
  
-  num::Polynomial polyinter1(&interpoloptL);
+  num::Polynomial polyinter1(interpoloptL);
   polyinter1.setCtrl(&vvL);
   num::VertexList cc;
   polyinter1.coeff(.0,&cc);
@@ -364,9 +363,8 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
     printf ("%d coeff#%d=%.15f\n",__LINE__,ii,xx[ii]);
   }
 
-  interpoloptL.clear();
-  interpoloptL.inSort("eq");
-  num::Polynomial polyinter2(&interpoloptL);
+  interpoloptL=num::interpolation_eq;
+  num::Polynomial polyinter2(interpoloptL);
   cc.clear();
   for (ii=1;ii<cc.count();ii++) {
     xx[ii-1]=(double)ii*xx[ii];
@@ -428,9 +426,7 @@ void AppFrame::slotChart2Action() {
   graphdata->setMark(0,mark);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
-  aux::TVList<aux::Asciistr> interpoloptL(1);
-  interpoloptL.inSort("solve2nd");
-  graph->m_interpolation=new num::CubicSpline(&interpoloptL);
+  graph->m_interpolation=new num::CubicSpline(num::interpolation_solve2nd);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
@@ -464,7 +460,7 @@ void AppFrame::slotChart2Action() {
   graphdata->setMark(0,mark);
   graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
-  graph->m_interpolation=new num::CubicSpline(&interpoloptL);
+  graph->m_interpolation=new num::CubicSpline(num::interpolation_solve2nd);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::blue],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);

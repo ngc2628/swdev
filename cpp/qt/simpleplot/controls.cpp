@@ -26,7 +26,6 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   m_editlinewidth(0),m_editmarkwidth(0),m_combointerpolation(0),m_checkinterpolationoption(0),
   m_comboxax(0),m_comboyax(0),m_interpolationoptions(0),m_linecolor(0),m_markcolorO(0),m_markcolorF(0) {
   
-  m_interpolationoptionL.resize(num::numinerpolationoptions);
   m_layout=new QGridLayout(this);
   m_layout->setSpacing(0); 
   m_layout->setMargin(5);
@@ -332,18 +331,19 @@ void GraphProps::slotSelected(int idx) {
   }
      
   if (gr->m_interpolation) {
-    gr->m_interpolation->type(&str);
+    mk_ulreal ioptions=gr->m_interpolation->options();
+    str=num::interpolation2string(ioptions&num::interpolation_type);
     qtutil::toQString(&str,&qvval);
     qv.setValue(qvval);
     m_combointerpolation->setCurrentIndex(m_combointerpolation->findData(qv));
-    gr->m_interpolation->options(&m_interpolationoptionL);
+    m_interpolationoptionL=gr->m_interpolation->options();
   }
   else { 
     m_combointerpolation->setCurrentIndex(0);
-    m_interpolationoptionL.clear();
+    m_interpolationoptionL=0;
   }
   if (m_interpolationoptions)
-    m_interpolationoptions->setOptionL(&m_interpolationoptionL);
+    m_interpolationoptions->setOptionL(m_interpolationoptionL);
   
 }
 
@@ -428,16 +428,18 @@ void GraphProps::slotInterpolationOptions(int check) {
   }
   else if (check>0 && !m_interpolationoptions) {  
     m_interpolationoptions=new GraphInterpolationOptions(this);
-    connect(m_interpolationoptions,SIGNAL(dismiss()),this,SLOT(slotInterpolationOptionsDismiss()));
-    m_interpolationoptions->setOptionL(&m_interpolationoptionL);
+    connect(m_interpolationoptions,SIGNAL(dismiss(mk_ulreal)),this,SLOT(slotInterpolationOptionsDismiss(mk_ulreal)));
+    m_interpolationoptions->setOptionL(m_interpolationoptionL);
     m_interpolationoptions->resize(m_interpolationoptions->sizeHint());
     m_interpolationoptions->show();
   }
 
 }
 
-void GraphProps::slotInterpolationOptionsDismiss() {
+void GraphProps::slotInterpolationOptionsDismiss(mk_ulreal optionL) {
       
+  mk_ulreal interpolationtype=(m_interpolationoptionL&num::interpolation_type);
+  m_interpolationoptionL=(interpolationtype|optionL);
   m_interpolationoptions=0;
   m_checkinterpolationoption->setChecked(false);
   
@@ -454,25 +456,19 @@ void GraphProps::sendValues() {
   simpleplot::GraphXY *gr=dynamic_cast<simpleplot::GraphXY*>(m_chart->graph(grid));
   if (!gr) 
     return;
-  str=0;
-  if (gr->m_interpolation)
-    gr->m_interpolation->type(&str);
-  else
-    str="none";  
-  QString interptype;
-  qtutil::toQString(&str,&interptype);
-  str=0;
-  qv1=m_combointerpolation->itemData(m_combointerpolation->currentIndex());
-  QString combointerptype=qv1.toString();
-  if (interptype!=combointerptype) {
-    if (gr->m_interpolation) 
+  mk_ulreal ioptions=(gr->m_interpolation ? gr->m_interpolation->options() : 0);
+  mk_ulreal interpolationtype=(ioptions&num::interpolation_type);  
+  mk_ulreal ninterpolationtype=mk_ulreal(mk_ipow2(m_combointerpolation->currentIndex()-1));
+  if (interpolationtype!=ninterpolationtype) {
+    m_interpolationoptionL&=num::interpolation_options;
+    m_interpolationoptionL|=ninterpolationtype;
+    if (gr->m_interpolation) {
       delete gr->m_interpolation;
-    qtutil::fromQString(&combointerptype,&str);
-    gr->m_interpolation=num::buildInterpolation((const char *)str,&m_interpolationoptionL);
+      gr->m_interpolation=0;
+    }
+    if (ninterpolationtype>0)
+      gr->m_interpolation=num::buildInterpolation(m_interpolationoptionL);
   }
-  else if (gr->m_interpolation) 
-    gr->m_interpolation->setOptions(&m_interpolationoptionL,1);
-  
   osix::xxStyle linestyle(m_linecolor,(short)m_combolinestyle->currentIndex()),
                 markstyleO(m_markcolorO,(short)m_combomarkstyleO->currentIndex(),1),
                 markstyleF(m_markcolorF,(short)m_combomarkstyleF->currentIndex(),1);
@@ -529,8 +525,12 @@ GraphInterpolationOptions::GraphInterpolationOptions(QWidget *parent) :
   m_layout->setMargin(5);
   m_checkoption=new qtutil::CustomCheckBox *[num::numinerpolationoptions];
   int ii=0,cols=3,row=0,col=0;
+  aux::Asciistr stropt;
+  QString qstropt;
   for (ii=0;ii<num::numinerpolationoptions;ii++) {
-    m_checkoption[ii]=new qtutil::CustomCheckBox(num::interpolationoptions[ii],this);
+    stropt=num::interpolationoptions[ii];    
+    qtutil::toQString(&stropt,&qstropt);
+    m_checkoption[ii]=new qtutil::CustomCheckBox(qstropt,this);
     connect(m_checkoption[ii],SIGNAL(qstatechanged(qtutil::CustomCheckBox*,int)),
             this,SLOT(slotOptionCheck(qtutil::CustomCheckBox*,int)));  
     m_layout->addWidget(m_checkoption[ii],row,col++);
@@ -545,46 +545,39 @@ GraphInterpolationOptions::GraphInterpolationOptions(QWidget *parent) :
 GraphInterpolationOptions::~GraphInterpolationOptions() {
   
   //printf ("%d destr\n",__LINE__);
-  emit dismiss();
+  emit dismiss(m_optionL);
   if (m_checkoption)
     delete [] m_checkoption;
 
 }
 
-void GraphInterpolationOptions::setOptionL(aux::TVList<aux::Asciistr> *optionL) {
+void GraphInterpolationOptions::setOptionL(mk_ulreal optionL) {
 
   if (optionL==m_optionL)
     return;
-  m_optionL=optionL;
+  m_optionL=(optionL&num::interpolation_options);
   aux::Asciistr str;
-  int ii=0;
-  for (ii=0;ii<num::numinerpolationoptions;ii++) {
-    if (!m_optionL)
-      m_checkoption[ii]->setChecked(false);
-    else {
-      str=num::interpolationoptions[ii];
-      m_checkoption[ii]->setChecked(m_optionL->find(str)<0 ? false : true);
-    }
+  mk_ulreal ii=0;
+  int jj=0,chk=0;
+  for (ii=num::numinterpolationtypes,jj=0;ii<num::numinerpolationoptions;ii++,jj++) {
+    chk=(m_optionL&mk_ulreal(mk_ipow2(ii-1)));
+    m_checkoption[jj]->setChecked((bool)chk);
   }
 
 }
 
 void GraphInterpolationOptions::slotOptionCheck(qtutil::CustomCheckBox *checkbox,int check) {
 
-  aux::Asciistr str;
-  int ii=0,idx=-1;
-  for (ii=0;ii<num::numinerpolationoptions;ii++) {
-    if (m_checkoption[ii]==checkbox) {
-      if (!m_optionL)
-        checkbox->setChecked(false);
-      else {
-        str=num::interpolationoptions[ii];
-        idx=m_optionL->find(str);
-        if (check>0 && idx<0)
-          m_optionL->inSort(str);
-        else if (check==0 && idx>=0)
-          m_optionL->remove(idx);
-      }
+  mk_ulreal ii=0,option=0;
+  int jj=0,chk=0;
+  for (ii=num::numinterpolationtypes,jj=0;ii<num::numinerpolationoptions;ii++,jj++) {
+    if (m_checkoption[jj]==checkbox) {
+      option=mk_ulreal(mk_ipow2(ii-1));
+      chk=(m_optionL&option);
+      if (chk>0 && check==0)
+        m_optionL&=~option;
+      else if (chk==0 && check>0)
+        m_optionL|=option;
       break;
     }
   }

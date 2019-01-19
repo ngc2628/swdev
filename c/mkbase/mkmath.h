@@ -159,7 +159,7 @@ xtern double oswinexp mk_doublemod(double,double);
 xtern double oswinexp mk_factorial(int);
 
 /* in number set , in number subset , return result */
-xtern double oswinexp mk_binomialCoeff(int,int);
+xtern double oswinexp mk_binomialcoeff(int,int);
 
 #ifdef __cplusplus
 }

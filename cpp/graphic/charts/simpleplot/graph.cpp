@@ -400,23 +400,22 @@ int GraphXY::rescale() {
   if (viL.count()>0)
     m_scDataI.append(viL);
   int res=0;
+  num::VertexList *scDataI=0;
   for (ii=0;ii<m_scDataI.count();ii++) {
-    m_interpolation->setCtrl(m_scDataI.at(ii));
+    scDataI=m_scDataI.at(ii);
+    m_interpolation->setCtrl(scDataI);
+    scDataI->clear();
     m_interpolation->setup();
     ni=num::numInterpolIntermediates(m_interpolation);
-    res=m_interpolation->interpol(ni,m_scDataI.at(ii));
+    res=m_interpolation->interpol(ni,scDataI);
     for (jj=0;jj<ni;jj++) {
       vv=m_scDataI.at(ii)->get(jj);
       sc2sz(&vv);
       m_scDataI.at(ii)->set(jj,vv,0);
     }
   }
-
-  aux::Asciistr strInterpoltype,strInterpoltypeConst("const"),strOptSteps("steps");
-  m_interpolation->type(&strInterpoltype);
-  aux::TVList<aux::Asciistr> optL;
-  m_interpolation->options(&optL);
-  if (strInterpoltype==strInterpoltypeConst && optL.find(strOptSteps)<0) {
+  mk_ulreal itype=m_interpolation->options();
+  if ((itype&num::interpolation_const)>0 && (itype&num::interpolation_steps)==0) {
     aux::TVList<num::VertexList> scDataI=m_scDataI;
     m_scDataI.clear();
     viL.clear();
@@ -434,7 +433,6 @@ int GraphXY::rescale() {
       }       
     }
   } 
-
   return cnt;
     
 }
