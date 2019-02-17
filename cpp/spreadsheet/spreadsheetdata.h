@@ -2,6 +2,7 @@
 #ifndef _spreadsheetdata_
 #define _spreadsheetdata_
 
+#include <mkbase/mkconv.h>
 #include <auxx/auxx.h>
 #include <osix/xxstyle.h>
 #include <osix/xxshape.h>
@@ -110,7 +111,7 @@ class oswinexp SpreadsheetDataItemText {
 class oswinexp SpreadsheetDataItem {
 
   public:
-    aux::Asciistr m_editorType;
+    mk_string m_editorType;
     SpreadsheetDataItemText m_text;
     int m_selectable;
     osix::xxStyle m_style[6]; // fg,bg,frleft,frtop,frright,frbottom
@@ -173,7 +174,7 @@ class oswinexp SpreadsheetIndex {
       m_gridstyle=gridstyle;
       return 0;
     }
-    void toString(aux::Asciistr *);
+    int toString(mk_string);
 
 };
 
@@ -203,7 +204,7 @@ class oswinexp SpreadsheetData {
     virtual int indexDescr(SpreadsheetIndex *) const;
     virtual int drawCell(void *,osix::xxDrawable *,osix::xxGC *,int,int,int);
     virtual int drawGridLine(void *,osix::xxDrawable *,osix::xxGC *,int,int);
-    virtual void toString(aux::Asciistr *,bool descr=true,bool data=true);
+    virtual int toString(mk_string,bool descr=true,bool data=true);
 
   protected:
     SpreadsheetData(const SpreadsheetData &) {

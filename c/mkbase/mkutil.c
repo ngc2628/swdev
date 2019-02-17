@@ -1,25 +1,240 @@
 
+#include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
+#include <ctype.h>
+#if defined (__MACH__)
+#include <libkern/OSAtomic.h>
+#endif
+#if defined (_MSC_VER) || defined (__WATCOMC__)
+#include <sys/timeb.h>
+#else
+#include <sys/time.h>
+#endif
+#include <time.h>
 #include <mkbase/mkutil.h>
-#include <mkbase/mkmath.h>
 
-struct strfi {
-  double ff;
-  int ii;
-};
+extern int mk_ui2str(mk_ulreal,char *,int,int,int,char *);
+extern mk_ulreal mk_str2ui(char *,int *,int *,char *);
+static int alnumlen=13;
+static mk_ulreal mk_globalcnt=0;
 
 /* ########## */
-static int cmpFI(const void *a1, const void *a2) {
+mk_ulreal mk_nextcnt() {
+#if defined (__MACH__)
+  OSAtomicAdd32(1,&globalcnt);
+#else
+  mk_globalcnt++;
+#endif
+  return mk_globalcnt;
+}
 
-  int ret=0;
-  if (!a1 || !a2)
-    return ret;
-  if (((struct strfi*)a1)->ff>((struct strfi*)a2)->ff)
-    ret=1;
-  if (((struct strfi*)a1)->ff<((struct strfi*)a2)->ff)
-    ret=-1;
-  return ret;
+/* ########## */
+mk_ulreal mk_nextt() {
+
+  mk_ulreal tt=0;
+
+#if defined (_MSC_VER)
+  struct __timeb64 tsec;
+  _ftime64(&tsec);
+  tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
+#elif defined (__WATCOMC__)
+  struct timeb tsec;
+  ftime(&tsec);
+  tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
+#else
+  struct timezone tzp;
+  struct timeval tsec;
+  gettimeofday(&tsec,&tzp);
+  tt=(mk_ulreal)1000000*tsec.tv_sec+tsec.tv_usec;
+#endif
+  return tt;
+
+}
+
+/* ########## */
+int mk_stringlength(const mk_string mkstr) {
+
+  return MIN(mk_sz,MAX(0,(int)strlen(&mkstr[0])));
+
+}
+
+/* ########## */
+int mk_stringset(mk_string mkstr,const char *str) {
+
+  memset(&mkstr[0],0,mk_sz+1);
+  if (str && strlen(str)>0)
+    strncpy(&mkstr[0],str,mk_sz);
+  return mk_stringlength(mkstr);
+
+}
+
+/* ########## */
+int mk_stringcmp(const void *mkstr1,const void *mkstr2) {
+
+  const mk_string *m1=(const mk_string*)mkstr1;
+  const mk_string *m2=(const mk_string*)mkstr2;
+  int cmp=strcmp(&((*m1)[0]),&((*m2)[0]));
+  return (cmp<0 ? -1 : (0<cmp ? 1 : 0));
+
+}
+
+/* ########## */
+int mk_stringsetlength(mk_string mkstr,int length) {
+
+  length=MIN(mk_sz,MAX(0,length));
+  memset(&mkstr[length],0,mk_sz-length);
+  return mk_stringlength(mkstr);
+
+}
+
+/* ########## */
+int mk_stringappend(mk_string mkstr,const char *str) {
+
+  int ii=0,l1=mk_stringlength(mkstr),l2=(str ? strlen(str) : 0);
+  for (ii=0;ii<l2 && l1+ii<mk_sz;ii++)
+    mkstr[l1+ii]=str[ii];
+  return mk_stringlength(mkstr);
+
+}
+
+/* ########## */
+int mk_stringprepend(mk_string mkstr,const char *str) {
+
+  int ii=0,l2=MIN(mk_sz,(str ? strlen(str) : 0));
+  if (l2>0 && l2<mk_sz)
+    memmove(&mkstr[l2],&mkstr[0],mk_sz-l2);
+  for (ii=0;ii<l2;ii++)
+    mkstr[ii]=str[ii]; 
+  return mk_stringlength(mkstr);
+
+}
+
+/* ########## */
+int mk_stringsetat(mk_string mkstr,int idx,char cc) {
+
+  if (cc==0)
+    return mk_stringsetlength(mkstr,idx);
+  int ll=mk_stringlength(mkstr);
+  if (idx<=0) {
+    if (ll<mk_sz) {
+      memmove(&mkstr[1],&mkstr[0],mk_sz-1);
+      mkstr[0]=cc;
+    }
+  }
+  else if (idx>=mk_sz) {
+    if (ll<mk_sz) 
+      mkstr[ll]=cc;
+  }
+  else
+    mkstr[idx]=cc;  
+  return mk_stringlength(mkstr);
+
+}
+
+/* ########## */
+int mk_stringsubstr(const mk_string mkstr,int idx,int cnt,mk_string mksubstr) {
+
+  mk_stringset(mksubstr,0);
+  int ii=0,ll=mk_stringlength(mkstr);
+  if (idx<0)
+    idx=ll-idx;
+  if (idx>=ll || idx<0 || cnt<=0)
+    return 0;
+  if (idx+cnt>=ll)
+    cnt=ll-idx;
+  for (ii=0;ii<cnt;ii++)
+    mksubstr[ii]=mkstr[idx+ii];
+  return mk_stringlength(mksubstr);
+
+}
+
+/* ########## */
+int mk_stringfind(const mk_string mkstr,char cc,int idx,unsigned char dir,unsigned char cs) {
+ 
+   char cci=0;
+   int ll=mk_stringlength(mkstr),ss=(idx<0 ? ll+idx : idx),ee=(dir=='b' ? -1 : ll);
+   if (ll==0 || ss<0 || ss>=ll)
+     return -1;
+   if (cs=='i')
+     cc=(char)tolower(cc);
+   do {
+     cci=(cs=='i' ? tolower(mkstr[ss]) : mkstr[ss]);
+     if (cc==cci)
+       return ss;
+     ss+=(dir=='b' ? -1 : 1);
+   } while (ss!=ee);
+   return -1;
+ 
+}
+
+/* ########## */
+int mk_cmptypeidtype(const void *tid1,const void *tid2) {
+
+  const struct mk_typeid *typeid1=(const struct mk_typeid *)tid1;
+  const struct mk_typeid *typeid2=(const struct mk_typeid *)tid2;
+  int typecmp=strcmp(typeid1->type,typeid2->type);
+  if (typecmp<0)
+    typecmp=-1;
+  else if (0<typecmp)
+    typecmp=1;
+  return typecmp;
+
+}
+
+/* ########## */
+int mk_cmptypeid(const void *tid1,const void *tid2) {
+
+  int typecmp=mk_cmptypeidtype(tid1,tid2);
+  if (typecmp!=0)
+    return typecmp;
+  const struct mk_typeid *typeid1=(const struct mk_typeid *)tid1;
+  const struct mk_typeid *typeid2=(const struct mk_typeid *)tid2;
+  typecmp=(typeid1->idd<typeid2->idd ? -1 : (typeid2->idd<typeid1->idd ? 1 : 0));
+  return typecmp;
+
+}
+
+/* ########## */
+int mk_typeid2string(const struct mk_typeid *typeid,mk_string str) {
+
+  mk_stringset(str,&typeid->type[0]);
+  if (mk_stringlength(str)==0)
+    return 1;
+  mk_string numstr;
+  mk_ui2str(typeid->idd,numstr,mk_maxintbase,alnumlen,1,0);  
+  mk_stringappend(str,&numstr[0]);
+  return 0;  
+
+}
+
+/* ########## */
+int mk_typeid4string(struct mk_typeid *typeid,mk_string str) {
+
+  if (!typeid)
+    return 1;
+  memset(typeid,0,sizeof(struct mk_typeid));
+  int ii=0,jj=0,base=-1,len=mk_stringlength(str);
+  if (len<=alnumlen)
+    return 1;
+  mk_string stridd;
+  mk_stringsubstr(str,len-alnumlen,mk_sz,stridd);
+  typeid->idd=mk_str2ui(stridd,&base,0,0);
+  if (base<0)
+    return 1;
+  mk_stringsubstr(str,0,len-alnumlen,typeid->type);
+  return 0;
+
+}
+
+/* ########## */
+static int mk_cmpif(const void *if1, const void *if2) {
+
+  if (((struct mk_if*)if1)->ff<((struct mk_if*)if2)->ff)
+    return -1;
+  if (((struct mk_if*)if2)->ff<((struct mk_if*)if1)->ff)
+    return 1;
+  return 0;
 
 }
 
@@ -27,12 +242,12 @@ static int cmpFI(const void *a1, const void *a2) {
 void mk_indextab1(int num,double arr[],int indx[]) {
 
   int jj=0;
-  struct strfi *tmp=(struct strfi*)malloc(num*sizeof(struct strfi));
+  struct mk_if *tmp=(struct mk_if*)malloc(num*sizeof(struct mk_if));
   for (jj=0;jj<num;jj++) {
-    tmp[jj].ff=arr[jj];
     tmp[jj].ii=jj;
+    tmp[jj].ff=arr[jj];
   }
-  qsort((void*)tmp,(size_t)num,sizeof(struct strfi),cmpFI);
+  qsort((void*)tmp,(size_t)num,sizeof(struct mk_if),mk_cmpif);
   for (jj=0;jj<num;jj++)
     indx[tmp[jj].ii]=jj;
   free(tmp);
@@ -224,7 +439,7 @@ int mk_listalloc(struct mk_list *list,int typesize_,int reserve) {
     return 0;
   int ii=0,jj=0;
   list->typesize=typesize_;
-  list->reserved=(reserve==0 ? 0 : 1);
+  list->reserved=(reserve<=0 ? 0 : 1);
   while (list->reserved<MAX(reserve,0) && (ii++)<32)
     list->reserved*=2;
   list->count=0;
@@ -323,20 +538,47 @@ int mk_listsort(struct mk_list *list) {
 }
 
 /* ########## */
-int mk_listfind(const struct mk_list *list,void *itm) {
+int mk_listfind(const struct mk_list *list,void *itm,int *idxl,int *idxh) {
 
-  if (!list || !list->arr || list->count==0 || !itm)
-    return -1;
-  if ((list->sorted&1)>0)
-    return mk_binsearch(itm,list->typesize,list->count,list->arr,list->cmp,0);
-  if (list->cmp==0)
-    return -1;
-  int ii=0;
-  for (ii=0;ii<list->count;ii++) {
-    if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)==0)
-      return ii;
+  if (idxl)
+    *idxl=-1;
+  if (idxh)
+    *idxh=-1;
+  if (!list || !list->arr || list->count==0 || list->cmp==0 || !itm)
+    return 0;
+  int ii=0,il=-1,ih=-1,cntitm=0;
+  if ((list->sorted&1)==0) {
+    for (ii=0;ii<list->count;ii++) {
+      if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)==0) {
+        if (il<0)
+          il=ii;
+        else
+          ih=ii;
+        cntitm++;
+      }
+    }
   }
-  return -1;
+  else {
+    ih=il=mk_binsearch(itm,list->typesize,list->count,list->arr,list->cmp,0);
+    if (ih>=0) {
+      for (ii=il-1;il>-1;il--) {
+        if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
+          break;
+        il=ii;
+      }
+      for (ii=ih+1;ih<list->count;ih++) {
+        if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
+          break;
+        ih=ii;
+      }
+      cntitm=ih-il+1;
+    }
+  }
+  if (idxl)
+    *idxl=il;
+  if (idxh)
+    *idxh=(ih<0 && cntitm>0 ? il : ih);
+  return cntitm;
 
 }
 
@@ -427,15 +669,17 @@ int mk_listinsort(struct mk_list *list,void *itm) {
     return -1;
   if ((list->sorted&1)==0)
     mk_listsort(list);
-  int idx=mk_listfindnextindex(list,itm);
-  mk_listsetat(list,itm,idx,1);  
-  return mk_listfind(list,itm);
+  int idxl=mk_listfindnextindex(list,itm),idxh=-1;
+  mk_listsetat(list,itm,idxl,1); 
+  mk_listfind(list,itm,&idxl,&idxh);
+  return idxl;
 
 }
 
 /* ########## */
-int oswinexp mk_listremove(struct mk_list *list,int idx) {
+int oswinexp mk_listremove(struct mk_list *list,int idx,void *itm) {
 
+  mk_listat(list,idx,itm);
   if (!list || !list->arr || idx<0 || idx>=list->count)
     return 1;
   int sz=list->typesize;
@@ -444,5 +688,19 @@ int oswinexp mk_listremove(struct mk_list *list,int idx) {
   memset(list->arr+(list->count-1)*sz,0,sz);
   list->count--;
   return 0;
+
+}
+
+/* ########## */
+int oswinexp mk_listpush(struct mk_list *list,void *itm) {
+
+  return mk_listappend(list,itm);
+
+}
+
+/* ########## */
+int oswinexp mk_listpop(struct mk_list *list,void *itm) {
+
+  return mk_listremove(list,list ? list->count-1 : -1,itm);
 
 }

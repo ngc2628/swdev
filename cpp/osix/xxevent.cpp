@@ -1,9 +1,42 @@
 
 #include <osix/xxevent.h>
+#include <mkbase/mkconv.h>
 
 namespace osix {
 
 xxtranslateEventF xxtranslateEventExt=0;
+
+xxEvent &xxEvent::operator=(const xxEvent &ass) {
+      
+  m_type=ass.m_type;
+  m_mods=ass.m_mods;
+  m_consumer=ass.m_consumer;
+  m_xxk=ass.m_xxk;
+  m_buttons=ass.m_buttons;
+  m_xxsym=ass.m_xxsym;
+  if (&ass!=this) {
+    m_pos=ass.m_pos;
+    m_globalpos=ass.m_globalpos;
+    m_lastpos=ass.m_lastpos;
+    m_downpos=ass.m_downpos;
+    m_r=ass.m_r;
+    mk_stringset(m_info,&ass.m_info[0]);
+  }
+  return *this;
+  
+}
+    
+bool xxEvent::operator==(const xxEvent &cmp) const {
+
+  return (m_type==cmp.m_type);
+
+}
+
+bool xxEvent::operator<(const xxEvent &cmp) const {
+
+  return (m_type<cmp.m_type);
+
+}
 
 void xxEvent::clear() {
       
@@ -11,61 +44,62 @@ void xxEvent::clear() {
 	m_xxsym=0;
   m_pos=m_globalpos=m_lastpos=m_downpos=num::Vector3(mk_dnan,mk_dnan,mk_dnan);
   m_r=xxRect();
-  m_info.clear();
-  
+  mk_stringsetlength(m_info,0);
+    
 }
 
-int xxEvent::setInfo(const char *info,int idx) {
+int xxEvent::setInfo(const char *info) {
 
-  if (idx<0)
-    return -1;
-  aux::Asciistr strinfo(info);
-  m_info.set(idx,strinfo);
-  return idx;   
+  mk_stringset(m_info,info);
+  return mk_stringlength(m_info);   
 
 }
 
-int xxEvent::info(aux::Asciistr *str,int idx) const {
+int xxEvent::info(mk_string info) const {
 
-  if (idx<0 || idx>m_info.last())
-    idx=m_info.last();
-  *str=m_info[idx];
-  return idx;
+  mk_stringset(info,&m_info[0]);
+  return mk_stringlength(info);
 
 }
     
-void xxEvent::type2txt(aux::Asciistr *as) const {
+int xxEvent::type2txt(mk_string txt) const {
 
   if (m_type==xx_keyPressed)
-    *as="key pressed";
+    mk_stringset(txt,"key pressed");
   else if (m_type==xx_keyReleased)
-    *as="key released";
+    mk_stringset(txt,"key released");
   else if (m_type==xx_mousePressed)
-    *as="mouse pressed";
+    mk_stringset(txt,"mouse pressed");
   else if (m_type==xx_mouseReleased)
-    *as="mouse released";
+    mk_stringset(txt,"mouse released");
   else if (m_type==xx_mouseMove)
-    *as="mouse moved";
+    mk_stringset(txt,"mouse moved");
   else if (m_type==xx_enter)
-    *as="enter";
+    mk_stringset(txt,"enter");
   else if (m_type==xx_leave)
-    *as="leave";
+    mk_stringset(txt,"leave");
   else if (m_type==xx_focusIn)
-    *as="focus in";
+    mk_stringset(txt,"focus in");
   else if (m_type==xx_focusOut)
-    *as="focus out";
+    mk_stringset(txt,"focus out");
   else if (m_type==xx_paint)
-    *as="paint";
+    mk_stringset(txt,"paint");
   else if (m_type==xx_show)
-    *as="show";
+    mk_stringset(txt,"show");
   else if (m_type==xx_resize)
-    *as="resize";
+    mk_stringset(txt,"resize");
   else if (m_type==xx_mouseDblClicked)
-    *as="mouse double clicked";
-  else if ((m_type&osix::xx_unknownEvent)>0)
-    aux::i2a(m_type&~osix::xx_unknownEvent,as);
-  else
-    aux::i2a(m_type,as);  
+    mk_stringset(txt,"mouse double clicked");
+  else {
+    mk_string numstr;
+    mk_stringset(numstr,0);
+    if ((m_type&osix::xx_unknownEvent)>0)
+      mk_i2a(m_type&~osix::xx_unknownEvent,numstr);
+    else
+      mk_i2a(m_type,numstr);
+    mk_stringset(txt,numstr);
+  }  
+  return mk_stringlength(txt);
 
 }
 

@@ -25,11 +25,12 @@ namespace qtsimpleplot {
 
 // *****
 // AppFrame :: AppFrame (QWidget *parent) : QFrame(parent,Qt::Widget|Qt::CustomizeWindowHint|Qt::FramelessWindowHint|Qt::X11BypassWindowManagerHint) {
-AppFrame :: AppFrame (QWidget *parent,aux::Asciistr datafile) : QFrame(parent,Qt::Window),
-  m_datafile(datafile),m_menubar(0),m_statusbar(0),m_toolbar(0),m_sizegrip(0),m_layout(0),
+AppFrame :: AppFrame (QWidget *parent,const char *datafile) : QFrame(parent,Qt::Window),
+  m_menubar(0),m_statusbar(0),m_toolbar(0),m_sizegrip(0),m_layout(0),
   m_tabwidget(0),m_control(0),m_controlLayout(0),m_buttonDismiss(0),m_filemenu(0),m_helpmenu(0),
   m_miscmenu(0),m_chartmenu2(0),m_chartmenuInteractive(0) {
 
+  mk_stringset(m_datafile,datafile);
   memset(&m_tab[0],0,ntabs*sizeof(QWidget*));
   //qApp->setStyle(new QCDEStyle());    
   //tstfunc();
@@ -261,7 +262,7 @@ void AppFrame::slotLoadChartAction() {
 
 printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
 
-  if (m_datafile.len()==0)
+  if (mk_stringlength(m_datafile)==0)
     return;
 
   double xx[256];
@@ -674,9 +675,9 @@ void tstfunc() {
   const char * const tstchar="hello-martinworld0004060019";
   aux::TypeId tstid;
   bool ok=tstid.fromString(tstchar);
-  aux::Asciistr str;
-  tstid.toString(&str);
-  printf ("ok=%d tstid=%s\n",ok,(const char *)str);
+  mk_string str;
+  tstid.toString(str);
+  printf ("ok=%d tstid=%s\n",ok,&str[0]);
 
   QFont f("Arial");
   QFontMetrics metrics(f);

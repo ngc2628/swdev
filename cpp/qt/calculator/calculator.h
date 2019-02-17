@@ -49,6 +49,17 @@ class oswinexp CalculatorOutput : public QFrame {
 
 };
 
+class oswinexp QtCalculatorTimer : public qtutil::QtTimer {
+
+  public:
+    aux::TVList<calculator::Asciistr> m_qtinfoL;
+    QtCalculatorTimer() : qtutil::QtTimer() {
+    }
+    virtual ~QtCalculatorTimer() {
+    }
+
+};
+
 class oswinexp QtCalculator : public QFrame,public calculator::Calculator  {
 
   Q_OBJECT
@@ -56,7 +67,7 @@ class oswinexp QtCalculator : public QFrame,public calculator::Calculator  {
   friend class CalculatorOutput;
 
   protected:
-    qtutil::QtTimer m_timer;
+    QtCalculatorTimer m_timer;
     QGridLayout *m_layout;
     CalculatorOutput *wwoutput;
     QButtonGroup *fmtgroup;
@@ -84,8 +95,8 @@ class oswinexp QtCalculator : public QFrame,public calculator::Calculator  {
     void resizeEvent(QResizeEvent *);
     int fnActive(const char *,int);
     unsigned int delayedChgFmt(unsigned int);
-    qtutil::CustomPushButton *findCustomPushButton(aux::Asciistr);
-    qtutil::CustomRadioButton *findCustomRadioButton(aux::Asciistr);
+    qtutil::CustomPushButton *findCustomPushButton(calculator::Asciistr);
+    qtutil::CustomRadioButton *findCustomRadioButton(calculator::Asciistr);
 
 };
 

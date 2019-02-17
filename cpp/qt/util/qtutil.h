@@ -5,7 +5,6 @@
 #include <auxx/auxx.h>
 
 namespace aux {
-class Asciistr;
 class Ucsstr;
 }
 
@@ -38,7 +37,7 @@ extern oswinexp int translateQmouse(QMouseEvent *,osix::xxEvent *);
 
 extern oswinexp const char *qasciistr(const QString *);
 
-extern oswinexp int fromQString(const QString *,aux::Asciistr *);
+extern oswinexp int fromQString(const QString *,mk_string);
 
 extern oswinexp int fromQString(const QString *,aux::Ucsstr *);
 
@@ -56,7 +55,7 @@ extern oswinexp int fromQClipboard(aux::Ucsstr *);
 
 extern oswinexp int fromQAlign(int);
 
-extern oswinexp int toQString(const aux::Asciistr *,QString *);
+extern oswinexp int toQString(mk_string,QString *);
 
 extern oswinexp int toQString(const aux::Ucsstr *,QString *);
 

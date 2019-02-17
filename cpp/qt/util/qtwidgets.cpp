@@ -12,15 +12,15 @@
 
 #include <qt/util/qtutil.h>
 #include <qt/util/qtwidgets.h>
-#include <auxx/auxx.h>
 #include <osix/xxstyle.h>
 #include <mkbase/mkconv.h>
 
 namespace qtutil {
 
-CustomPushButton::CustomPushButton(const QString &text,QWidget *parent,aux::Asciistr info) :
-  QPushButton(text,parent),m_info(info) {
+CustomPushButton::CustomPushButton(const QString &text,QWidget *parent,const char *info) :
+  QPushButton(text,parent) {
   
+  mk_stringset(m_info,info);
   connect(this,SIGNAL(clicked()),this,SLOT(slotClicked()));
   
 }
@@ -47,8 +47,10 @@ QSize CustomPushButton::minimumSizeHint() const {
 
 }
 
-CustomRadioButton::CustomRadioButton(const QString &text,QWidget *parent,aux::Asciistr info) :
-  QRadioButton(text,parent),m_info(info) {
+CustomRadioButton::CustomRadioButton(const QString &text,QWidget *parent,const char *info) :
+  QRadioButton(text,parent) {
+
+  mk_stringset(m_info,info);
   
 }
 
@@ -66,9 +68,10 @@ QSize CustomRadioButton::minimumSizeHint() const {
 
 }
 
-CustomCheckBox::CustomCheckBox(const QString &text,QWidget *parent,aux::Asciistr info) :
-  QCheckBox(text,parent),m_info(info) {
+CustomCheckBox::CustomCheckBox(const QString &text,QWidget *parent,const char *info) :
+  QCheckBox(text,parent) {
   
+  mk_stringset(m_info,info);
   connect(this,SIGNAL(stateChanged(int)),this,SLOT(slotStateChanged(int)));
   
 }
@@ -142,7 +145,7 @@ void ColorButton::setColor(unsigned int color,bool refresh) {
 ColorChooser::ColorChooser(QWidget *parent,unsigned int color) : 
   QDialog(parent,Qt::WindowStaysOnTopHint),m_colortriangle(0) {
 
-  aux::Asciistr numstr;
+  mk_string numstr;
   setAttribute(Qt::WA_DeleteOnClose);
   
   QFontMetrics metrics(font());
@@ -162,8 +165,8 @@ ColorChooser::ColorChooser(QWidget *parent,unsigned int color) :
   QLabel *lr=new QLabel("r:",this);
   lr->setFixedWidth(2*ww);
   m_layout->addWidget(lr,0,9,Qt::AlignRight);
-  aux::ui2a(osix::xxred(color),&numstr);
-  m_editR=new QLineEdit((const char *)numstr,this);
+  mk_ui2a(osix::xxred(color),numstr);
+  m_editR=new QLineEdit(&numstr[0],this);
   m_editR->setMaxLength(3);
   m_editR->setFixedWidth(4*ww);
   m_layout->addWidget(m_editR,0,10,Qt::AlignRight);
@@ -171,8 +174,8 @@ ColorChooser::ColorChooser(QWidget *parent,unsigned int color) :
   QLabel *lg=new QLabel("g:",this);
   lg->setFixedWidth(2*ww);
   m_layout->addWidget(lg,1,9,Qt::AlignRight);
-  aux::ui2a(osix::xxgreen(color),&numstr);
-  m_editG=new QLineEdit((const char *)numstr,this);
+  mk_ui2a(osix::xxgreen(color),numstr);
+  m_editG=new QLineEdit(&numstr[0],this);
   m_editG->setMaxLength(3);
   m_editG->setFixedWidth(4*ww);
   m_layout->addWidget(m_editG,1,10,Qt::AlignRight);
@@ -180,8 +183,8 @@ ColorChooser::ColorChooser(QWidget *parent,unsigned int color) :
   QLabel *lb=new QLabel("b:",this);
   lb->setFixedWidth(2*ww);
   m_layout->addWidget(lb,2,9,Qt::AlignRight);
-  aux::ui2a(osix::xxblue(color),&numstr);
-  m_editB=new QLineEdit((const char *)numstr,this);
+  mk_ui2a(osix::xxblue(color),numstr);
+  m_editB=new QLineEdit(&numstr[0],this);
   m_editB->setMaxLength(3);
   m_editB->setFixedWidth(4*ww);
   m_layout->addWidget(m_editB,2,10,Qt::AlignRight);
@@ -189,8 +192,8 @@ ColorChooser::ColorChooser(QWidget *parent,unsigned int color) :
   QLabel *la=new QLabel("a:",this);
   la->setFixedWidth(2*ww);
   m_layout->addWidget(la,3,9,Qt::AlignRight);
-  aux::ui2a(osix::xxalpha(color),&numstr);
-  m_editA=new QLineEdit((const char *)numstr,this);
+  mk_ui2a(osix::xxalpha(color),numstr);
+  m_editA=new QLineEdit(&numstr[0],this);
   m_editA->setMaxLength(3);
   m_editA->setFixedWidth(4*ww);
   m_layout->addWidget(m_editA,3,10,Qt::AlignRight);
@@ -286,13 +289,13 @@ void ColorChooser::slotColorChanged(const QColor &) {
     aa=255;
   cc=osix::xxcolor(osix::xxred(cc),osix::xxgreen(cc),osix::xxblue(cc),aa);
   m_colorview->setColor(cc);
-  aux::Asciistr numstr;
-  aux::ui2a(osix::xxred(cc),&numstr);
-  m_editR->setText((const char *)numstr);
-  aux::ui2a(osix::xxgreen(cc),&numstr);
-  m_editG->setText((const char *)numstr);
-  aux::ui2a(osix::xxblue(cc),&numstr);
-  m_editB->setText((const char *)numstr);
+  mk_string numstr;
+  mk_ui2a(osix::xxred(cc),numstr);
+  m_editR->setText(&numstr[0]);
+  mk_ui2a(osix::xxgreen(cc),numstr);
+  m_editG->setText(&numstr[0]);
+  mk_ui2a(osix::xxblue(cc),numstr);
+  m_editB->setText(&numstr[0]);
   
 }
 

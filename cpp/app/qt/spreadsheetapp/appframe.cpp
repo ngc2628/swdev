@@ -348,8 +348,7 @@ void AppFrame::slotSpreadsheetDataResizeAction() {
   
   aux::Ucsstr txt;
   txt.reserve(128);
-  aux::Asciistr strnum;
-  strnum.reserve(65);
+  mk_string strnum;
   spreadsheet::SpreadsheetDataItem *itm=0;
   for(ii=oldrows;ii<rows;ii++) {
     for (jj=0;jj<cols;jj++) {
@@ -358,21 +357,21 @@ void AppFrame::slotSpreadsheetDataResizeAction() {
         txt="Tiger";
       else if (ii==0) {
         txt="col ";
-        aux::i2a(jj,&strnum);
-        txt.append((const char *)strnum);
+        mk_i2a(jj,strnum);
+        txt.append(&strnum[0]);
       }
       else if (jj==0) {
         txt="row ";
-        aux::i2a(ii,&strnum);
-        txt.append((const char *)strnum);
+        mk_i2a(ii,strnum);
+        txt.append(&strnum[0]);
       }
       else {
         txt="(";
-        aux::i2a(ii,&strnum);
-        txt.append((const char *)strnum);
+        mk_i2a(ii,strnum);
+        txt.append(&strnum[0]);
         txt.append(",");
-        aux::i2a(jj,&strnum);
-        txt.append((const char *)strnum);
+        mk_i2a(jj,strnum);
+        txt.append(&strnum[0]);
         txt.append(")");
       }
       if (ii>0 && jj>0 && (ii+jj)%5==0)
@@ -391,16 +390,16 @@ void AppFrame::slotSpreadsheetDataResizeAction() {
     for (jj=0;jj<oldrows;jj++) {
       if (jj==0) {
         txt="col ";
-        aux::i2a(ii,&strnum);
-        txt.append((const char *)strnum);
+        mk_i2a(ii,strnum);
+        txt.append(&strnum[0]);
       }
       else {
         txt="(";
-        aux::i2a(jj,&strnum);
-        txt.append((const char *)strnum);
+        mk_i2a(jj,strnum);
+        txt.append(&strnum[0]);
         txt.append(",");
-        aux::i2a(ii,&strnum);
-        txt.append((const char *)strnum);
+        mk_i2a(ii,strnum);
+        txt.append(&strnum[0]);
         txt.append(")");
       }
       itm=new spreadsheet::SpreadsheetDataItem(txt);

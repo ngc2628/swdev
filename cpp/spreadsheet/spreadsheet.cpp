@@ -774,12 +774,12 @@ Coords Spreadsheet::setPos(Coords pos,int repaint,osix::xxRect *paintrect,int fr
     move=1;
   }
   if (move>0) {
-    osix::xxRect r=calcPaintRect(Coords(0,0),Coords(m_data->nrows(),m_data->ncols()),paintrect);
-    aux::Asciistr str;
-    r.toString(&str);
+    osix::xxRect rr=calcPaintRect(Coords(0,0),Coords(m_data->nrows(),m_data->ncols()),paintrect);
+    mk_string str;
+    rr.toString(str);
 //printf ("%d move %s\n",__LINE__,(const char *)str);
     if (repaint>0)
-      redraw(r);
+      redraw(rr);
   }
 
   if (fromslider==0)
@@ -1730,10 +1730,10 @@ int Spreadsheet::copyCells(aux::Ucsstr *buf,int cut) {
   for (ii=lt.m_row;ii<=rb.m_row;ii++) {
     for (jj=lt.m_col;jj<=rb.m_col;jj++) {
       itm=m_data->data(ii,jj);
-      if (itm && itm->m_text.m_txt.len()>0) {
+      if (itm && itm->m_text.m_txt.length()>0) {
         extbuf=itm->m_text.m_txt;
         if (buf->append(extbuf)==*buf) {
-          buf->reserve(2*buf->len()+1);
+          buf->reserve(2*buf->length()+1);
           buf->append(extbuf);
         }
         if (cut)
@@ -1742,7 +1742,7 @@ int Spreadsheet::copyCells(aux::Ucsstr *buf,int cut) {
       if (jj<rb.m_col) {
         extbuf="\t";
         if (buf->append(extbuf)==*buf) {
-          buf->reserve(2*buf->len()+1);
+          buf->reserve(2*buf->length()+1);
           buf->append(extbuf);
         }
       }
@@ -1750,7 +1750,7 @@ int Spreadsheet::copyCells(aux::Ucsstr *buf,int cut) {
     if (ii<rb.m_row) {
       extbuf="\n";
       if (buf->append(extbuf)==*buf) {
-        buf->reserve(2*buf->len()+1);
+        buf->reserve(2*buf->length()+1);
         buf->append(extbuf);
       }
     }
@@ -1772,7 +1772,7 @@ int Spreadsheet::pasteCells(aux::Ucsstr *str) {
   if (!m_data)
     return -1;
   osix::xxfromClipboard(str);
-  int ii=0,ll=str->len(),idx=0;
+  int ii=0,ll=str->length(),idx=0;
   if (ll==0)
     return -1;
   const unsigned short *buf=str->data();

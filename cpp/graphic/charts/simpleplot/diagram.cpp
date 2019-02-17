@@ -5,9 +5,6 @@
 
 namespace simpleplot {
 
-static aux::Asciistr strerr1;
-static aux::Asciistr strerr2;
-
 Diagram::Diagram(const char *type,unsigned int idd) : 
   aux::TypeId(type,idd),m_mouseMode(0) {
     	  
@@ -391,6 +388,7 @@ int DiagramXY::drawAxes() {
   Axis *ax=0;
   Scale *sc=0;
   Tic *tic=0;
+  aux::Ucsstr ticstr;
   aux::TVList<Tic> ticL;
   int ntics=0,ticsz=0;
   num::Vector3 v0,v1;
@@ -429,12 +427,13 @@ int DiagramXY::drawAxes() {
       osix::xxdrawLine(disp,&m_pixscr,&gc);
       if (tic->m_drawable==0)
         continue;
-      v0.setX(v0[0]-(double)tic->m_str.len()*wmetric/2.);
+      tic->ucsText(&ticstr);
+      v0.setX(v0[0]-(double)ticstr.length()*wmetric/2.);
       v0.setY(v0[1]+(ax->pos()==typeTop ? -marklen-hmetric : marklen+hmetric));
-      v1.setX(v1[0]+(double)tic->m_str.len()*wmetric/2.);
+      v1.setX(v1[0]+(double)ticstr.length()*wmetric/2.);
       gc.m_r.set(v0,v1);
       gc.m_fnt=ax->m_fnt[ticsz];
-      osix::xxdrawText(disp,&m_pixscr,&gc,&tic->m_str,0);
+      osix::xxdrawText(disp,&m_pixscr,&gc,&ticstr,0);
     }
   }
 
@@ -471,19 +470,20 @@ int DiagramXY::drawAxes() {
       osix::xxdrawLine(disp,&m_pixscr,&gc);
       if (tic->m_drawable==0)
         continue;
+      tic->ucsText(&ticstr);
       if (ax->pos()==typeRight) {
         v0.setX(v1[0]+marklen/2.);
         v1.setY(v0[1]-hmetric/2.);
         v0.setY(v0[1]+hmetric/2.);
-        v1.setX(v0[0]+(double)tic->m_str.len()*wmetric);  
+        v1.setX(v0[0]+(double)ticstr.length()*wmetric);  
       }
       else {
-        v0.setXY(v1[0]-marklen/2.-(double)tic->m_str.len()*wmetric,v0[1]+hmetric/2.);
+        v0.setXY(v1[0]-marklen/2.-(double)ticstr.length()*wmetric,v0[1]+hmetric/2.);
         v1.setXY(v1[0],v1[1]-hmetric/2.);
       }
       gc.m_r.set(v0,v1);
       gc.m_fnt=ax->m_fnt[ticsz];
-      osix::xxdrawText(disp,&m_pixscr,&gc,&tic->m_str,0);
+      osix::xxdrawText(disp,&m_pixscr,&gc,&ticstr,0);
     }
   }
 
@@ -513,7 +513,7 @@ int DiagramXY::drawGraphs() {
     return 0;
   }
 
-  aux::Asciistr str;
+  mk_string str;
   Graph *graph=0;
   aux::TVList<num::VertexList> *iL=0;
   num::VertexList *vL=0;

@@ -34,7 +34,7 @@ int cmpvertex(const void *vv1,const void *vv2) {
 int chklist() {
 
   struct mk_list list;
-  int ii=0,jj=20,idx=-1,nitm=17,reserved=mk_listalloc(&list,sizeof(mk_vertex),nitm);
+  int ii=0,jj=20,idxl=-1,idxh=-1,nitm=17,reserved=mk_listalloc(&list,sizeof(mk_vertex),nitm);
   printf("%d reserved [%d]\n",__LINE__,reserved); 
   list.cmp=cmpvertex;
   mk_vertex *vv=0;
@@ -55,11 +55,12 @@ int chklist() {
   (*vv)[1]=4.7;
   (*vv)[2]=3.6;
   (*vv)[3]=mk_dnan;
-  idx=mk_listinsort(&list,vv);
+  idxl=mk_listinsort(&list,vv);
+  idxl=mk_listinsort(&list,vv);
 
-  printf("%d inserted at #%d\n",__LINE__,idx);
+  printf("%d inserted at #%d\n",__LINE__,idxl);
 
-  if (idx<0)
+  if (idxl<0)
     free(vv);
 
   vv=(mk_vertex*)malloc(sizeof(mk_vertex));
@@ -67,18 +68,19 @@ int chklist() {
   (*vv)[1]=7.2;
   (*vv)[2]=8.3;
   (*vv)[3]=mk_dnan;
-  idx=mk_listinsort(&list,vv);
+  idxl=mk_listinsort(&list,vv);
+  idxl=mk_listinsort(&list,vv);
 
-  printf("%d inserted at #%d\n",__LINE__,idx);
+  printf("%d inserted at #%d\n",__LINE__,idxl);
 
-  if (idx<0)
+  if (idxl<0)
     free(vv);
 
   mk_vertexnan(look);
   look[0]=15.8;
-  idx=mk_listfind(&list,&look);
-  mk_listat(&list,idx,vv);
-  printf("%d #%d [%f,%f,%f,%f]\n",__LINE__,idx,(*vv)[0],(*vv)[1],(*vv)[2],(*vv)[3]);
+  ii=mk_listfind(&list,&look,&idxl,&idxh);
+  mk_listat(&list,idxl,vv);
+  printf("%d #%d,%d,%d [%f,%f,%f,%f]\n",__LINE__,ii,idxl,idxh,(*vv)[0],(*vv)[1],(*vv)[2],(*vv)[3]);
 
   for (ii=0;ii<reserved;ii++) {
     mk_listat(&list,ii,vv);
@@ -98,7 +100,7 @@ int main(int argc,char **argv) {
   int ii=0,jj=0;
   double zero=.0,one=1.;
 
-  /*chklist();*/
+  chklist();
 
   int rows=4,cols=4;
   struct mk_list vvL,der;

@@ -11,6 +11,117 @@ namespace shapes {
 
 static const int defCntPoints=4;
 
+bool RectSize::operator==(const RectSize &cmp) const {
+
+  return (m_width==cmp.m_width && m_height==cmp.m_height);
+
+}
+    
+bool RectSize::operator<(const RectSize &cmp) const {
+      
+  return (m_width*m_height<cmp.m_width*cmp.m_height);
+  
+}
+
+double RectSize::setWidth(double ww) {
+      
+  m_width=(mk_isbusted(ww)!=0 || ww<0. ? 0. : ww);
+  return m_width;
+  
+}
+    
+double RectSize::setHeight(double hh) {
+      
+  m_height=(mk_isbusted(hh)!=0 || hh<0. ? 0. : hh);
+  return m_height;
+  
+}
+
+RectSize RectSize::set(double ww,double hh) {
+      
+  m_width=(mk_isbusted(ww)!=0 || ww<0. ? 0. : ww);
+  m_height=(mk_isbusted(hh)!=0 || hh<0. ? 0. : hh);
+  return *this;
+  
+}
+
+bool RectSize::empty() const {
+      
+  return (m_width<=.0 || m_height<=.0);
+  
+}
+
+int RectSize::toString(mk_string str) const {
+  
+  mk_stringappend(str,"w=");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  mk_d2a(m_width,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str," , h=");
+  mk_d2a(m_height,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\n");
+  return 0;  
+
+}
+
+Rect &Rect::operator=(const Rect &ass) {
+  
+  if (this!=&ass) {
+    ((Shape2*)this)->operator=((const Shape2 &)ass); 
+    m_sz=ass.m_sz; 
+  }
+  return *this; 
+
+}
+
+bool Rect::operator==(const Rect &cmp) const {
+      
+  return ((const Shape2*)this)->operator==((const Shape2&)cmp);
+  
+}
+
+bool Rect::operator<(const Rect &cmp) const {
+
+  return ((const Shape2*)this)->operator<((const Shape2&)cmp);
+  
+}
+
+aux::TypeId *Rect::clone() const {
+
+  return new Rect((const Rect &)(*this));
+  
+}
+    
+RectSize Rect::setSize(RectSize sz) {
+
+  m_sz=sz;
+  m_points.clear();
+  return m_sz;
+ 
+}
+
+double Rect::rotate(double rr) { 
+
+  m_rotate=mk_dsign(rr)*fmod(fabs(rr),90.); 
+  m_points.clear();
+  return m_rotate; 
+
+}
+
+num::Vector3 Rect::center() const {
+
+  return num::Vector3(.0,.0,.0);
+
+}
+
+double Rect::circradius() const {
+
+  return sqrt(m_sz.width()*m_sz.width()+m_sz.height()*m_sz.height());
+
+}
+
 int Rect::eval(num::VertexList *pointL,int npoints) {
 
   if (npoints!=defCntPoints) npoints=defCntPoints;
@@ -52,15 +163,15 @@ int Rect::eval(num::VertexList *pointL,int npoints) {
 
 }
 
-void Rect::toStringType(Asciistr *buf) const {
+int Rect::toStringType(mk_string str) const {
   
-  if (!buf)
-    return;
-  aux::Asciistr numstr;
-  buf->append("size: ");
-  m_sz.toString(&numstr);
-  buf->append((const char *)numstr);
-  buf->append("\n");
+  mk_stringappend(str,"size: ");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  m_sz.toString(numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\n");
+  return 0;
     
 }
 

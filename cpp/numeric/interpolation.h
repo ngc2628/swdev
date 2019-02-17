@@ -83,7 +83,7 @@ class oswinexp Interpolation {
 
 extern Interpolation* oswinexp buildInterpolation(mk_ulreal);
 extern int oswinexp numInterpolIntermediates(Interpolation *);
-extern aux::Asciistr oswinexp interpolation2string(mk_ulreal);
+extern int oswinexp interpolation2string(mk_ulreal,mk_string);
 
 class oswinexp InterpolationConst : public Interpolation {
 

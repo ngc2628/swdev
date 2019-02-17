@@ -2,8 +2,9 @@
 #include <numeric/matrix.h>
 #include <math.h>
 #include <string.h>
-
-using namespace aux;
+#include <mkbase/mkutil.h>
+#include <mkbase/mkmath.h>
+#include <mkbase/mkconv.h>
 
 namespace num {
 
@@ -270,21 +271,22 @@ int Matrix::mult(Matrix *matrix) {
 
 }
 
-void Matrix::toString(Asciistr *str) const {
+int Matrix::toString(mk_string str) const {
 
-  if (!m_m || !str)
-    return;
-  Asciistr numbuf;
-  str->reserve(4096);
+  if (!m_m)
+    return 1;
+  mk_string numstr;
+  mk_stringset(numstr,0);
   int ii=0,jj=0;
   for (ii=0;ii<m_rows;ii++) {
     for (jj=0;jj<m_cols;jj++) {
-      d2a(m_m[ii][jj],&numbuf,6,1,12);
-      str->append((const char *)numbuf);
-      str->append("  ");
+      mk_d2str(m_m[ii][jj],numstr,6,1,12,0,0);
+      mk_stringappend(str,&numstr[0]);
+      mk_stringappend(str,"  ");
     }
-    str->append("\n");
+    mk_stringappend(str,"\n");
   }
+  return 0;
 
 }
 
@@ -513,9 +515,9 @@ int SquareMatrix::decomposition() {
     // a rowwise permutation of m
     if (jj!=imax) {
       for (ii=0;ii<num;ii++)
-        swap(&m_lum[imax][ii],&m_lum[jj][ii]);
+        mk_swapf(&m_lum[imax][ii],&m_lum[jj][ii]);
       rowscale[imax]=rowscale[jj]; // rowscale[j] is not needed anymore
-      swap(&m_rowperm[jj],&m_rowperm[imax]);
+      mk_swapi(&m_rowperm[jj],&m_rowperm[imax]);
       m_parity=-m_parity;
     }
     if (mk_deq(m_lum[jj][jj],.0)) {

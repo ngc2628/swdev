@@ -48,9 +48,6 @@ static const unsigned short mk_dmag=308;
 static const unsigned short mk_i64mag=18;
 static const unsigned short mk_ui64mag=19;
 static const unsigned short mk_dprec=15;
-static const unsigned short mk_maxarrsz=20;
-static const unsigned short mk_maxintbase=36;
-static const unsigned int mk_maxstrlen=1073741824;
 
 #ifdef __cplusplus
 /* #pragma message "cplusplus" */
@@ -74,12 +71,6 @@ xtern int oswinexp mk_isfinite(double);
 
 /* is or not a regular number , in number , return 0 or -1,1 */
 xtern int oswinexp mk_isbusted(double);
-
-/* return global-cnt */
-xtern mk_ulreal oswinexp mk_nextcnt();
-
-/* return time-cnt */
-xtern mk_ulreal oswinexp mk_nextt();
 
 /* inout *number1 , inout *number2 */
 xtern void oswinexp mk_swapi(int *,int *);

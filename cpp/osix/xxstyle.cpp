@@ -1,36 +1,32 @@
 
 #include <auxx/auxx.h>
 #include <osix/xxstyle.h>
+#include <mkbase/mkconv.h>
 #include <stdio.h>
 #include <string.h>
 
 namespace osix {
 
-void xxStyle::toString(aux::Asciistr *buf) const {
+int xxStyle::toString(mk_string str) const {
   
-  if (!buf)
-    return;
-  buf->reserve(4096);
-  aux::Asciistr strbuf;
-  buf->append("Style : color(r=");
-  aux::i2a((mk_lreal)((m_color>>16)&255),&strbuf);
-  buf->append((const char *)strbuf);
-  strbuf=0;
-  buf->append(" g=");
-  aux::i2a((mk_lreal)((m_color>>8)&255),&strbuf);
-  buf->append((const char *)strbuf);
-  strbuf=0;
-  buf->append(" b=");
-  aux::i2a((mk_lreal)(m_color&255),&strbuf);
-  buf->append((const char *)strbuf);
-  strbuf=0;
-  buf->append(") ; style=");
-  aux::i2a((mk_lreal)m_style,&strbuf);
-  buf->append((const char *)strbuf);
-  strbuf=0;
-  buf->append("; width=");
-  aux::d2a(m_width,&strbuf,2);
-  buf->append((const char *)strbuf);
+  mk_stringappend(str,"Style : color(r=");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  mk_i2a((m_color>>16)&255,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str," g=");
+  mk_i2a((m_color>>8)&255,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str," b=");
+  mk_i2a(m_color&255,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,") ; style=");
+  mk_i2a(m_style,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"; width=");
+  mk_i2a(m_width,numstr);
+  mk_stringappend(str,numstr);
+  return 0;
     
 }
 

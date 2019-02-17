@@ -1,5 +1,6 @@
 
 #include <mkbase/defs.h>
+#include <mkbase/mkutil.h>
 #include <mkbase/mkmath.h>
 #include <mkbase/mkconv.h>
 #include <mkbase/mkla.h>
@@ -7,28 +8,25 @@
 #include <ctype.h>
 
 /* ########## */
-char *mk_vertexdbg(const mk_vertex vertex) {
+int mk_vertexdbg(const mk_vertex vertex,mk_string str) {
 
-  mk_str1k(resx);
+  mk_string resx;
+  mk_stringset(resx,0);
   char *buf=0;
   resx[0]='[';
   int ii=0,jj=0;
   for (ii=3;ii>-1;ii--) {
     if (mk_isnan(vertex[ii])==0) {
       for (jj=0;jj<ii+1;jj++) {
-        buf=mk_d2a(vertex[jj],6);
-        strcat(resx,buf);
-        free(buf);
+        mk_d2a(vertex[jj],resx,6);
+        mk_stringappend(str,&resx[0]);
         if (jj<ii)
-          resx[(int)strlen(resx)]=';';
+          mk_stringappend(str,";");
       }
       break;
     }
   }
-  char *res=(char *)malloc((int)strlen(resx)+1);
-  strcpy(res,&resx[0]);
-  res[(int)strlen(res)]=0;
-  return res;
+  return 0;
 
 }
 

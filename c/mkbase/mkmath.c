@@ -1,19 +1,7 @@
 
 #include <mkbase/defs.h>
 #include <mkbase/mkmath.h>
-
-#if defined (__MACH__)
-#include <libkern/OSAtomic.h>
-#endif
-#if defined (_MSC_VER) || defined (__WATCOMC__)
-#include <sys/timeb.h>
-#else
-#include <sys/time.h>
-#endif
-#include <time.h>
 #include <ctype.h>
-
-static mk_ulreal mk_globalcnt=0;
 
 /* ########## */
 int mk_dsgn(double dd) {
@@ -59,39 +47,6 @@ int mk_isbusted(double dd) {
 #else
   return (!isnan(dd) && finite(dd) ? 0 : mk_dsgn(dd));
 #endif
-}
-
-/* ########## */
-mk_ulreal mk_nextcnt() {
-#if defined (__MACH__)
-  OSAtomicAdd32(1,&globalcnt);
-#else
-  mk_globalcnt++;
-#endif
-  return mk_globalcnt;
-}
-
-/* ########## */
-mk_ulreal mk_nextt() {
-
-  mk_ulreal tt=0;
-
-#if defined (_MSC_VER)
-  struct __timeb64 tsec;
-  _ftime64(&tsec);
-  tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
-#elif defined (__WATCOMC__)
-  struct timeb tsec;
-  ftime(&tsec);
-  tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
-#else
-  struct timezone tzp;
-  struct timeval tsec;
-  gettimeofday(&tsec,&tzp);
-  tt=(mk_ulreal)1000000*tsec.tv_sec+tsec.tv_usec;
-#endif
-  return tt;
-
 }
 
 /* ########## */

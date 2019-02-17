@@ -1,12 +1,97 @@
 
-#include <auxx/auxx.h>
 #include <numeric/matrix.h>
+#include <numeric/vertex.h>
 #include <osix/xxshape.h>
+#include <mkbase/mkconv.h>
 #include <stdio.h>
 #include <string.h>
 //#include <sys/param.h>
 
 namespace osix {
+
+xxRectSize &xxRectSize::operator=(const xxRectSize &ass) {
+      
+  m_width=ass.m_width;
+  m_height=ass.m_height;
+  return *this;
+  
+}
+
+bool xxRectSize::operator==(const xxRectSize &cmp) const {
+
+  return (m_width==cmp.m_width && m_height==cmp.m_height);
+
+}
+
+bool xxRectSize::operator<(const xxRectSize &cmp) const {
+
+  return (m_width*m_height<cmp.m_width*cmp.m_height);
+
+}
+
+double xxRectSize::setWidth(double ww) {
+
+  m_width=(mk_isbusted(ww)!=0 || ww<0. ? 0. : ww);
+  return m_width;
+
+}
+
+double xxRectSize::setHeight(double hh) {
+
+  m_height=(mk_isbusted(hh)!=0 || hh<0. ? 0. : hh);
+  return m_height;
+
+}
+
+xxRectSize xxRectSize::set(double ww,double hh) {
+
+  m_width=(mk_isbusted(ww)!=0 || ww<0. ? 0. : ww);
+  m_height=(mk_isbusted(hh)!=0 || hh<0. ? 0. : hh); 
+  return *this;
+  
+}
+
+double xxRectSize::width() const {
+
+  return m_width;
+
+}
+
+double xxRectSize::height() const {
+
+  return m_height;
+
+}
+
+bool xxRectSize::empty() const {
+
+  return (m_width<=.0 || m_height<=.0);
+
+}
+
+int xxRectSize::toString(mk_string str) const {
+
+  mk_stringappend(str,"w=");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  mk_d2a(m_width,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str," , h=");
+  mk_d2a(m_height,numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\n");
+  return 0;
+    
+}
+
+void xxLine::set(num::Vector3 p0,num::Vector3 p1) {
+      
+  if (mk_dlt(p1.x(),p0.x()))
+    num::swapvertex(&p0,&p1);
+  m_l[0]=p0; 
+  m_l[1]=p1;
+  
+}
 
 void xxLine::setP0(num::Vector3 p) {
 
@@ -18,7 +103,7 @@ void xxLine::setP0(num::Vector3 p) {
     m_l[1]=p;
   m_l[0]=p;
   if (m_l[1].x()<m_l[0].x())
-    aux::swap(&m_l[0],&m_l[1]);
+    num::swapvertex(&m_l[0],&m_l[1]);
 
 }
 
@@ -32,7 +117,7 @@ void xxLine::setP1(num::Vector3 p) {
     m_l[0]=p;
   m_l[1]=p;
   if (m_l[1].x()<m_l[0].x())
-    aux::swap(&m_l[0],&m_l[1]);
+    num::swapvertex(&m_l[0],&m_l[1]);
 
 }
  
@@ -85,19 +170,16 @@ double xxLine::angrad() const {
 
 }
 
-void xxLine::toString(aux::Asciistr *str) const {
+int xxLine::toString(mk_string str) const {
 
-  if (!str)
-    return;
-  str->reserve(256);
-  str->append("p0=");
-  aux::Asciistr numstr;
-  m_l[0].toString(&numstr);
-  str->append((const char *)numstr);
-  numstr=0;
-  str->append(" ; p1=");
-  m_l[1].toString(&numstr);
-  str->append((const char *)numstr);
+  mk_stringappend(str,"p0=");
+  mk_string vstr;
+  m_l[0].toString(vstr);
+  mk_stringappend(str,vstr);
+  mk_stringappend(str," ; p1=");
+  m_l[1].toString(vstr);
+  mk_stringappend(str,vstr);
+  return 0;
 
 }
 
@@ -595,27 +677,23 @@ double xxRect::scale(double sc,unsigned char type) {
 
 }
 
-void xxRect::toString(aux::Asciistr *str) const {
-      
-  if (!str)
-    return;
-  str->reserve(256);
-  str->append("left=");
-  aux::Asciistr numstr;
-  aux::d2a(m_r[0],&numstr);
-  str->append((const char *)numstr);
-  numstr=0;
-  str->append(" , top=");
-  aux::d2a(m_r[1],&numstr);
-  str->append((const char *)numstr);
-  numstr=0;
-  str->append(" , right=");
-  aux::d2a(m_r[2],&numstr);
-  str->append((const char *)numstr);
-  numstr=0;
-  str->append(" , bottom=");
-  aux::d2a(m_r[3],&numstr);
-  str->append((const char *)numstr);
+int xxRect::toString(mk_string str) const {
+    
+  mk_stringappend(str,"left=");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  mk_d2a(m_r[0],numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str," , top=");
+  mk_d2a(m_r[1],numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str," , right=");
+  mk_d2a(m_r[2],numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str," , bottom=");
+  mk_d2a(m_r[3],numstr);
+  mk_stringappend(str,numstr);
+  return 0;
 
 }
 

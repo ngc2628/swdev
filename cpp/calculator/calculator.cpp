@@ -6,16 +6,416 @@
 
 namespace calculator {
 
-static void dbgOp(aux::Asciistr input,const aux::TVList<Entry> &opL,int line) {
+const char *const nullAsciistr="[NULL]";
 
-  aux::Asciistr dbg,numstr;
+Asciistr::Asciistr(const char *str) : m_str(0),m_sz(0) {
+
+  if (str) {
+    m_sz=(int)strlen(str)+1;
+    m_str=(char*)malloc((size_t)m_sz);
+    memset(&m_str[0],0,(size_t)m_sz);
+    strcpy(m_str,str);
+  }
+
+}
+
+Asciistr::Asciistr(const Asciistr &ass) {
+
+  if (&ass!=this) {
+    if (ass.m_str) {
+      m_sz=(int)strlen(ass.m_str)+1;
+      m_str=(char*)malloc((size_t)m_sz);
+      memset(&m_str[0],0,(size_t)m_sz);
+      strcpy(m_str,ass.m_str);
+    }
+    else {
+      m_str=0;
+      m_sz=0;
+    }
+  }
+
+}
+
+Asciistr::~Asciistr() {
+
+  if (m_str)
+    free(m_str);
+
+}
+
+Asciistr &Asciistr::operator=(const Asciistr &ass) {
+
+  int ll=(ass.m_str ? (int)strlen(ass.m_str) : 0);
+  if (&ass==this || (!m_str && ll==0))
+    return *this;
+  if (ll>=m_sz) {
+    if (m_str)
+      free (m_str);
+    m_sz=ll+1;
+    m_str=(char*)malloc((size_t)m_sz);
+  }
+  memset(&m_str[0],0,(size_t)m_sz);
+  if (ll>0)
+    strcpy(m_str,ass.m_str);
+  return *this;
+
+}
+
+Asciistr &Asciistr::operator=(const char *str) {
+
+  int ll=(str ? (int)strlen(str) : 0);
+  if (!m_str && ll==0)
+    return *this;
+  if (ll>=m_sz) {
+    if (m_str)
+      free (m_str);
+    m_sz=ll+1;
+    m_str=(char*)malloc((size_t)m_sz);
+  }
+  memset(&m_str[0],0,(size_t)m_sz);
+  if (ll>0)
+    strcpy(m_str,str);
+  return *this;
+
+}
+
+Asciistr::operator const char *() const {
+
+  return (m_str ? m_str : nullAsciistr);
+
+}
+
+char Asciistr::operator[](int ii) const {
+
+  if (!m_str || ii<0 || ii>=m_sz)
+    return 0;
+  return m_str[ii];
+
+}
+
+bool Asciistr::operator==(const Asciistr &cmp) const {
+
+  if (len()!=cmp.len())
+    return false;
+  if (!m_str || !cmp.m_str)
+    return true;
+  return (strcmp(m_str,cmp.m_str)==0);
+
+}
+
+bool Asciistr::operator<(const Asciistr &cmp) const {
+
+  int ll=len(),cmpll=cmp.len();
+  if (ll!=cmpll)
+    return (ll<cmpll);
+  return (ll==0 ? false : strcmp(m_str,cmp.m_str)<0);
+
+}
+
+const char *Asciistr::data() const {
+
+  return (m_str ? m_str : nullAsciistr);
+
+}
+
+char *Asciistr::rawdata() {
+
+  return m_str;
+
+}
+
+int Asciistr::len() const {
+
+  return (m_str ? (int)strlen(m_str) : 0);
+
+}
+
+int Asciistr::reserve(int cnt) {
+
+  if (cnt<=m_sz)
+    return m_sz;
+  m_sz=cnt;
+  char *cpstr=0;
+  if (m_str) {
+    int mylen=(int)strlen(m_str);
+    cpstr=(char*)malloc((size_t)(mylen+1));
+    strcpy(cpstr,m_str);
+    cpstr[mylen]=0;
+    free (m_str);
+  }
+  m_str=(char*)malloc((size_t)m_sz);
+  memset(m_str,0,(size_t)m_sz);
+  if (cpstr) {
+    strcpy(m_str,cpstr);
+    free (cpstr);
+  }
+  return m_sz;
+
+}
+
+int Asciistr::cut(int newl) {
+
+  if (newl<0)
+    newl=0;
+  int ll=(m_str ? (int)strlen(m_str) : 0);
+  if (ll<=newl)
+    return ll;
+  memset(&m_str[newl],0,(size_t)(ll-newl));
+  return (int)strlen(m_str);
+
+}
+
+int Asciistr::set(int ii,char cc) {
+
+  int oc=(m_str && ii>=0 && ii<len() ? m_str[ii] : -1);
+  if (oc>=0)
+    m_str[ii]=cc;
+  return oc;
+
+}
+
+int Asciistr::find(char cc,int idx,unsigned char dir,unsigned char ci) const {
+
+  char cci=0;
+  int ll=len(),ss=(idx<0 ? ll+idx : idx),ee=(dir==mk_asciib ? -1 : ll);
+  if (ll==0 || ss<0 || ss>=ll)
+    return -1;
+  if (ci==(char)mk_asciii)
+    cc=(char)tolower(cc);
+  do {
+    cci=(ci==(char)mk_asciii ? tolower(m_str[ss]) : m_str[ss]);
+    if (cc==cci)
+      return ss;
+    ss+=(dir==mk_asciib ? -1 : 1);
+  } while (ss!=ee);
+
+  return -1;
+
+}
+
+Asciistr Asciistr::substr(int idx,int cnt) const {
+
+  if (idx<0)
+    idx=0;
+  int ll=len();
+  if (ll==0 || cnt==0 || ll<=idx)
+    return Asciistr();
+  if (cnt<0 || ll<idx+cnt)
+    cnt=ll-idx;
+  char *buf=(char*)malloc((size_t)(cnt+1));
+  memcpy(&buf[0],&m_str[idx],(size_t)cnt);
+  buf[cnt]=0;
+  Asciistr str(buf);
+  free(buf);
+  return str;
+
+}
+
+Asciistr &Asciistr::append(char cc) {
+
+  if (cc==0)
+    return *this;
+  int ll=len();
+  if (ll+1>=m_sz) {
+    char *cpstr=0;
+    if (m_str) {
+      cpstr=(char*)malloc((size_t)ll);
+      memcpy(&cpstr[0],&m_str[0],(size_t)ll);
+      free (m_str);
+    }
+    m_sz=ll+2;
+    m_str=(char*)malloc((size_t)m_sz);
+    memset(&m_str[0],0,(size_t)m_sz);
+    if (cpstr) {
+      memcpy(&m_str[0],&cpstr[0],(size_t)ll);
+      free (cpstr);
+    }
+  }
+  m_str[ll]=cc;
+
+  return *this;
+
+}
+
+Asciistr &Asciistr::append(const char *str) {
+
+  int ll=len(),sl=(str ? (int)strlen(str) : 0);
+  if (sl==0)
+    return *this;
+  if (ll+sl>=m_sz) {
+    char *cpstr=0;
+    if (m_str) {
+      cpstr=(char*)malloc((size_t)ll);
+      memcpy(&cpstr[0],&m_str[0],(size_t)ll);
+      free (m_str);
+    }
+    m_sz=ll+sl+1;
+    m_str=(char*)malloc((size_t)m_sz);
+    memset(&m_str[0],0,(size_t)m_sz);
+    if (cpstr) {
+      memcpy(&m_str[0],&cpstr[0],(size_t)ll);
+      free (cpstr);
+    }
+  }
+  strcat(m_str,str);
+
+  return *this;
+
+}
+
+Asciistr &Asciistr::prepend(char cc) {
+
+  if (cc==0)
+    return *this;
+  int ll=len();
+  if (ll+1>=m_sz) {
+    char *cpstr=0;
+    if (m_str) {
+      cpstr=(char*)malloc((size_t)ll);
+      memcpy(&cpstr[0],&m_str[0],(size_t)ll);
+      free (m_str);
+    }
+    m_sz=ll+2;
+    m_str=(char*)malloc((size_t)m_sz);
+    memset(&m_str[0],0,(size_t)m_sz);
+    m_str[0]=cc;
+    if (cpstr) {
+      memcpy(&m_str[1],&cpstr[0],(size_t)ll);
+      free (cpstr);
+    }
+  }
+  else {
+    memmove(&m_str[1],&m_str[0],(size_t)ll);
+    m_str[0]=cc;
+  }
+  return *this;
+
+}
+
+Asciistr &Asciistr::prepend(const char *str) {
+
+  int ll=len(),sl=(str ? (int)strlen(str) : 0);
+  if (sl==0)
+    return *this;
+  if (ll+sl>=m_sz) {
+    char *cpstr=0;
+    if (m_str) {
+      cpstr=(char*)malloc((size_t)ll);
+      memcpy(&cpstr[0],&m_str[0],(size_t)ll);
+      free (m_str);
+    }
+    m_sz=ll+sl+1;
+    m_str=(char*)malloc((size_t)m_sz);
+    memset(&m_str[0],0,(size_t)m_sz);
+    memcpy(&m_str[0],&str[0],(size_t)sl);
+    if (cpstr) {
+      memcpy(&m_str[sl],&cpstr[0],(size_t)ll);
+      free (cpstr);
+    }
+  }
+  else {
+    memmove(&m_str[sl],&m_str[0],(size_t)ll);
+    memcpy(&m_str[0],&str[0],(size_t)sl);
+  }
+  return *this;
+
+}
+
+Asciistr &Asciistr::lower() {
+
+  int ii=0,ll=len();
+  for (ii=0;ii<ll;ii++)
+    m_str[ii]=(char)tolower(m_str[ii]);
+  return *this;
+
+}
+
+Asciistr &Asciistr::upper() {
+
+  int ii=0,ll=len();
+  for (ii=0;ii<ll;ii++)
+    m_str[ii]=(char)toupper(m_str[ii]);
+  return *this;
+
+}
+
+Asciistr &Asciistr::strip() {
+
+  if (!m_str)
+    return *this;
+  int ih=(int)strlen(m_str),il=0,ic=0;
+  while (--ih>-1) {
+    ic=(int)m_str[ih];
+    if (mk_asciispace<ic && ic<mk_asciidel)
+      break;
+    m_str[ih]=0;
+  }
+  while (il<=ih) {
+    ic=(int)m_str[il];
+    if (mk_asciispace<ic && ic<mk_asciidel)
+      break;
+    il++;
+  }
+  if (il>0) {
+    ih-=(il-1);
+    memmove(&m_str[0],&m_str[il],(size_t)ih);
+    memset(&m_str[ih],0,(size_t)il);
+  }
+  return *this;
+
+}
+
+int ui2a(mk_ulreal number,Asciistr *numstr,int base,int width,int fillzero,const char *group) {
+
+  if (!numstr)
+    return 1;
+  mk_string astr;
+  mk_string groupstr;
+  mk_stringset(groupstr,group);
+  int res=mk_ui2str(number,astr,base,width,fillzero,groupstr);
+  *numstr=astr;
+  return res;
+
+}
+
+int i2a(mk_lreal number,Asciistr *numstr,int base,int width,int fillzero,const char *group) {
+
+  if (!numstr)
+    return 1;
+  mk_string astr;
+  mk_string groupstr;
+  mk_stringset(groupstr,group);
+  int res=mk_i2str(number,astr,base,width,fillzero,groupstr);
+  *numstr=astr;
+  return res;
+
+}
+
+int d2a(double d,Asciistr *str,int p,char fmt,int pad,const char *dec,const char *group) {
+
+  if (!str) 
+    return 1;
+  mk_string astr;
+  mk_string groupstr;
+  mk_string decstr;
+  mk_stringset(groupstr,group);
+  mk_stringset(decstr,dec);
+  int res=mk_d2str(d,astr,p,fmt,pad,decstr,groupstr);
+  *str=astr;
+  return res;
+
+}
+
+static void dbgOp(Asciistr input,const aux::TVList<Entry> &opL,int line) {
+
+  Asciistr dbg,numstr;
   dbg.reserve(128);
   int i=0;
   for (i=0;i<opL.count();i++) {
     dbg.append("  str:");
     dbg.append(opL.at(i)->m_str);
     dbg.append(" opt:");
-    aux::ui2a(opL.at(i)->m_option,&numstr);
+    ui2a(opL.at(i)->m_option,&numstr);
     dbg.append(numstr);
     dbg.append(" inv:");
     dbg.append(opL.at(i)->m_invstr);
@@ -25,7 +425,7 @@ static void dbgOp(aux::Asciistr input,const aux::TVList<Entry> &opL,int line) {
 
 }
 
-static int esplitanum(aux::Asciistr str,aux::Asciistr *strmant,aux::Asciistr *strexp) {
+static int esplitanum(Asciistr str,Asciistr *strmant,Asciistr *strexp) {
 
   if (strmant)
     *strmant=0;
@@ -124,14 +524,14 @@ int Calculator::isFnExtraNumber(const char *info) {
 
 }
 
-aux::Asciistr Calculator::setInput(aux::Asciistr input) {
+Asciistr Calculator::setInput(Asciistr input) {
 
   m_input=input;
   return m_input;
 
 }
 
-aux::Asciistr Calculator::setInfo(aux::Asciistr info) {
+Asciistr Calculator::setInfo(Asciistr info) {
 
   m_info=info;
   return m_info;
@@ -159,7 +559,7 @@ int Calculator::clean() {
 
 }
 
-int Calculator::errComp(aux::Asciistr msg) {
+int Calculator::errComp(Asciistr msg) {
 
   m_ops.clear();
   m_paren.clear();
@@ -226,19 +626,19 @@ unsigned int Calculator::doFmt(unsigned int numfmt) {
   int actfmt=m_numfmt;
   m_numfmt=numfmt;
   int ok=(int)actfmt,sgn=1;
-  aux::Asciistr buf=m_input;
+  Asciistr buf=m_input;
   mk_ulreal val=0;
   if (m_input.len()>0) {
     val=mk_a2ui((const char *)m_input,&ok,&sgn,0);
     if (ok<0 || (sgn<0 && (mk_lreal)val>(mk_lreal)mk_i64limit)) {
-      errComp(aux::Asciistr("err : cannot convert to integer (o)"));
+      errComp(Asciistr("err : cannot convert to integer (o)"));
       return m_numfmt;
     }
     else {
       if (sgn<0)
-        aux::i2a(val,&buf,m_numfmt);
+        i2a(val,&buf,m_numfmt);
       else
-        aux::ui2a(val,&buf,m_numfmt);
+        ui2a(val,&buf,m_numfmt);
       setInput(buf);
     }
   }
@@ -248,14 +648,14 @@ unsigned int Calculator::doFmt(unsigned int numfmt) {
     if ((a&fmtAction)==0 && (a&fmtUnaction)==0) {
       val=mk_a2ui((const char *)lastentry->m_str,&ok,&sgn,0);
       if (ok<0 || (sgn<0 && val>(mk_ulreal)mk_i64limit)) {
-        errComp(aux::Asciistr("err : cannot convert to integer (n)"));
+        errComp(Asciistr("err : cannot convert to integer (n)"));
         return m_numfmt;
       }
       else {
         if (sgn<0)
-          aux::i2a(val,&buf,m_numfmt);
+          i2a(val,&buf,m_numfmt);
         else
-          aux::ui2a(val,&buf,m_numfmt);
+          ui2a(val,&buf,m_numfmt);
         lastentry->m_str=buf;
         lastentry->m_option=m_numfmt;
       }
@@ -278,7 +678,7 @@ int Calculator::chgSgn() {
     return 0;
   }
   char sgn=0;
-  aux::Asciistr strmant,strexp;
+  Asciistr strmant,strexp;
   int idx=esplitanum(m_input,&strmant,&strexp);
   if (idx>=0) {
     sgn=(strexp.len()>0 ? strexp[0] : 0);
@@ -333,7 +733,7 @@ int Calculator::pushStore() {
   unsigned int opfmt=opFmt(fmtDirect);
   if (opfmt==fmtInvert)
     return popStore();
-  aux::Asciistr store;
+  Asciistr store;
   Entry *lastop=m_ops.at(m_ops.count()-1);
   if (m_input.len()==0 && lastop) {
     unsigned int isaction=isAction(*lastop);
@@ -363,9 +763,9 @@ int Calculator::popStore() {
 
 }
 
-aux::Asciistr Calculator::doInfo() {
+Asciistr Calculator::doInfo() {
 
-  aux::Asciistr infostr;
+  Asciistr infostr;
   infostr.reserve(64);
   if ((opFmt(0)&fmtInvert)>0)
     infostr.append("Inv ");
@@ -422,22 +822,22 @@ int Calculator::popParen() {
 
 }
 
-int Calculator::appendNumber(aux::Asciistr num) {
+int Calculator::appendNumber(Asciistr num) {
 
   if (num.len()==0)
     return -1;
   opFmt(fmtDirect);
-  aux::Asciistr input(m_input),strmant,strexp;
+  Asciistr input(m_input),strmant,strexp;
   int ok=-1,inplen=input.len(),idx=esplitanum(input,&strmant,&strexp);
   if (idx>=0 && m_numfmt!=fmtHex) {
     if (!isdigit(num[0]))
       return -1;
     char sgn=strexp[0];
-    aux::Asciistr strexpa(sgn==mk_asciiplus || sgn==mk_asciiminus ? strexp.substr(1,-1) : strexp);
+    Asciistr strexpa(sgn==mk_asciiplus || sgn==mk_asciiminus ? strexp.substr(1,-1) : strexp);
     int nexp=(int)mk_a2i((const char *)strexpa,&ok,0);
     if (ok<0)
       return -1;
-    aux::i2a((mk_lreal)nexp,&strexpa,10,3,true);
+    i2a((mk_lreal)nexp,&strexpa,10,3,true);
     strexpa.set(0,strexpa[1]);
     strexpa.set(1,strexpa[2]);
     strexpa.set(2,num[0]);
@@ -481,7 +881,7 @@ int Calculator::appendNumber(aux::Asciistr num) {
 
 }
 
-int Calculator::appendOperator(aux::Asciistr op) {
+int Calculator::appendOperator(Asciistr op) {
 
   Entry fnd(op);
   Entry *vop=m_actions.at(m_actions.find(fnd));
@@ -513,19 +913,19 @@ int Calculator::appendOperator(aux::Asciistr op) {
 
 }
 
-int Calculator::setExtraNumber(aux::Asciistr numtype) {
+int Calculator::setExtraNumber(Asciistr numtype) {
 
-  aux::Asciistr input,known(fn_exp);
+  Asciistr input,known(fn_exp);
   if (numtype==known)
     return appendNumber("e+000");
   known=fn_euler;
   if (numtype==known) {
-    aux::d2a(mk_euler,&input,15,0);
+    d2a(mk_euler,&input,15,0);
     return updateOutput(setInput(input));
   }
   known=fn_pi;
   if (numtype==known) {
-    aux::d2a(mk_pi,&input,15,0);
+    d2a(mk_pi,&input,15,0);
     return updateOutput(setInput(input));
   }
   return 0;
@@ -836,20 +1236,20 @@ Entry Calculator::compute(Entry num1_,Entry num2_,Entry action) {
     if (isintcalc && rl>(mk_ulreal)mk_i64limit && sgnr<0)
       isintcalc=false;
   }
-  aux::Asciistr buf;
+  Asciistr buf;
   if (isintcalc) {
     if (sgnr<0)
-      aux::i2a(sgnr*rl,&buf,fmt2);
+      i2a(sgnr*rl,&buf,fmt2);
     else
-      aux::ui2a(rl,&buf,fmt2);
+      ui2a(rl,&buf,fmt2);
     res.m_str=buf;
     res.m_option=fmt2;
   }
   else {
     if (action==fn_plus || action==fn_minus)
-      aux::d2a(rd,&buf,prec1>prec2 ? prec1 : prec2,-1);
+      d2a(rd,&buf,prec1>prec2 ? prec1 : prec2,-1);
     else
-      aux::d2a(rd,&buf,-magrd+mk_dprec,-1);
+      d2a(rd,&buf,-magrd+mk_dprec,-1);
     res.m_str=buf;
     res.m_option=fmtDec;
     //doFmt(11);
@@ -865,7 +1265,7 @@ Entry Calculator::calcUnary(Entry unop) {
   if ((isAction(unop)&fmtUnaction)==0)
     return res;
   Entry numstr;
-  aux::Asciistr strDbg;
+  Asciistr strDbg;
   if (m_input.len()>0)
     numstr.m_str=m_input;
   else {
@@ -991,7 +1391,7 @@ Entry Calculator::calcUnary(Entry unop) {
     n=1./n;
   }
   else if (unop==fn_chsgn) {
-    aux::Asciistr strmant,strexp;
+    Asciistr strmant,strexp;
     int idx=esplitanum(numstr.m_str,&strmant,&strexp);
     if (idx>=0) {
       char sgn=strexp[0];
@@ -1010,11 +1410,11 @@ Entry Calculator::calcUnary(Entry unop) {
     }
     else n=-n;
   }
-  aux::Asciistr buf;
+  Asciistr buf;
   if (isintcalc)
-    aux::ui2a(ni,&buf,m_numfmt);
+    ui2a(ni,&buf,m_numfmt);
   else {
-    aux::d2a(n,&buf,-mk_mag(n)+mk_dprec,-1);
+    d2a(n,&buf,-mk_mag(n)+mk_dprec,-1);
     //doFmt(11);
   }
   numstr.m_str=buf;
@@ -1163,7 +1563,7 @@ static void key2calcstr(osix::xxEvent *keyInput,aux::Ucsstr *str) {
 
 // **********
 
-int Calculator::updateOutput(aux::Asciistr msg) {
+int Calculator::updateOutput(Asciistr msg) {
 
   if (msg.len() == 0)
     msg=m_input;
@@ -1175,7 +1575,7 @@ int Calculator::updateOutput(aux::Asciistr msg) {
 
 }
 
-int Calculator::updateInfo(aux::Asciistr msg) {
+int Calculator::updateInfo(Asciistr msg) {
 
   if (msg.len() == 0)
     msg=m_info;
@@ -1247,6 +1647,7 @@ int Calculator::inputEvent(osix::xxEvent *xxev) {
   xxev->m_xxk=osix::lowerkey(xxev);
   int twkey=osix::typewriterkey(xxev);
   aux::Ucsstr str;
+  mk_string mkstr;
   key2calcstr(xxev,&str);
   if ((twkey&osix::xxk_ascii)>0) {
     if ((xxev->m_mods&osix::xx_modCtrl)>0) {
@@ -1289,15 +1690,18 @@ int Calculator::inputEvent(osix::xxEvent *xxev) {
                 (xxev->m_xxk>=osix::xxk_a && xxev->m_xxk<=osix::xxk_f)))
           ) {
             xxev->m_consumer|=osix::xx_processed;
-            appendNumber(str.asciistr());
+            str.toAscii(mkstr);
+            appendNumber(&mkstr[0]);
           }
         }
       }
       else if (xxev->m_xxk==osix::xxk_asterisk || xxev->m_xxk==osix::xxk_plus ||
                xxev->m_xxk==osix::xxk_minus || xxev->m_xxk==osix::xxk_slash) {
         xxev->m_consumer|=osix::xx_processed;
-        if (xxev->m_type==osix::xx_keyReleased)
-          appendOperator(str.asciistr());
+        if (xxev->m_type==osix::xx_keyReleased) {
+          str.toAscii(mkstr);
+          appendOperator(&mkstr[0]);
+        }
       }
       else if (xxev->m_xxk==osix::xxk_parenleft) {
         xxev->m_consumer|=osix::xx_processed;
@@ -1381,7 +1785,9 @@ int Calculator::doPaste() {
 
   aux::Ucsstr str;
   osix::xxfromClipboard(&str);
-  setInput(str.asciistr());
+  mk_string mkstr;
+  str.toAscii(mkstr);
+  setInput(&mkstr[0]);
   updateOutput(m_input);
   return 0;
 

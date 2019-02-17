@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
+#include <mkbase/mkutil.h>
 
 static const unsigned char mk_basechar[]={
   '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M',
@@ -40,58 +41,70 @@ static const unsigned char mk_asciidel=127;
 extern "C" {
 #endif
 
-/* in str , in str dec=. , in str group=0 , return 0,1 */
+/* in string , in string dec=. , in string group=0 , return 0|1 */
 xtern int oswinexp mk_removeseparators(char *,char *,char *);
 
-/* in str , in maxlen , in str dec=0 , in str group=0 , return 0,1 */
+/* in string , in maxlen , in string dec=0 , in string group=0 , return 0|1 */
 xtern int oswinexp mk_insertseparators(char *,char *,char *);
 
-/* in str , inout *base=0 , out *sgn=0 , in str group=0 , return number or 0 */
+/* in string , inout *base=0 , out *sgn=0 , in str group=0 , return number=0 */
 xtern mk_ulreal oswinexp mk_parseint(char *,int *,int *,char *);
 
-/* in str , out *type=0 , out *prec=0 , in str dec=. , in str group=0 , return number or nan */
+/* in string , out *type , out *prec , 
+   in string dec=. , in string group , return number=nan 
+*/
 xtern double oswinexp mk_parsefloat(char *,int *,int *,char *,char *);
 
-/* in str , inout *base=0 , out *sign=0 , in str group=0 , return number */
+/* in string , inout *base , out *sign , in string group , return number=0 */
+xtern mk_ulreal oswinexp mk_str2ui(char *,int *,int *,char *);
+
+/* in string , inout *base=0 , out *sign=0 , in str group=0 , return number=0 */
 xtern mk_ulreal oswinexp mk_a2ui_(int,...);
 
-/* in str , inout *base=0 , in str group=0 , return number */
+/* in string , inout *base=0 , in string group=0 , return number=0 */
 xtern mk_lreal oswinexp mk_a2i_(int,...);
 
-/* in number , out str , in base=10 , in width=0 , in padzero=1 , in str group=0 , return base */
-xtern int oswinexp mk_ui2str(mk_ulreal,char *,int,int,int,char *);
-
-/* in number , in base=10 , in width=0 , in padzero=1 , in str group=0 , return str 
-   allocates memory
+/* in number , out string , in base=10 , in width=0 , in padzero=1 , 
+   in string group=0 , return base=0
 */
-xtern char * oswinexp mk_ui2a_(int,...);
+xtern int oswinexp mk_ui2str(mk_ulreal,mk_string,int,int,int,char *);
 
-/* in number , out str , in base=10 , in width=0 , in padzero=1 , in str group=0 , return base */
-xtern int oswinexp mk_i2str(mk_lreal,char *,int,int,int,char *);
-
-/* in number , in base=10 , in width=0 , in padzero=1 , in str group=0 , return str 
-   allocates memory
+/* in number=0 , out string=0 , in base=10 , in width=0 , 
+   in padzero=1 , in string group=0 , return base=0
 */
-xtern char * oswinexp mk_i2a_(int,...);
+xtern int oswinexp mk_ui2a_(int,...);
 
-/* in str , out *prec=0 , in str dec=. , in str group=0 , return number or nan */
+/* in number=0 , out string=0 , in base=10 , in width=0 , 
+  in padzero=1 , in string group=0 , return base=0
+*/
+xtern int oswinexp mk_i2str(mk_lreal,mk_string,int,int,int,char *);
+
+/* in number=0 , out string=0 , in base=10 , in width=0 , 
+   in padzero=1 , in str string=0 , return base=0
+*/
+xtern int oswinexp mk_i2a_(int,...);
+
+/* in string , out *prec , in string dec , in string group , return number|nan */
+xtern double oswinexp mk_str2d(char *,int *,char *,char *);
+
+/* in string , out *prec=0 , in string dec=. , in string group=0 , return number|nan */
 xtern double oswinexp mk_a2d_(int,...);
 
-/* in number , out str , in prec , in fmt=-1 , in pad=-1 , return 0,1 */
-xtern int oswinexp mk_dconvert(double,char *,int,char,int);
+/* in number , out string , in prec , in fmt , in pad , return 0,1 */
+xtern int oswinexp mk_dconvert(double,mk_string,int,char,int);
 
 /*
-  in number , out str , in prec=15 , in fmt=-1 , in pad=-1 , 
-  in str dec=. , in str group=0 , return 0,1
+  in number , out string , in prec , in fmt , in pad , 
+  in string dec=. , in string group=0 , return 0,1
 */
-xtern int oswinexp mk_d2str(double,char *,int,char,int,char *,char *);
+xtern int oswinexp mk_d2str(double,mk_string,int,char,int,char *,char *);
 
 /*
-  in number , out str , in prec=15 , in fmt=-1 , in pad=-1 , 
-  in str dec=. , in str group=0 , return str
+  in number=0 , out string=0 , in prec=15 , in fmt=-1 , in pad=-1 , 
+  in string dec=. , in string group=0 , return 0|1
   allocates memory
 */
-xtern char * oswinexp mk_d2a_(int,...);
+xtern int oswinexp mk_d2a_(int,...);
 
 /* inout str , return 0,1 */
 xtern int oswinexp mk_exp2simple(char *);

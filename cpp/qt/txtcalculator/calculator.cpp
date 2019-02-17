@@ -140,7 +140,7 @@ QtCalculator::~QtCalculator() {
 
 }
 
-qtutil::CustomPushButton *QtCalculator::findCustomPushButton(aux::Asciistr info) {
+qtutil::CustomPushButton *QtCalculator::findCustomPushButton(calculator::Asciistr info) {
 
   int lb=-1,mb=0,ub=numpushbuttons;
   while ((ub-lb>1)) {
@@ -157,7 +157,7 @@ qtutil::CustomPushButton *QtCalculator::findCustomPushButton(aux::Asciistr info)
 
 }
 
-qtutil::CustomRadioButton *QtCalculator::findCustomRadioButton(aux::Asciistr info) {
+qtutil::CustomRadioButton *QtCalculator::findCustomRadioButton(calculator::Asciistr info) {
 
   int lb=-1,mb=0,ub=numradiobuttons;
   while ((ub-lb>1)) {
@@ -246,22 +246,23 @@ void QtCalculator::slotFmt(QAbstractButton *button) {
 
 unsigned int QtCalculator::delayedChgFmt(unsigned int chgfmt) {
 
-  m_timer.m_infoL.clear();
-  m_timer.m_infoL.append("chgfmt");
-  m_timer.m_infoL.append("");
-  aux::ui2a((mk_ulreal)chgfmt,m_timer.m_infoL.at(1));
+  m_timer.m_qtinfoL.clear();
+  m_timer.m_qtinfoL.append("chgfmt");
+  m_timer.m_qtinfoL.append("");
+  calculator::ui2a((mk_ulreal)chgfmt,m_timer.m_qtinfoL.at(1));
   m_timer.setSingleShot(true);
   m_timer.start(500);
   return chgfmt;
 
 }
 
-void QtCalculator::slotTimeout(qtutil::QtTimer *timer) {
+void QtCalculator::slotTimeout(qtutil::QtTimer *qttimer) {
 
-  static aux::Asciistr reason_chgfmt("chgfmt");
-  if (timer->m_infoL[0] == reason_chgfmt) {
+  static calculator::Asciistr reason_chgfmt("chgfmt");
+  QtTxtCalculatorTimer *timer=dynamic_cast<QtTxtCalculatorTimer*>(qttimer);
+  if (timer->m_qtinfoL[0] == reason_chgfmt) {
     int fmt=(int)calculator::fmtDec;
-    unsigned int ff=(unsigned int)mk_a2ui((const char *)timer->m_infoL[1],&fmt);
+    unsigned int ff=(unsigned int)mk_a2ui((const char *)timer->m_qtinfoL[1],&fmt);
     if (fmt >= 0) {
       chgFmt(ff);
       fmtgroup->blockSignals(true);

@@ -1,6 +1,7 @@
 
-#include <auxx/auxx.h>
 #include <numeric/vertex.h>
+#include <mkbase/mkmath.h>
+#include <mkbase/mkconv.h>
 
 namespace num {
 
@@ -271,26 +272,30 @@ double Vertex::angdeg(const Vertex &other) const {
 
 }
 
-void Vertex::toString(aux::Asciistr *str,int prec) const {
+int Vertex::toString(mk_string str,int prec) const {
 
-  if (!str)
-    return;
-  mk_str1k(buf);
-  aux::Asciistr numstr;
-  strcpy(buf,"Vertex : [");
-  d2a(m_tuple[0],&numstr,(short)prec);
-  strcat(buf,numstr);
-  strcat(buf,";");
-  d2a(m_tuple[1],&numstr,(short)prec);
-  strcat(buf,numstr);
-  strcat(buf,";");
-  d2a(m_tuple[2],&numstr,(short)prec);
-  strcat(buf,numstr);
-  strcat(buf,";");
-  d2a(m_tuple[3],&numstr,(short)prec);
-  strcat(buf,numstr);
-  strcat(buf,"]");
-  *str=buf;
+  mk_stringappend(str,"Vertex : [");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  mk_d2a(m_tuple[0],numstr,prec);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,";");
+  mk_d2a(m_tuple[1],numstr,prec);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,";");
+  mk_d2a(m_tuple[2],numstr,prec);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,";");
+  mk_d2a(m_tuple[3],numstr,prec);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"]");
+  return 0;
+
+}
+
+void swapvertex(Vertex *v1,Vertex *v2) {
+
+  mk_vertexswap(v1->data(),v2->data());
 
 }
 
@@ -434,7 +439,7 @@ int VertexList::find(Vertex vertex) const {
 
   if ((m_list.sorted&1)==0 || m_list.cmp==0)
     return -1;
-  return mk_listfind(&m_list,(void *)(vertex.data()));
+  return mk_listfind(&m_list,(void *)(vertex.data()),0,0);
 
 }
 
@@ -467,7 +472,8 @@ int VertexList::inSort(Vertex vertex) {
 
 int VertexList::remove(int idx) {
 
-  return mk_listremove(&m_list,idx);
+  Vertex vertex;
+  return mk_listremove(&m_list,idx,(void *)&vertex);
     
 }
 

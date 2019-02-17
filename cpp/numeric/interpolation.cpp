@@ -52,19 +52,19 @@ int numInterpolIntermediates(Interpolation *interpolation) {
   
 }
 
-aux::Asciistr interpolation2string(mk_ulreal option) {
+int interpolation2string(mk_ulreal option,mk_string res) {
 
-  aux::Asciistr res("none");
+  mk_stringset(res,"none");
   if (option==interpolation_none)
-    return res;
+    return 0;
   mk_ulreal ii=0,jj=0;
   for (ii=1,jj=1;jj<(numinterpolationtypes+numinerpolationoptions);ii*=2,jj++) {
     if ((option&ii)>0) {
-      res=(jj<numinterpolationtypes ? interpolationtypes[jj] : interpolationoptions[jj]);
+      mk_stringset(res,(jj<numinterpolationtypes ? interpolationtypes[jj] : interpolationoptions[jj]));
       break;
     }
   }
-  return res;
+  return 0;
 
 }
 

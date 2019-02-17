@@ -10,9 +10,7 @@
 
 int main(int argc,char **argv) { 
 
-  aux::Asciistr fname;
-  if (argc>1)
-    fname=argv[1];
+  char *fname=(argc>1 ? argv[1] : 0);
 
   QApplication a(argc,argv);
   //QApplication::setDesktopSettingsAware( FALSE );

@@ -3,7 +3,6 @@
 #define _xxevent_h_
 
 #include <mkbase/defs.h>
-#include <auxx/auxx.h>
 #include <osix/xxkey.h>
 #include <osix/xxmouse.h>
 #include <osix/xxshape.h>
@@ -44,46 +43,28 @@ class oswinexp xxEvent {
     unsigned short m_xxsym;
     num::Vector3 m_pos,m_globalpos,m_lastpos,m_downpos;
     xxRect m_r;
-    aux::TVArr<aux::Asciistr> m_info;
+    mk_string m_info;
     xxEvent() : 
       m_type(0),m_mods(0),m_consumer(0),m_xxk(0),m_buttons(0),m_xxsym(0) {
-      m_info.resize(128);
+      mk_stringset(m_info,0);
     }
     xxEvent(const xxEvent &ass) :
       m_type(ass.m_type),m_mods(ass.m_mods),m_consumer(ass.m_consumer),
       m_xxk(ass.m_xxk),m_buttons(ass.m_buttons),m_xxsym(ass.m_xxsym),
       m_pos(ass.m_pos),m_globalpos(ass.m_globalpos),m_lastpos(ass.m_lastpos),
-      m_downpos(ass.m_downpos),m_r(ass.m_r),m_info(ass.m_info) {
+      m_downpos(ass.m_downpos),m_r(ass.m_r) {
+      if (&ass!=this)
+        mk_stringset(m_info,&ass.m_info[0]);
     }
     ~xxEvent() {
     }
-    xxEvent &operator=(const xxEvent &ass) {
-      m_type=ass.m_type;
-      m_mods=ass.m_mods;
-      m_consumer=ass.m_consumer;
-      m_xxk=ass.m_xxk;
-      m_buttons=ass.m_buttons;
-      m_xxsym=ass.m_xxsym;
-      if (&ass!=this) {
-        m_pos=ass.m_pos;
-        m_globalpos=ass.m_globalpos;
-        m_lastpos=ass.m_lastpos;
-        m_downpos=ass.m_downpos;
-        m_r=ass.m_r;
-        m_info=ass.m_info;
-      }
-      return *this;
-    }
-    bool operator==(const xxEvent &cmp) const {
-      return (m_type==cmp.m_type);
-    }
-    bool operator<(const xxEvent &cmp) const {
-      return (m_type<cmp.m_type);
-    }
+    xxEvent &operator=(const xxEvent &);
+    bool operator==(const xxEvent &cmp) const;
+    bool operator<(const xxEvent &cmp) const;
     void clear();
-    int setInfo(const char *,int idx=-1);
-    int info(aux::Asciistr *,int idx=-1) const;
-    void type2txt(aux::Asciistr *) const;
+    int setInfo(const char *);
+    int info(mk_string) const;
+    int type2txt(mk_string) const;
 
 };
 

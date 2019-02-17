@@ -184,7 +184,9 @@ aux::TypeId Xaxis::assignGraph(Graph *graph) {
 
 double Xaxis::ticLen4Size(const Tic *tic) {
 
-  return (m_fnt[tic->m_size].m_metric.width()*tic->m_str.len());
+  aux::Ucsstr ticstr;
+  tic->ucsText(&ticstr);
+  return (m_fnt[tic->m_size].m_metric.width()*ticstr.length());
 
 }
 
@@ -282,13 +284,13 @@ double Yaxis::needSize(osix::xxRectSize size) {
   int ii=0,ntics=calcTics(size.height(),m_fnt[0].m_metric.height(),&ticL);
   if (ntics<=0)
     return ww;
-  aux::Asciistr str;
+  mk_string str;
   for (ii=0;ii<ntics;ii++) { 
-    aux::d2a(ticL.at(ii)->m_val,&str,m_scale->interval().m_a);
-    wtmp=m_fnt[ticL.at(ii)->m_size].m_metric.width()*str.len()+m_fnt[1].m_metric.height()/2.;
+    mk_d2a(ticL.at(ii)->m_val,str,m_scale->interval().m_a);
+    wtmp=m_fnt[ticL.at(ii)->m_size].m_metric.width()*mk_stringlength(str)+m_fnt[1].m_metric.height()/2.;
     if (wtmp>ww)
       ww=wtmp;
-    str=0;
+    mk_stringset(str,0);
   }
   ww=mk_round2(ww);
   m_size.setWidth(ww);  

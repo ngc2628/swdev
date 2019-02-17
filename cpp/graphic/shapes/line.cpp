@@ -38,27 +38,23 @@ int Line2::eval(num::VertexList *pointL,int npoints) {
 
 }
 
-void Line2::toStringType(aux::Asciistr *buf) const {
+int Line2::toStringType(mk_string str) const {
   
-  if (!buf)
-    return;
-  aux::Asciistr numstr;
-  buf->append("p0, ");
-  m_l[0].toString(&numstr);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\np1, ");
-  m_l[1].toString(&numstr);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\nlen=");
-  aux::d2a(len(),&numstr,-1);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\nang=");
-  aux::d2a(ang(),&numstr,-1);
-  buf->append((const char *)numstr);
-  buf->append("\n");
+  mk_stringappend(str,"p0, ");
+  mk_string numstr;
+  m_l[0].toString(numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\np1, ");
+  m_l[1].toString(numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\nlen=");
+  mk_d2a(len(),numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\nang=");
+  mk_d2a(ang(),numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\n");
+  return 0;
   
 }
 

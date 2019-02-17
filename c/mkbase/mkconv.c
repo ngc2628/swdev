@@ -92,7 +92,6 @@ int mk_removeseparators(char *numstr,char *decsep,char *groupsep) {
   free(res);
   if (numlen>jj)
     memset(&numstr[jj],0,(numlen-jj));
-
   return 0;
 
 }
@@ -122,7 +121,8 @@ int mk_insertseparators(char *numstr,char *decsep,char *groupsep) {
     numstr[--numlen]=0;
     decpos--;
   }
-  mk_str1k(res);
+  mk_string res;
+  mk_stringset(res,0);
   int maxlen=mk_sz;
   kk=maxlen;
   for (ii=numlen-1;ii>-1;ii--) {
@@ -187,8 +187,10 @@ int mk_exp2simple (char *numstr) {
   if (numlen<4)
     return 1;
   int ii=0,jj=1,expnum=0;
-  mk_str1k(bufman);
-  mk_str1k(bufexp);
+  mk_string bufman;
+  mk_string bufexp;
+  mk_stringset(bufman,0);
+  mk_stringset(bufexp,0);
   for (ii=numlen-1;ii>-1;ii--) {
     if (numstr[ii]==mk_asciie || numstr[ii]==mk_asciiE) {
       strcpy(&bufman[0],&numstr[0]);
@@ -196,7 +198,7 @@ int mk_exp2simple (char *numstr) {
       break;
     }
   }
-  int mantlen=(int)strlen(bufman),explen=(int)strlen(bufexp);
+  int mantlen=mk_stringlength(bufman),explen=mk_stringlength(bufexp);
   if (mantlen==0 || explen==0)
     return 0;
   for (ii=explen-1;ii>-1;ii--) {
@@ -214,7 +216,7 @@ int mk_exp2simple (char *numstr) {
     }
   }
   if (expnum==0) {
-    strcpy(numstr,bufman);
+    strcpy(numstr,&bufman[0]);
     numstr[mantlen]=0;
     return 0;
   }
@@ -295,7 +297,7 @@ int mk_exp2simple (char *numstr) {
     bufman[0]=mk_asciiminus;
     mantlen++;
   }
-  strcpy(numstr,bufman);
+  strcpy(numstr,&bufman[0]);
   numstr[mantlen]=0;
   return 0;
 
@@ -313,34 +315,36 @@ mk_ulreal mk_parseint(char *estr,int *base,int *sgn,char *group) {
   int mybase=(base ? *base : 10);
   if (mybase<2 || mybase>mk_maxintbase)
     mybase=10;
-  mk_str1k(numstr);
-  strcpy(numstr,estr);
-  mk_strip4ascii(numstr);
-  mk_removeseparators(numstr,0,group);
-  mk_exp2simple(numstr);
-  len=(int)strlen(numstr);
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  strcpy(&numstr[0],estr);
+  mk_strip4ascii(&numstr[0]);
+  mk_removeseparators(&numstr[0],0,group);
+  mk_exp2simple(&numstr[0]);
+  len=mk_stringlength(numstr);
   if (len==0) {
     if (base)
       *base=-1;
     return 0;
   }
-  mk_str1k(tmpstr);
+  mk_string tmpstr;
+  mk_stringset(tmpstr,0);
   int canparse=0;
-  char c=0;
+  char cc=0;
   ii=len-1;
   while (ii>-1) {
-    c=numstr[ii--];
-    if (mybase==16 && (c==mk_asciix || c==mk_asciiX || c==mk_asciihash))
+    cc=numstr[ii--];
+    if (mybase==16 && (cc==mk_asciix || cc==mk_asciiX || cc==mk_asciihash))
       break;
     if (ii==0) {
-      if (c==mk_asciiminus || c==mk_asciiplus || (mybase==8 && c==mk_asciizero)) {
-        if (c==mk_asciiminus)
+      if (cc==mk_asciiminus || cc==mk_asciiplus || (mybase==8 && cc==mk_asciizero)) {
+        if (cc==mk_asciiminus)
           mysgn=-1;
         break;
       }
     }
     for(kk=0;kk<mybase;kk++) {
-      if (c==mk_basechar[kk]) {
+      if (cc==mk_basechar[kk]) {
         canparse=1;
         break;
       }
@@ -353,7 +357,7 @@ mk_ulreal mk_parseint(char *estr,int *base,int *sgn,char *group) {
       return 0;
     }
     canparse=0;
-    tmpstr[jj++]=c;
+    tmpstr[jj++]=cc;
   }
   if (sgn)
     *sgn=mysgn;
@@ -381,22 +385,22 @@ mk_ulreal mk_parseint(char *estr,int *base,int *sgn,char *group) {
   }
   else if (len==chklen[lchk]) {
     for (ii=0;ii<len;ii++) {
-      c=numstr[ii];
-      if (c>ui64limitstr[lchk][ii]) {
+      cc=numstr[ii];
+      if (cc>ui64limitstr[lchk][ii]) {
         if (base)
           *base=-1;
         return 0;
       }
-      else if (c<ui64limitstr[lchk][ii])
+      else if (cc<ui64limitstr[lchk][ii])
         break;
     }
   }
   mk_ulreal number=0,mult=1;
   int idx=-1;
   for (ii=len-1;ii>-1;ii--)  {
-    c=numstr[ii];
+    cc=numstr[ii];
     for (jj=0;jj<mybase;jj++) {
-      if (c==mk_basechar[jj]) {
+      if (cc==mk_basechar[jj]) {
         idx=jj;
         break;
       }
@@ -421,29 +425,30 @@ double mk_parsefloat(char *str,int *type,int *prec,char *decsep,char *groupsep) 
   int ii=0,inplen=(str ? (int)strlen(str) : 0);
   if (inplen==0)
     return mk_dnan;
-  mk_str1k(estr);
-  strcpy(estr,str);
-  mk_strip4ascii(estr);
-  inplen=(int)strlen(estr);
+  mk_string estr;
+  mk_stringset(estr,0);
+  strcpy(&estr[0],str);
+  mk_strip4ascii(&estr[0]);
+  inplen=mk_stringlength(estr);
   if (inplen==0)
     return mk_dnan;
   for (ii=0;ii<inplen;ii++)
     estr[ii]=(char)tolower(estr[ii]);
-  if (strcmp(estr,"nan")==0 || strcmp(estr,"-nan")==0 ||
-      strcmp(estr,"inf")==0 || strcmp(estr,"-inf")==0) {
+  if (strcmp(&estr[0],"nan")==0 || strcmp(&estr[0],"-nan")==0 ||
+      strcmp(&estr[0],"inf")==0 || strcmp(&estr[0],"-inf")==0) {
     if (type)
       *type=2;
-    if (strcmp(estr,"nan")==0)
+    if (strcmp(&estr[0],"nan")==0)
       return mk_dnan;
-    if (strcmp(estr,"-nan")==0)
+    if (strcmp(&estr[0],"-nan")==0)
       return mk_dsnan;
-    if (strcmp(estr,"inf")==0)
+    if (strcmp(&estr[0],"inf")==0)
       return mk_dinf;
-    if (strcmp(estr,"-inf")==0)
+    if (strcmp(&estr[0],"-inf")==0)
       return mk_dsinf;
   }
-  mk_removeseparators(estr,decsep,groupsep);
-  inplen=(int)strlen(estr);
+  mk_removeseparators(&estr[0],decsep,groupsep);
+  inplen=mk_stringlength(estr);
   if (inplen==0)
     return mk_dnan;
   int sgn=(estr[0]==mk_asciiminus ? -1 : (estr[0]==mk_asciiplus ? 1 : 0));
@@ -454,8 +459,10 @@ double mk_parsefloat(char *str,int *type,int *prec,char *decsep,char *groupsep) 
     if (inplen==0)
       return mk_dnan;
   }
-  mk_str1k(bufman);
-  mk_str1k(bufexp);
+  mk_string bufman;
+  mk_stringset(bufman,0);
+  mk_string bufexp;
+  mk_stringset(bufexp,0);
   for (ii=inplen-1;ii>-1;ii--) {
     if (estr[ii]==mk_asciie) {
       strncpy(&bufman[0],&estr[0],ii);
@@ -463,7 +470,7 @@ double mk_parsefloat(char *str,int *type,int *prec,char *decsep,char *groupsep) 
       break;
     }
   }
-  int expnum=0,mantlen=(int)strlen(bufman),explen=(int)strlen(bufexp);
+  int expnum=0,mantlen=mk_stringlength(bufman),explen=mk_stringlength(bufexp);
   if (mantlen==0) {
     strcpy(&bufman[0],&estr[0]);
     mantlen=inplen;
@@ -563,6 +570,43 @@ double mk_parsefloat(char *str,int *type,int *prec,char *decsep,char *groupsep) 
 }
 
 /* ########## */
+mk_ulreal mk_str2ui(char *str,int *base,int *sgn,char *group) {
+
+  int mysgn=1,mybase=-1;
+  if (base)
+    mybase=*base;
+  mk_ulreal unum=0;
+  if (mybase<0) {
+    mybase=10;
+    unum=mk_parseint(str,&mybase,&mysgn,group);
+    if (mybase<0) {
+      mybase=2;
+      unum=mk_parseint(str,&mybase,&mysgn,0);
+    }
+    if (mybase<0) {
+      mybase=16;
+      unum=mk_parseint(str,&mybase,&mysgn,0);
+    }
+    if (mybase<0) {
+      mybase=8;
+      unum=mk_parseint(str,&mybase,&mysgn,0);
+    }
+    if (mybase<0) {
+      mybase=mk_maxintbase;
+      unum=mk_parseint(str,&mybase,&mysgn,0);
+    }
+  }
+  else
+    unum=mk_parseint(str,&mybase,&mysgn,group);
+  if (base)
+    *base=mybase;
+  if (sgn)
+    *sgn=mysgn;
+  return unum;
+  
+}
+
+/* ########## */
 mk_ulreal mk_a2ui_(int cnt,...) {
 
   va_list valist;
@@ -572,38 +616,7 @@ mk_ulreal mk_a2ui_(int cnt,...) {
   int *sign=(cnt>2 ? va_arg(valist,int *) : 0);
   char *group=(cnt>3 ? va_arg(valist,char *) : 0);
   va_end(valist);
-
-  int sgn=1,mybase=-1;
-  if (base)
-    mybase=*base;
-  mk_ulreal unum=0;
-  if (mybase<0) {
-    mybase=10;
-    unum=mk_parseint(str,&mybase,&sgn,group);
-    if (mybase<0) {
-      mybase=2;
-      unum=mk_parseint(str,&mybase,&sgn,0);
-    }
-    if (mybase<0) {
-      mybase=16;
-      unum=mk_parseint(str,&mybase,&sgn,0);
-    }
-    if (mybase<0) {
-      mybase=8;
-      unum=mk_parseint(str,&mybase,&sgn,0);
-    }
-    if (mybase<0) {
-      mybase=mk_maxintbase;
-      unum=mk_parseint(str,&mybase,&sgn,0);
-    }
-  }
-  else
-    unum=mk_parseint(str,&mybase,&sgn,group);
-  if (base)
-    *base=mybase;
-  if (sign)
-    *sign=sgn;
-  return unum;
+  return mk_str2ui(str,base,sign,group);
 
 }
 
@@ -618,20 +631,21 @@ mk_lreal mk_a2i_(int cnt,...) {
   va_end(valist);
 
   int sgn=1;
-  mk_lreal res=(mk_lreal)mk_a2ui_(4,str,base,&sgn,group);
+  mk_lreal res=(mk_lreal)mk_str2ui(str,base,&sgn,group);
   return sgn*res;
 
 }
 
 /* ########## */
-int mk_ui2str(mk_ulreal number,char *numstr,int base,int width,int fillzero,char *group) {
+int mk_ui2str(mk_ulreal number,mk_string numstr,int base,int width,int fillzero,char *group) {
 
-  numstr[0]=0;
+  mk_stringset(numstr,0);
   if (base<2 || base>mk_maxintbase)
     base=10;
   mk_ulreal num=number;
   int pos=-1;
-  mk_str1k(buf);
+  mk_string buf;
+  mk_stringset(buf,0);
   do {
     buf[++pos]=(char)mk_basechar[(int)(num%base)];
     num/=base;
@@ -649,6 +663,7 @@ int mk_ui2str(mk_ulreal number,char *numstr,int base,int width,int fillzero,char
   int ii=0,jj=0;
   for (ii=pos,jj=0;ii>-1;ii--,jj++)
     numstr[jj]=buf[ii];
+  numstr[pos+1]=0;
   if (base==10 && group && strlen(group)>0)
     mk_insertseparators(&numstr[0],0,group);
   return base;
@@ -656,61 +671,68 @@ int mk_ui2str(mk_ulreal number,char *numstr,int base,int width,int fillzero,char
 }
 
 /* ########## */
-char *mk_ui2a_(int cnt,...) {
+int mk_ui2a_(int cnt,...) {
 
   va_list valist;
   va_start(valist,cnt);
   mk_ulreal number=(cnt>0 ? va_arg(valist,mk_ulreal) : 0);
-  int base=(cnt>1 ? va_arg(valist,int) : 10);
-  int width=(cnt>2 ? va_arg(valist,int) : 0);
-  int padzero=(cnt>3 ? va_arg(valist,int) : 1);
-  char *group=(cnt>4 ? va_arg(valist,char *) : 0);
+  char *str=(cnt>1 ? va_arg(valist,char *) : 0);
+  int base=(cnt>2 ? va_arg(valist,int) : 10);
+  int width=(cnt>3 ? va_arg(valist,int) : 0);
+  int padzero=(cnt>4 ? va_arg(valist,int) : 1);
+  char *group=(cnt>5 ? va_arg(valist,char *) : 0);
   va_end(valist);
 
-  mk_str1k(resx);
-  int resbase=mk_ui2str(number,&resx[0],base,width,padzero,group);
-  if (resbase==0)
-    return 0;
-  char *res=(char *)malloc((int)strlen(resx));
-  strcpy(res,resx);
-  return res;
+  mk_string resx;
+  base=mk_ui2str(number,resx,base,width,padzero,group);
+  if (str)
+    strcpy(str,&resx[0]);
+  return base;
   
 }
 
 /* ########## */
-int mk_i2str(mk_lreal number,char *numstr,int base,int width,int fillzero,char *group) {
+int mk_i2str(mk_lreal number,mk_string numstr,int base,int width,int fillzero,char *group) {
 
   int sgn=(int)(number>>63);
   mk_ulreal unumber=(mk_ulreal)(number&mk_i64limit);
   base=mk_ui2str(unumber,numstr,base,width,fillzero,group);
   if (sgn>0) {
-    memmove(&numstr[1],&numstr[0],strlen(numstr));
-    numstr[0]=mk_asciiminus;
+    char ss[2]={mk_asciiminus,0};
+    mk_stringprepend(numstr,&ss[0]);
   }
   return base;
 
 }
 
 /* ########## */
-char *mk_i2a_(int cnt,...) {
+int mk_i2a_(int cnt,...) {
 
   va_list valist;
   va_start(valist,cnt);
   mk_lreal number=(cnt>0 ? va_arg(valist,mk_lreal) : 0);
-  int base=(cnt>1 ? va_arg(valist,int) : 10);
-  int width=(cnt>2 ? va_arg(valist,int) : 0);
-  int padzero=(cnt>3 ? va_arg(valist,int) : 1);
-  char *group=(cnt>4 ? va_arg(valist,char *) : 0);
+  char *str=(cnt>1 ? va_arg(valist,char *) : 0);
+  int base=(cnt>2 ? va_arg(valist,int) : 10);
+  int width=(cnt>3 ? va_arg(valist,int) : 0);
+  int padzero=(cnt>4 ? va_arg(valist,int) : 1);
+  char *group=(cnt>5 ? va_arg(valist,char *) : 0);
   va_end(valist);
 
-  mk_str1k(resx);
-  int resbase=mk_i2str(number,&resx[0],base,width,padzero,group);
-  if (resbase==0)
-    return 0;
-  char *res=(char *)malloc((int)strlen(resx));
-  strcpy(res,resx);
-  return res;
+  mk_string resx;
+  base=mk_i2str(number,resx,base,width,padzero,group);
+  if (str)
+    strcpy(str,&resx[0]);
+  return base;
   
+}
+
+/* ########## */
+double mk_str2d(char *str,int *prec,char *dec,char *group) {
+
+  int type=0;
+  double res=mk_parsefloat(str,&type,prec,dec,group);
+  return (type==0 ? mk_dnan : res);
+
 }
 
 /* ########## */
@@ -723,21 +745,18 @@ double mk_a2d_(int cnt,...) {
   char *dec=(cnt>2 ? va_arg(valist,char *) : ".");
   char *group=(cnt>3 ? va_arg(valist,char *) : 0);
   va_end(valist);
-
-  int type=0;
-  double res=mk_parsefloat(str,&type,prec,dec,group);
-  return (type==0 ? mk_dnan : res);
+  return mk_str2d(str,prec,dec,group);
 
 }
 
 int failedcnt1=0,failedcnt2=0;
 /* ########## */
-int mk_dconvert (double d,char *str,int p,char fmt,int pad) {
+int mk_dconvert (double d,mk_string str,int p,char fmt,int pad) {
 
   str[0]=0;
   int db=mk_isbusted(d);
   if (db!=0) {
-    strcpy(str,(mk_isinf(d) ? (db<0 ? "-INF" : "INF") : (db<0 ? "-NaN" : "NaN")));
+    strcpy(&str[0],(mk_isinf(d) ? (db<0 ? "-INF" : "INF") : (db<0 ? "-NaN" : "NaN")));
     return 0;
   }
   union tp_dpur {
@@ -963,8 +982,9 @@ int mk_dconvert (double d,char *str,int p,char fmt,int pad) {
 }
 
 /* ########## */
-int mk_d2str(double d,char *str,int p,char fmt,int pad,char *decsep,char *groupsep) {
+int mk_d2str(double d,mk_string str,int p,char fmt,int pad,char *decsep,char *groupsep) {
 
+  mk_stringset(str,0);
   mk_dconvert(d,str,p,fmt,pad);
   if ((decsep && strlen(decsep)>0 && strcmp(decsep,".")) ||
       (fmt==0 && groupsep && strlen(groupsep)>0))
@@ -974,25 +994,24 @@ int mk_d2str(double d,char *str,int p,char fmt,int pad,char *decsep,char *groups
 }
 
 /* ########## */
-char *mk_d2a_(int cnt,...) {
+int mk_d2a_(int cnt,...) {
 
   va_list valist;
   va_start(valist,cnt);
   double number=(cnt>0 ? va_arg(valist,double) : mk_dnan);
-  int prec=(cnt>1 ? va_arg(valist,int) : 15);
-  int fmt=(cnt>2 ? va_arg(valist,int) : -1);
-  int pad=(cnt>3 ? va_arg(valist,int) : -1);
-  char *dec=(cnt>4 ? va_arg(valist,char *) : ".");
-  char *group=(cnt>5 ? va_arg(valist,char *) : 0);
+  char *str=(cnt>1 ? va_arg(valist,char *) : 0);
+  int prec=(cnt>2 ? va_arg(valist,int) : 15);
+  int fmt=(cnt>3 ? va_arg(valist,int) : -1);
+  int pad=(cnt>4 ? va_arg(valist,int) : -1);
+  char *dec=(cnt>5 ? va_arg(valist,char *) : ".");
+  char *group=(cnt>6 ? va_arg(valist,char *) : 0);
   va_end(valist);
 
-  mk_str1k(resx);
-  int restype=mk_d2str(number,&resx[0],prec,fmt,pad,dec,group);
-  if (restype!=0)
-    return 0;
-  char *res=(char *)malloc((int)strlen(resx));
-  strcpy(res,resx);
-  return res;
+  mk_string resx;
+  mk_d2str(number,resx,prec,fmt,pad,dec,group);
+  if (str)
+    strcpy(str,&resx[0]);
+  return 0;
 
 }
 

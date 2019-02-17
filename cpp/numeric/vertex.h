@@ -3,7 +3,6 @@
 #define _vertex_H_
 
 #include <mkbase/mkla.h>
-#include <auxx/auxx.h>
 
 namespace num {
 
@@ -63,9 +62,11 @@ class oswinexp Vertex {
     Vertex cross(const Vertex &) const;
     double angrad(const Vertex &) const;
     double angdeg(const Vertex &) const;
-    void toString(aux::Asciistr *,int prec=3) const;
+    int toString(mk_string,int prec=3) const;
 
 };
+
+extern void oswinexp swapvertex(Vertex *,Vertex *);
 
 extern double oswinexp lineRot(Vertex,Vertex,Vertex,Vertex,Vertex *);
 

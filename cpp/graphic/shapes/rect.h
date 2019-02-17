@@ -2,7 +2,6 @@
 #ifndef _rect_h_
 #define _rect_h_
 
-#include <auxx/auxx.h>
 #include <graphic/shapes/shape.h>
 
 namespace shapes {
@@ -27,45 +26,19 @@ class oswinexp RectSize {
       m_height=ass.m_height;
       return *this;
     }
-    bool operator==(const RectSize &cmp) const {
-      return (m_width==cmp.m_width && m_height==cmp.m_height);
-    }
-    bool operator<(const RectSize &cmp) const {
-      return (m_width*m_height<cmp.m_width*cmp.m_height);
-    }
-    double setWidth(double w) {
-      m_width=(mk_isbusted(w)!=0 || w<0. ? 0. : w);
-      return m_width;
-    }
-    double setHeight(double h) {
-      m_height=(mk_isbusted(h)!=0 || h<0. ? 0. : h);
-      return m_height;
-    }
-    RectSize set(double w=.0,double h=.0) {
-      m_width=(mk_isbusted(w)!=0 || w<0. ? 0. : w);
-      m_height=(mk_isbusted(h)!=0 || h<0. ? 0. : h);
-      return *this;
-    }
+    bool operator==(const RectSize &) const;
+    bool operator<(const RectSize &) const;
+    double setWidth(double);
+    double setHeight(double);
+    RectSize set(double w=.0,double h=.0);
     double width() const {
       return m_width;
     }
     double height() const {
       return m_height;
     }
-    bool empty() const {
-      return (m_width<=.0 || m_height<=.0);
-    }
-    void toString(aux::Asciistr *str) const {
-      str->reserve(1024);
-      aux::Asciistr numstr;
-      str->append("w=");
-      aux::d2a(m_width,&numstr,-1);
-      str->append((const char*)numstr);
-      str->append(" , h=");
-      aux::d2a(m_height,&numstr,-1);
-      str->append((const char*)numstr);
-      str->append("\n");
-    }
+    bool empty() const;
+    int toString(mk_string) const;
 
 };
 
@@ -79,43 +52,19 @@ class oswinexp Rect : public Shape2 {
     Rect(num::Vector3,RectSize sz=RectSize(.0,.0));
     Rect(const Rect &ass) : Shape2((const Shape2 &)ass),m_sz(ass.m_sz) { }
     virtual ~Rect() { }
-    Rect &operator=(const Rect &ass) {
-      if (this==&ass)
-        return *this;
-      ((Shape2*)this)->operator=((const Shape2 &)ass); 
-      m_sz=ass.m_sz; 
-      return *this; 
-    }
-    bool operator==(const Rect &cmp) const {
-      return ((const Shape2*)this)->operator==((const Shape2&)cmp);
-    }
-    bool operator<(const Rect &cmp) const {
-      return ((const Shape2*)this)->operator<((const Shape2&)cmp);
-    }
-    aux::TypeId *clone() const {
-      return new Rect((const Rect &)(*this));
-    }
+    Rect &operator=(const Rect &);
+    bool operator==(const Rect &) const;
+    bool operator<(const Rect &) const;
+    aux::TypeId *clone() const;
     RectSize size() const {
       return m_sz;
     }
-    RectSize setSize(RectSize sz) {
-      m_sz=sz;
-      m_points.clear();
-      return m_sz;
-    }
-    double rotate(double r) { 
-      m_rotate=mk_dsign(r)*fmod(fabs(r),90.); 
-      m_points.clear();
-      return m_rotate; 
-    }
-    num::Vector3 center() const {
-      return num::Vector3(.0,.0,.0);
-    }
-    double circradius() const {
-      return sqrt(m_sz.width()*m_sz.width()+m_sz.height()*m_sz.height());
-    }
+    RectSize setSize(RectSize);
+    double rotate(double);
+    num::Vector3 center() const;
+    double circradius() const;
     int eval(num::VertexList *,int npoints=-1);
-    void toStringType(aux::Asciistr*) const;
+    int toStringType(mk_string) const;
 
 };
 

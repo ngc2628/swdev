@@ -11,13 +11,34 @@
 
 namespace qtspreadsheet {
 
+SpreadsheetEditor::SpreadsheetEditor() : m_editwidget(0) {
+
+  mk_stringset(m_editorType,0);    
+
+}
+    
+bool SpreadsheetEditor::operator==(const SpreadsheetEditor &cmp) const {
+
+  return (m_pos==cmp.m_pos);
+  
+}
+
+bool SpreadsheetEditor::operator<(const SpreadsheetEditor &cmp) const {
+
+  return (m_pos<cmp.m_pos);
+  
+}
+
+int SpreadsheetEditor::active() const {
+
+  return (m_editwidget ? 1 : 0);
+  
+}
+    
 SpreadsheetEditor::~SpreadsheetEditor() {
 
   if (m_editwidget)
     delete m_editwidget;
-  m_pos.set(-1,-1);
-  m_r.set();
-  m_editorType=0;
 
 }
 
@@ -28,8 +49,7 @@ int SpreadsheetEditor::remove() {
   m_editwidget=0;
   m_pos.set(-1,-1);
   m_r.set();
-  m_editorType=0;
-
+  mk_stringset(m_editorType,0);
   return 0;
 
 }
@@ -221,7 +241,12 @@ int QtSpreadsheet::startEditCell(spreadsheet::Coords pos,int sym) {
 //printf ("rl=%f rt=%f rw=%f rh=%f\n",rr.left(),rr.top(),rr.size().width(),rr.size().height());
   if (rr.empty())
     return -1;
-  aux::Asciistr edtypedef(editorDefault),edtypele(editorLineedit),edtypecb(editorCombobox);
+  mk_string edtypedef;
+  mk_stringset(edtypedef,editorDefault);
+  mk_string edtypele;
+  mk_stringset(edtypele,editorLineedit);
+  mk_string editorCombobox;
+  mk_stringset(editorCombobox,editorCombobox);
   aux::Ucsstr ucssym;
   ucssym.reserve(2);
   ucssym.append((unsigned short)sym);
@@ -230,21 +255,20 @@ int QtSpreadsheet::startEditCell(spreadsheet::Coords pos,int sym) {
   qtutil::toQString(&ucssym,&edtxt);
   spreadsheet::SpreadsheetDataItem *itm=m_data->data(pos.m_row,pos.m_col);
   if (itm) {
-    if (itm->m_editorType.len()==0)
+    if (mk_stringlength(itm->m_editorType)==0)
       return -1;
-    if (itm->m_text.m_txt.len()>0)
+    if (itm->m_text.m_txt.length()>0)
       qtutil::toQString(&itm->m_text.m_txt,&edtxt);
-//printf ("%d edtxt=%d edtype=%s\n",__LINE__,sym,(const char *)itm->m_editorType);
-    if (itm->m_editorType==edtypedef) {
-      m_editor.m_editorType=edtypedef;
+    if (mk_stringcmp(itm->m_editorType,edtypedef)==0) {
+      mk_stringset(m_editor.m_editorType,edtypedef);
       m_editor.m_editwidget=new QLineEdit(edtxt,m_view);
     }
-    else if (itm->m_editorType==edtypele) {
-      m_editor.m_editorType=edtypele;
+    else if (mk_stringcmp(itm->m_editorType,edtypele)==0) {
+      mk_stringset(m_editor.m_editorType,edtypele);
       m_editor.m_editwidget=new QLineEdit(edtxt,m_view);
     }
-    else if (itm->m_editorType==edtypecb) {
-    
+    else if (mk_stringcmp(itm->m_editorType,editorCombobox)==0) {
+        
     }
     else
       return -1;
@@ -252,7 +276,7 @@ int QtSpreadsheet::startEditCell(spreadsheet::Coords pos,int sym) {
   }
   else {
     qtutil::toQFont(&spreadsheet::defFnt,&fnt);
-    m_editor.m_editorType=edtypedef;
+    mk_stringset(m_editor.m_editorType,edtypedef);
     m_editor.m_editwidget=new QLineEdit(edtxt,m_view);
   }
   m_editor.m_pos=pos;
@@ -278,13 +302,18 @@ int QtSpreadsheet::stopEditCell(int res) {
       pos.m_row<0 || pos.m_row>=m_data->nrows() || 
       pos.m_col<0 || pos.m_col>=m_data->ncols())
     res=-1;
-  aux::Asciistr edtypedef(editorDefault),edtypele(editorLineedit),edtypecb(editorCombobox);
+  mk_string edtypedef;
+  mk_stringset(edtypedef,editorDefault);
+  mk_string edtypele;
+  mk_stringset(edtypele,editorLineedit);
+  mk_string editorCombobox;
+  mk_stringset(editorCombobox,editorCombobox);
   QString edtxt;
-  if (m_editor.m_editorType==edtypedef)
+  if (mk_stringcmp(m_editor.m_editorType,edtypedef)==0)
     edtxt=((QLineEdit*)m_editor.m_editwidget)->text();
-  else if (m_editor.m_editorType==edtypele)
+  else if (mk_stringcmp(m_editor.m_editorType,edtypele)==0)
     edtxt=((QLineEdit*)m_editor.m_editwidget)->text();
-  else if (m_editor.m_editorType==edtypecb) {
+  else if (mk_stringcmp(m_editor.m_editorType,editorCombobox)==0) {
     res=-1;
   }
   else

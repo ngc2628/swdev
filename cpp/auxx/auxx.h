@@ -12,56 +12,11 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 #include <mkbase/mkmath.h>
+#include <mkbase/mkutil.h>
 
 namespace aux {
 
-const char *const nullAsciistr="[NULL]";
 const unsigned short nullUcsstr[7]={91,78,85,76,76,93,0};
-
-class oswinexp Asciistr {
-
-  protected:
-    char *m_str;
-    int m_sz;
-
-  public:
-    Asciistr(const char *str=0);
-    Asciistr(const Asciistr &);
-    ~Asciistr();
-    Asciistr &operator=(const Asciistr &);
-    Asciistr &operator=(const char *);
-    operator const char *() const;
-    char operator[](int) const;
-    bool operator==(const Asciistr &) const;
-    bool operator<(const Asciistr &) const;
-    const char *data() const;
-    char *rawdata();
-    int len() const;
-    int reserve(int);
-    int cut(int newl=0);
-    int set(int,char);
-    int find(char,int idx=0,unsigned char dir='f',unsigned char ci=0) const;
-    Asciistr substr(int,int) const;
-    Asciistr &append(char);
-    Asciistr &append(const char *);
-    Asciistr &prepend(char);
-    Asciistr &prepend(const char *);
-    Asciistr &lower();
-    Asciistr &upper();
-    Asciistr &strip();
-
-};
-
-extern int oswinexp ui2a(
-  mk_ulreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
-
-extern int oswinexp i2a(
-  mk_lreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
-
-extern int oswinexp d2a(
-  double,Asciistr*,int prec=15,char fmt=-1,int pad=-1,const char *dec=".",const char *group=0);
-
-extern mk_ulreal oswinexp nextT(Asciistr *);
 
 class oswinexp Ucsstr {
 
@@ -79,9 +34,10 @@ class oswinexp Ucsstr {
     unsigned short operator[](int) const;
     bool operator==(const Ucsstr &) const;
     bool operator<(const Ucsstr &) const;
-    const unsigned short *data() const;
-    int len() const;
+    unsigned short *data() const;
+    int length() const;
     int reserve(int);
+    int setLength(int);
     int set(int,unsigned short);
     int find(unsigned short,int idx=0,unsigned char dir='f') const;
     Ucsstr substr(int,int) const;
@@ -91,15 +47,14 @@ class oswinexp Ucsstr {
     Ucsstr &prepend(const char *);
     Ucsstr &prepend(unsigned short);
     Ucsstr &prepend(const Ucsstr &);
-    Asciistr asciistr() const;
+    int toAscii(mk_string) const;
 
 };
 
 class oswinexp TypeId {
 
   protected:
-    mk_ulreal m_idd;
-    char m_type[mk_sz];
+    struct mk_typeid m_typeid;
 
   public:
     TypeId(const char *name=0,mk_ulreal idd=0);
@@ -112,7 +67,7 @@ class oswinexp TypeId {
     int busted() const;
     const char *type() const;
     mk_ulreal idd() const;
-    virtual void toString(Asciistr *) const;
+    virtual int toString(mk_string) const;
     virtual int fromString(const char *);
 
 };
@@ -136,7 +91,7 @@ class oswinexp Rounded {
     bool operator<(const Rounded &) const;
     int cmprd(const Rounded &) const;
     double rounded() const;
-    Asciistr toString(char fmt=-1,int pad=-1,const char *dec=".",const char *group=0) const;
+    int toString(mk_string,char fmt=-1,int pad=-1,const char *dec=".",const char *group=0) const;
 
 };
 

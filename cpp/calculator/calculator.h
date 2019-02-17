@@ -108,12 +108,55 @@ fn_plus,fn_pow,fn_reci,fn_sin,fn_sqr,fn_sqrt,fn_tan
 const int fn_Active=1;
 const int fn_Inactive=2;
 
+class oswinexp Asciistr {
+
+  protected:
+    char *m_str;
+    int m_sz;
+
+  public:
+    Asciistr(const char *str=0);
+    Asciistr(const Asciistr &);
+    ~Asciistr();
+    Asciistr &operator=(const Asciistr &);
+    Asciistr &operator=(const char *);
+    operator const char *() const;
+    char operator[](int) const;
+    bool operator==(const Asciistr &) const;
+    bool operator<(const Asciistr &) const;
+    const char *data() const;
+    char *rawdata();
+    int len() const;
+    int reserve(int);
+    int cut(int newl=0);
+    int set(int,char);
+    int find(char,int idx=0,unsigned char dir='f',unsigned char ci=0) const;
+    Asciistr substr(int,int) const;
+    Asciistr &append(char);
+    Asciistr &append(const char *);
+    Asciistr &prepend(char);
+    Asciistr &prepend(const char *);
+    Asciistr &lower();
+    Asciistr &upper();
+    Asciistr &strip();
+
+};
+
+extern int oswinexp ui2a(
+  mk_ulreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
+   
+extern int oswinexp i2a(
+  mk_lreal,Asciistr*,int base=10,int width=0,int padzero=1,const char *group=0);
+
+extern int oswinexp d2a(
+  double,Asciistr*,int prec=15,char fmt=-1,int pad=-1,const char *dec=".",const char *group=0);
+
 class oswinexp Entry {
 
   public:
-    aux::Asciistr m_str;
+    Asciistr m_str;
     unsigned int m_option;
-    aux::Asciistr m_invstr;
+    Asciistr m_invstr;
     Entry(const char *str=0,unsigned int option=fmtDec,const char *invstr=0) :
       m_str(str),m_option(option),m_invstr(invstr) {
     }
@@ -137,7 +180,9 @@ class oswinexp Entry {
     }
     int invert() {
       if (m_invstr.len()>0) {
-        aux::swap(&m_str,&m_invstr);
+        Asciistr tmp(m_str);
+        m_str=m_invstr;
+        m_invstr=tmp;
         return 0;
       }
       return -1;
@@ -163,8 +208,8 @@ class oswinexp Calculator {
   protected:
     osix::xxEvent m_xxlastinputev;
     unsigned int m_numfmt,m_trigfmt,m_opfmt;
-    aux::Asciistr m_input,m_info,m_output,m_showinfo;
-    aux::TVStack<aux::Asciistr> m_store;
+    Asciistr m_input,m_info,m_output,m_showinfo;
+    aux::TVStack<Asciistr> m_store;
     aux::TVList<Entry> m_ops;
     aux::TVStack<aux::TVList<Entry> > m_paren;
     aux::TVList<Entry> m_actions;
@@ -175,11 +220,11 @@ class oswinexp Calculator {
       return *this;
     }
 
-    virtual aux::Asciistr setInput(aux::Asciistr);
-    virtual aux::Asciistr setInfo(aux::Asciistr);
+    virtual Asciistr setInput(Asciistr);
+    virtual Asciistr setInfo(Asciistr);
     virtual int clear();
     virtual int clean();
-    virtual int errComp(aux::Asciistr);
+    virtual int errComp(Asciistr);
     virtual unsigned int chgFmt(unsigned int);
     virtual unsigned int trigFmt(unsigned int);
     virtual unsigned int opFmt(unsigned int);
@@ -189,12 +234,12 @@ class oswinexp Calculator {
     virtual int setOp(int,Entry);
     virtual int pushStore();
     virtual int popStore();
-    virtual aux::Asciistr doInfo();
+    virtual Asciistr doInfo();
     virtual int pushParen();
     virtual int popParen();
-    virtual int appendNumber(aux::Asciistr);
-    virtual int appendOperator(aux::Asciistr);
-    virtual int setExtraNumber(aux::Asciistr);
+    virtual int appendNumber(Asciistr);
+    virtual int appendOperator(Asciistr);
+    virtual int setExtraNumber(Asciistr);
     virtual int validateHist();
     virtual int updateAction();
     virtual Entry compute(Entry,Entry,Entry);
@@ -205,8 +250,8 @@ class oswinexp Calculator {
     }
     virtual int checkFnActive();
     virtual int fnActive(const char *,int);
-    virtual int updateOutput(aux::Asciistr);
-    virtual int updateInfo(aux::Asciistr);
+    virtual int updateOutput(Asciistr);
+    virtual int updateInfo(Asciistr);
     virtual void *findDisplay() {
       return 0;
     }

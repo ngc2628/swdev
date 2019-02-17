@@ -5,6 +5,11 @@
 
 namespace shapes {
 
+Shape2::Shape2(const char *type) : 
+  aux::TypeId(type),m_scale(1.),m_rotate(.0),m_translate(num::Vector3(0.,0.)) {
+   
+}
+
 Shape2 &Shape2::operator=(const Shape2 &ass) {
  
   if (this==&ass)
@@ -14,7 +19,7 @@ Shape2 &Shape2::operator=(const Shape2 &ass) {
   m_rotate=ass.m_rotate;
   m_translate=ass.m_translate;
   m_points=ass.m_points;
-  m_descr=ass.m_descr;
+  mk_stringset(m_descr,&ass.m_descr[0]);
   m_styleO=ass.m_styleO;
   m_styleF=ass.m_styleF;
   return *this; 
@@ -50,71 +55,68 @@ num::Vector3 Shape2::translate(num::Vector3 tt) {
 
 void Shape2::setDescr(const char *descr) { 
 
-  if (descr)
-    m_descr=descr;
-  else
-    m_descr=(const char *)0;
+  mk_stringset(m_descr,descr);
   
 }	
 
-void Shape2::toString(aux::Asciistr *buf) const {
+int Shape2::toString(mk_string str) const {
   
-  if (!buf)
-    return;
-  TypeId::toString(buf);
-  buf->reserve(1024*1024);
-  buf->append("\ndescr=");
-  buf->append(m_descr);
-  buf->append("\nscale=");
-  aux::Asciistr numstr;
-  aux::d2a(m_scale,&numstr,-1);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\nrotate=");
-  aux::d2a(m_rotate,&numstr,-1);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\ntranslate: ");
-  m_translate.toString(&numstr);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\ncircradius=");
-  aux::d2a(circradius(),&numstr,-1);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\ncenter=");
-  center().toString(&numstr);
-  buf->append((const char *)numstr);
-  numstr=0; 
-  buf->append("\nstyles:\n");
-  buf->append("  ");
-  m_styleO.toString(&numstr);
-  buf->append((const char *)numstr);
-  buf->append("\n  ");
-  numstr=0;
-  m_styleF.toString(&numstr);
-  buf->append((const char *)numstr);
-  buf->append("\n");
-  toStringType(buf);
-  buf->append("eval, ");
-  numstr=0;
-  aux::i2a(m_points.count(),&numstr);
-  buf->append((const char*)numstr);
-  buf->append(" points: \n");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  TypeId::toString(numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\ndescr=");
+  mk_stringappend(str,&m_descr[0]);
+  mk_stringappend(str,"\nscale=");
+  mk_d2a(m_scale,numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\nrotate=");
+  mk_stringset(numstr,0);
+  mk_d2a(m_rotate,numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\ntranslate: ");
+  mk_stringset(numstr,0);
+  m_translate.toString(numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\ncircradius=");
+  mk_d2a(circradius(),numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\ncenter=");
+  mk_stringset(numstr,0);
+  center().toString(numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\nstyles:\n   ");
+  mk_stringset(numstr,0);
+  m_styleO.toString(numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\n  ");
+  mk_stringset(numstr,0);
+  m_styleF.toString(numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"\n");
+  mk_stringset(numstr,0);
+  toStringType(numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str,"eval, ");
+  mk_stringset(numstr,0);
+  mk_i2a(m_points.count(),numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringappend(str," points: \n");
   int ii=0;
   for (ii=0;ii<m_points.count();ii++) {
-    buf->append("  p");
-    aux::i2a(ii,&numstr);
-    buf->append((const char*)numstr);
-    numstr=0;
-    buf->append(": ");
-    m_points[ii].toString(&numstr);
-    buf->append((const char*)numstr);
-    buf->append("\n"); 
-    numstr=0;
+    mk_stringappend(str,"  p");
+    mk_stringset(numstr,0);
+    mk_i2a(ii,numstr);
+    mk_stringappend(str,&numstr[0]);
+    mk_stringappend(str,": ");
+    mk_stringset(numstr,0);
+    m_points[ii].toString(numstr);
+    mk_stringappend(str,&numstr[0]);
+    mk_stringappend(str,"\n"); 
   }
   if (ii==0)
-    buf->append("\n");
+    mk_stringappend(str,"\n");
+  return 0;
   
 }
 

@@ -4,26 +4,26 @@
 
 namespace spreadsheet {
 
-void SpreadsheetIndex::toString(aux::Asciistr *str) {
+int SpreadsheetIndex::toString(mk_string str) {
 
-  *str=0;
-  str->reserve(100);
-  aux::Asciistr numstr;
-  str->append("idx=");
-  aux::i2a(m_idx,&numstr);
-  str->append(numstr);
-  numstr=0;
-  str->append(" type=");
-  aux::i2a(m_type,&numstr);
-  str->append(numstr);
-  numstr=0;
-  str->append(" size=");
-  aux::d2a(m_sz,&numstr);
-  str->append(numstr);
-  numstr=0;
-  str->append(" ");
-  m_gridstyle.toString(&numstr);
-  str->append(numstr);
+  mk_stringset(str,"idx=");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  mk_i2a(m_idx,numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringset(numstr,0);
+  mk_stringappend(str," type=");
+  mk_i2a(m_type,numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringset(numstr,0);
+  mk_stringappend(str," size=");
+  mk_d2a(m_sz,&numstr);
+  mk_stringappend(str,&numstr[0]);
+  mk_stringset(numstr,0);
+  mk_stringappend(str," ");
+  m_gridstyle.toString(numstr);
+  mk_stringappend(str,&numstr[0]);
+  return 0;
 
 }
 
@@ -31,7 +31,8 @@ void SpreadsheetIndex::toString(aux::Asciistr *str) {
 SpreadsheetDataItem::SpreadsheetDataItem(const SpreadsheetDataItemText &text,
                                          const osix::xxStyle &fgStyle,
                                          const osix::xxStyle &bgStyle) :
-  m_editorType("default"),m_text(text),m_selectable(0) {
+  m_text(text),m_selectable(0) {
+  mk_stringset(m_editorType,"default");
   m_style[0]=fgStyle;
   m_style[1]=bgStyle;
   m_style[2]=m_style[3]=m_style[4]=m_style[5]=osix::xxStyle();
@@ -40,8 +41,9 @@ SpreadsheetDataItem::SpreadsheetDataItem(const SpreadsheetDataItemText &text,
 
 // **********
 SpreadsheetDataItem::SpreadsheetDataItem(const SpreadsheetDataItem &ass) :
-  m_editorType(ass.m_editorType),m_text(ass.m_text),m_selectable(ass.m_selectable) {
+  m_text(ass.m_text),m_selectable(ass.m_selectable) {
 
+  mk_stringset(m_editorType,&ass.m_editorType[0]);
   memcpy(&m_style[0],&ass.m_style[0],6*sizeof(osix::xxStyle));
 
 }
@@ -51,7 +53,7 @@ SpreadsheetDataItem &SpreadsheetDataItem::operator=(const SpreadsheetDataItem &a
 
   if (this==&ass)
     return *this;
-  m_editorType=ass.m_editorType;
+  mk_stringset(m_editorType,&ass.m_editorType[0]);
   m_text=ass.m_text;
   m_selectable=ass.m_selectable;
   memcpy(&m_style[0],&ass.m_style[0],6*sizeof(osix::xxStyle));
@@ -81,7 +83,6 @@ int SpreadsheetDataItem::draw(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC
     }
   }
   osix::xxRect rect=gc.m_r;
-  aux::Asciistr dbgstr;
   if (doframe[0]>0) {
     gc.m_r=osix::xxRect(num::Vector3(rect.left()+frext[0],rect.top()+frext[0]),
                         num::Vector3(rect.left()+frext[0],rect.bottom()-frext[0]+1.));
@@ -106,7 +107,7 @@ int SpreadsheetDataItem::draw(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC
     gc.m_fg=m_style[5];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
-  if (m_text.m_txt.len()>0) {
+  if (m_text.m_txt.length()>0) {
     gc.m_r=rect;
     gc.m_fg=m_style[0];
     gc.m_fnt=m_text.m_fnt;
@@ -325,7 +326,7 @@ int SpreadsheetData::drawCell(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC
       gc.m_fnt.m_style|=osix::xx_fntBold;
     osix::xxdrawCtrl(disp,xxdrawable,&gc,
                      (selected&1)>0 ? osix::xx_pushbutton_sunken : osix::xx_pushbutton_raised,
-                     itm ? &(itm->m_text.m_txt) : 0,132);
+                     itm ? &itm->m_text.m_txt : 0,132);
   }
   else {
     if (itm)
@@ -364,18 +365,17 @@ int SpreadsheetData::drawGridLine(void *disp,osix::xxDrawable *xxdrawable,osix::
 
 }
 
-void SpreadsheetData::toString(aux::Asciistr *str,bool descr,bool) {
+int SpreadsheetData::toString(mk_string str,bool descr,bool) {
 
-  *str=0;
-  str->reserve(10000000);
-  aux::Asciistr idxstr;
+  mk_string idxstr;
   int ii=0;
   if (descr) {
     for (ii=0;ii<m_descr.count();ii++) {
-      m_descr.at(ii)->toString(&idxstr);
-      str->append(idxstr);
+      m_descr.at(ii)->toString(idxstr);
+      mk_stringappend(str,&idxstr[0]);
     }
   }
+  return 0;
 
 }
 

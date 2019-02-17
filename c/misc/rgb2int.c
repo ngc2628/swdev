@@ -18,8 +18,10 @@ int main(int argc,char **argv) {
   char *tok=strtok(argv[1],",");
   if (!tok)
     return usage();
-  mk_str1k(str1);
-  mk_str1k(str2);
+  mk_string str1;
+  mk_string str2;
+  mk_stringset(str1,0);
+  mk_stringset(str2,0);
   int base=-1;
   mk_ulreal cc=mk_a2ui(tok,&base);
   unsigned short rr=0,gg=0,bb=0,aa=255;
@@ -32,7 +34,8 @@ int main(int argc,char **argv) {
     rr=(unsigned short)((cc>>16)&255);
     gg=(unsigned short)((cc>>8)&255);
     bb=(unsigned short)(cc&255);
-    printf ("%s[%s] a,r,g,b [%u,%u,%u,%u]\n",(const char*)str1,(const char*)str2,aa,rr,gg,bb);
+    printf ("%s[%s] a,r,g,b [%u,%u,%u,%u]\n",
+      (const char*)&str1[0],(const char*)&str2[0],aa,rr,gg,bb);
     return 0;
   }
   aa=(unsigned short)cc;

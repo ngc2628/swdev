@@ -53,6 +53,84 @@ class NEllipse {
 
 static TPList<NEllipse> elL;
 
+Ellipse::Ellipse(num::Vector3 ab) : Shape2("ellipse"),m_ab(fabs(ab[0]),fabs(ab[1])) {
+	  
+  double *vab=m_ab.data();
+  if (vab[0]>vab[1]) 
+	  aux::swap(&vab[0],&vab[1]);
+  
+}
+
+Ellipse &Ellipse::operator=(const Ellipse &ass) {
+      
+  if (this!=&ass) {
+    ((Shape2*)this)->operator=((const Shape2 &)ass); 
+    m_ab=ass.m_ab;
+  }
+  return *this;
+  
+}
+
+bool Ellipse::operator==(const Ellipse &cmp) const {
+      
+  return ((const Shape2*)this)->operator==((const Shape2&)cmp);
+  
+}
+
+bool Ellipse::operator<(const Ellipse &cmp) const {
+      
+  return ((const Shape2*)this)->operator<((const Shape2&)cmp);
+
+}
+
+aux::TypeId *Ellipse::clone() const {
+      
+  return new Ellipse((const Ellipse &)(*this));
+  
+}
+
+num::Vector3 Ellipse::set(num::Vector3 ab) {
+      
+  double *vab=m_ab.data();	
+  if (vab[0]>vab[1])
+    mk_swapf(&vab[0],&vab[1]);
+  m_ab=ab; 
+  m_points.clear(); 
+  return m_ab;
+  
+}
+
+double Ellipse::ecc() const {
+      
+  return (sqrt(m_ab.x()*m_ab.x()-m_ab.y()*m_ab.y())/m_ab.x());
+  
+}
+
+double Ellipse::area() const {
+
+  return (mk_pi*m_ab.x()*m_ab.y());
+  
+}
+
+double Ellipse::circ() const { // circumference
+
+  double ll=(m_ab.x()-m_ab.y())/(m_ab.x()+m_ab.y());
+  double fac=ll*ll;
+  double add=1.+fac/4.;
+  fac*=fac;
+  add+=(fac/64.+fac*ll*ll/256.);
+  fac*=fac;
+  add+=25.*fac/16384.;
+  return (mk_pi*(m_ab.x()+m_ab.y())*add);
+    
+}
+
+double Ellipse::circradius() const {
+
+  return (m_ab.x()>m_ab.y() ? m_ab.x() : m_ab.y());
+  
+}
+
 int Ellipse::eval(num::VertexList *pointL,int npoints) {
 
   if (elL.size()<=0)

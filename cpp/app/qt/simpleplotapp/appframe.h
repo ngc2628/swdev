@@ -39,7 +39,7 @@ class AppFrame : public QFrame {
   Q_OBJECT
     
   public:
-    AppFrame (QWidget *parent=0,aux::Asciistr datafile=0);
+    AppFrame (QWidget *parent=0,const char *datafile=0);
     virtual ~AppFrame ();
     bool eventFilter(QObject *,QEvent *);
     void resizeEvent(QResizeEvent *);
@@ -69,8 +69,7 @@ class AppFrame : public QFrame {
     void slotChartInteractive();
            
   protected:
-    aux::Asciistr m_datafile;
-
+    mk_string m_datafile;
     QMenuBar *m_menubar;
     QStatusBar *m_statusbar;
     QToolBar *m_toolbar;

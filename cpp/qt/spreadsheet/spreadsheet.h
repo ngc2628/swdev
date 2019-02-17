@@ -57,20 +57,13 @@ class oswinexp SpreadsheetEditor {
   public:
     spreadsheet::Coords m_pos;
     osix::xxRect m_r;
-    aux::Asciistr m_editorType;
+    mk_string m_editorType;
     QWidget *m_editwidget;
-    SpreadsheetEditor() : m_editwidget(0) {
-    }
+    SpreadsheetEditor();
     virtual ~SpreadsheetEditor();
-    bool operator==(const SpreadsheetEditor &cmp) const {
-      return (m_pos==cmp.m_pos);
-    }
-    bool operator<(const SpreadsheetEditor &cmp) const {
-      return (m_pos<cmp.m_pos);
-    }
-    int active() const {
-      return (m_editwidget ? 1 : 0);
-    }
+    bool operator==(const SpreadsheetEditor &cmp) const;
+    bool operator<(const SpreadsheetEditor &cmp) const;
+    int active() const;
     virtual int remove();
 
   protected:

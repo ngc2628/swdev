@@ -2,7 +2,6 @@
 #ifndef _line_h_
 #define _line_h_
 
-#include <auxx/auxx.h>
 #include <numeric/vertex.h>
 #include <graphic/shapes/shape.h>
 
@@ -68,7 +67,7 @@ class oswinexp Line2 : public Shape2 {
       return len()/2.;
     }
     int eval(num::VertexList *,int npoints=-1);
-    void toStringType(aux::Asciistr *) const;
+    int toStringType(mk_string) const;
     
 };
 

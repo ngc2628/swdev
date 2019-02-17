@@ -13,6 +13,83 @@ namespace shapes {
 
 static const int defCntPoints=3;
 
+Triangle::Triangle(num::Vector3 t0,num::Vector3 t1,num::Vector3 t2) : Shape2("triangle") {
+
+  if (t0.busted(num::typeX|num::typeY)!=0)
+    t0=num::Vector3(0.,0.);
+  if (t1.busted(num::typeX|num::typeY)!=0)
+    t1=num::Vector3(0.,0.);
+  if (t2.busted(num::typeX|num::typeY)!=0)
+    t2=num::Vector3(0.,0.);
+  if (t1[0]<t0[0])
+    aux::swap(&t0,&t1);
+  if (t2[0]<t1[0])
+    aux::swap(&t1,&t2);
+  m_t[0]=t0;
+  m_t[1]=t1;
+  m_t[2]=t2;
+
+}
+    
+Triangle::Triangle(const Triangle &ass) : Shape2((const Shape2 &)ass) {
+
+  int ii=0;
+  for (ii=0;ii<3;ii++)
+    m_t[ii]=ass.m_t[ii];
+
+}
+ 
+Triangle &Triangle::operator=(const Triangle &ass) {
+      
+  if (this!=&ass) {
+    ((Shape2*)this)->operator=((const Shape2 &)ass);
+    int ii=0;
+    for (ii=0;ii<3;ii++)
+      m_t[ii]=ass.m_t[ii];
+  }
+  return *this;
+  
+}
+   
+bool Triangle::operator==(const Triangle &cmp) const {
+      
+  return ((const Shape2*)this)->operator==((const Shape2&)cmp);
+  
+}
+    
+bool Triangle::operator<(const Triangle &cmp) const {
+
+  return ((const Shape2*)this)->operator<((const Shape2&)cmp);
+  
+}
+
+num::Vector3 Triangle::operator[](int idx) const {
+      
+  if (idx<=0)
+    return m_t[0];
+  if (idx>=2)
+    return m_t[2];
+  return m_t[1];
+  
+}
+
+aux::TypeId *Triangle::clone() const {
+
+  return new Triangle((const Triangle &)(*this));
+  
+}
+    
+void Triangle::get(num::Vector3 *t0,num::Vector3 *t1,num::Vector3 *t2) const {
+
+  if (t0)
+    *t0=m_t[0];
+  if (t1)
+    *t1=m_t[1];
+  if (t2)
+    *t2=m_t[2];
+  
+}
+
 void Triangle::set(num::Vector3 t0,num::Vector3 t1,num::Vector3 t2) {
 
   if (t0.busted(num::typeX|num::typeY)!=0)
@@ -108,24 +185,54 @@ int Triangle::eval(num::VertexList *pointL,int npoints) {
 
 }
 
-void Triangle::toStringType(Asciistr *buf) const {
+int Triangle::toStringType(mk_string str) const {
 
-  if (!buf)
-    return;
-  aux::Asciistr numstr;
-  buf->append("p0, ");
-  m_t[0].toString(&numstr);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\np1, ");
-  m_t[1].toString(&numstr);
-  buf->append((const char *)numstr);
-  numstr=0;
-  buf->append("\np2, ");
-  m_t[2].toString(&numstr);
-  buf->append((const char *)numstr);
-  buf->append("\n");
+  mk_stringappend(str,"p0, ");
+  mk_string numstr;
+  mk_stringset(numstr,0);
+  m_t[0].toString(numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\np1, ");
+  mk_stringset(numstr,0);
+  m_t[1].toString(numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\np2, ");
+  mk_stringset(numstr,0);
+  m_t[2].toString(numstr);
+  mk_stringappend(str,numstr);
+  mk_stringappend(str,"\n");
+  return 0;
 
+}
+
+TriangleEq &TriangleEq::operator=(const TriangleEq &ass) {
+      
+  if (this!=&ass) {
+    ((Shape2*)this)->operator=((const Shape2 &)ass);
+    m_a=ass.m_a;
+  }
+  return *this;
+  
+}
+
+bool TriangleEq::operator==(const TriangleEq &cmp) const {
+      
+  return ((const Shape2*)this)->operator==((const Shape2&)cmp);
+  
+}
+    
+bool TriangleEq::operator<(const TriangleEq &cmp) const {
+      
+  return ((const Shape2*)this)->operator<((const Shape2&)cmp);
+  
+}
+    
+double TriangleEq::set(double a) {
+      
+  m_a=(mk_isfinite(a) ? a : 0.);
+  m_points.clear();
+  return m_a;
+  
 }
 
 int TriangleEq::eval(num::VertexList *pointL,int npoints) {

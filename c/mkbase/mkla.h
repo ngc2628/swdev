@@ -35,9 +35,9 @@ extern "C" {
 #endif
 
 /*
-  in vertex , return str , allocates memory
+  in vertex , out string , return 0|1
 */
-xtern char * oswinexp mk_vertexdbg(const mk_vertex);
+xtern int oswinexp mk_vertexdbg(const mk_vertex,mk_string);
 
 /*
   inout vertex-to , in vertex-from , return 0,1

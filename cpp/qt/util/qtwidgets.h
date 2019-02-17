@@ -15,7 +15,6 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QLayout>
 #include <stdio.h>
-#include <auxx/auxx.h>
 #include <osix/xxevent.h>
 #include <osix/xxshape.h>
 //#include <qt/util/qtcolortriangle.h>
@@ -27,8 +26,8 @@ class oswinexp CustomPushButton : public QPushButton {
   Q_OBJECT
 
   public:
-    aux::Asciistr m_info;
-    CustomPushButton(const QString &,QWidget *parent=0,aux::Asciistr info=aux::Asciistr());
+    mk_string m_info;
+    CustomPushButton(const QString &,QWidget *parent=0,const char *info=0);
     virtual ~CustomPushButton() {
     }
     virtual QSize sizeHint() const;
@@ -56,8 +55,8 @@ class oswinexp CustomRadioButton : public QRadioButton {
   Q_OBJECT
 
   public:
-    aux::Asciistr m_info;
-    CustomRadioButton(const QString &,QWidget *parent=0,aux::Asciistr info=aux::Asciistr());
+    mk_string m_info;
+    CustomRadioButton(const QString &,QWidget *parent=0,const char *info=0);
     virtual ~CustomRadioButton() {
     }
     virtual QSize sizeHint() const;
@@ -77,8 +76,8 @@ class oswinexp CustomCheckBox : public QCheckBox {
   Q_OBJECT
 
   public:
-    aux::Asciistr m_info;
-    CustomCheckBox(const QString &,QWidget *parent=0,aux::Asciistr info=aux::Asciistr());
+    mk_string m_info;
+    CustomCheckBox(const QString &,QWidget *parent=0,const char *info=0);
     virtual ~CustomCheckBox() {
     }
     virtual QSize sizeHint() const;
@@ -164,7 +163,7 @@ class oswinexp QtTimer : public QTimer {
   Q_OBJECT
 
   public:
-    aux::TVList<aux::Asciistr> m_infoL;
+    mk_list m_infoL;
     QtTimer() : QTimer() {
       connect (this,SIGNAL(timeout()),this,SLOT(relay()));
     }

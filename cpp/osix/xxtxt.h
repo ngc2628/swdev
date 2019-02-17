@@ -21,27 +21,18 @@ const int xx_alignvcenter=32;
 class oswinexp xxFnt {
 
   public:
-    aux::Asciistr m_fam;
     float m_size;
     int m_style;
     xxRectSize m_metric;
-    xxFnt(const aux::Asciistr &fam="Arial",float size=10.,
-          int style=xx_fntReg,xxRectSize metric=xxRectSize()) :
-      m_fam(fam),m_size(size),m_style(style),m_metric(metric) {
-    }
-    xxFnt(const xxFnt &ass) : m_fam(ass.m_fam),m_size(ass.m_size),m_style(ass.m_style) {
-    }
+    mk_string m_fam;
+    xxFnt(const char *fam="Arial",float size=10.,
+          int style=xx_fntReg,xxRectSize metric=xxRectSize());
+    xxFnt(const xxFnt &);
     ~xxFnt() { }
-    xxFnt &operator=(const xxFnt &ass);
-    bool operator==(const xxFnt &cmp) const {
-      return (m_fam==cmp.m_fam && m_size==cmp.m_size && m_style==cmp.m_style);
-    }
-    bool operator<(const xxFnt &cmp) const {
-      return (m_fam<cmp.m_fam || 
-               (m_fam==cmp.m_fam && (m_size<cmp.m_size || 
-                 (m_size==cmp.m_size && m_style<cmp.m_style))));
-    }
-    void toString(aux::Asciistr *) const;
+    xxFnt &operator=(const xxFnt &);
+    bool operator==(const xxFnt &) const;
+    bool operator<(const xxFnt &) const;
+    int toString(mk_string) const;
     
 };
 

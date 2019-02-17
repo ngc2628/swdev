@@ -2,7 +2,6 @@
 #ifndef _matrix_H_
 #define _matrix_H_
 
-#include <auxx/auxx.h>
 #include <numeric/vertex.h>
 
 namespace num {
@@ -36,7 +35,7 @@ class oswinexp Matrix {
     int alter(int, int, double);
     void transpose();
     int mult(Matrix *);
-    void toString(aux::Asciistr *) const;
+    int toString(mk_string) const;
 
 };
 

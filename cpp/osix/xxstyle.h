@@ -2,7 +2,7 @@
 #ifndef _xxstyle_h_
 #define _xxstyle_h_
 
-#include <auxx/auxx.h>
+#include <mkbase/mkutil.h>
 
 namespace osix {
 
@@ -49,7 +49,7 @@ class oswinexp xxStyle {
     int cantPaint(unsigned int color,int usewidth) {
       return ((m_color==color || m_style<=0 || (usewidth>0 && m_width<=.0)) ? 1 : 0);
     }
-    void toString(aux::Asciistr *) const;
+    int toString(mk_string) const;
     
 };
 

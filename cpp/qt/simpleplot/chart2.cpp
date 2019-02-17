@@ -88,9 +88,9 @@ aux::TypeId QtDiagramXY::setAxis(simpleplot::Axis *axis) {
   fnt.setPointSizeF(12.);
   QString fntfam(fnt.family());
   QFontMetrics metrics(fnt);
-  aux::Asciistr str;
+  mk_string str;
   if (axis->m_fnt[1].m_metric.empty()) {
-    qtutil::fromQString(&fntfam,&str);
+    qtutil::fromQString(&fntfam,str);
     axis->m_fnt[1]=osix::xxFnt(str,fnt.pointSizeF());
     axis->m_fnt[1].m_style=(fnt.weight()<<1);
     axis->m_fnt[1].m_style|=(int)(fnt.italic());

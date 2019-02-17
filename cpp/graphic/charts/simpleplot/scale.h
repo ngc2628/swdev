@@ -19,38 +19,17 @@ class oswinexp Tic {
 
   public:
     double m_val;
-    unsigned char m_size,m_drawable;
-    aux::Ucsstr m_str;
-    Tic(double val=mk_dnan,unsigned char sz=1,unsigned char drawable=1,
-        aux::Ucsstr str=aux::Ucsstr()) :
-      m_val(val),m_size(sz),m_drawable(drawable),m_str(str) {
-    }
-    Tic(const Tic &ass) :
-      m_val(ass.m_val),m_size(ass.m_size),m_drawable(ass.m_drawable) {
-      if (&ass!=this)
-        m_str=ass.m_str;
-    }
-    ~Tic() {
-    }
-    Tic &operator=(const Tic &ass) {
-      m_val=ass.m_val;
-      m_size=1;
-      m_drawable=1;
-      if (&ass!=this)
-        m_str=ass.m_str;
-      return *this;
-    }
-    bool operator==(const Tic &cmp) const {
-      int cc=0;
-      mk_dbusted(m_val,cmp.m_val,&cc);
-      return (cc==0);
-    }
-    bool operator<(const Tic &cmp) const {
-      int cc=0;
-      mk_dbusted(m_val,cmp.m_val,&cc);
-      return (cc<0);
-    }
-      
+    unsigned char m_size,m_drawable,m_ucs; 
+    mk_string m_str; 
+    Tic(double val=mk_dnan,unsigned char sz=1,unsigned char drawable=1,unsigned char ucs=0);
+    Tic(const Tic &);
+    ~Tic() { }
+    Tic &operator=(const Tic &);
+    bool operator==(const Tic &) const;
+    bool operator<(const Tic &) const;
+    int setUcsText(const aux::Ucsstr &);
+    int ucsText(aux::Ucsstr *) const;
+
 };
 
 class oswinexp Range {
@@ -86,17 +65,16 @@ class oswinexp Range {
 class oswinexp Scale : public aux::TypeId {	
 	
   protected:
-    aux::Rounded m_interval;
-    aux::TVList<Range> m_range;
+    mk_list m_range;
     aux::TVList<Tic> m_tics;
+    aux::Rounded m_interval;
     virtual double calcInterval(int,int *);
     virtual void setMajTics();
 		virtual double growIntervalSize (double);
 		virtual void rollInnerTics (double);
 		virtual int adaptShiftedTicArray (double,bool,int);
 		virtual int failsave(aux::TVList<Tic> *ticL=0);
-    virtual Range *currRange();
-    virtual const Range *currRange() const;
+    virtual Range currRange() const;
            	
 	public:
 		Scale ();

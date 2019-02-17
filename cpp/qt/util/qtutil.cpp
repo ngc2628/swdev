@@ -74,9 +74,12 @@ const char *qasciistr(const QString *qstr) {
 
 }
 
-int fromQString(const QString *qstr,aux::Asciistr *str) {
+int fromQString(const QString *qstr,mk_string str) {
 
-  *str=(qstr ? qstr->toLatin1().constData() : 0);
+  if (qstr)
+    mk_stringset(str,qstr->toLatin1().constData());
+  else
+    mk_stringset(str,0);
   return 0;
 
 }
@@ -129,7 +132,7 @@ int fromQFont(const QFont *qfnt,osix::xxFnt *fnt) {
   if (qfnt && qfnt->italic())
     style|=osix::xx_fntItalic;
   if (qfnt) {
-    fnt->m_fam=qfnt->family().toLatin1().constData();
+    mk_stringset(fnt->m_fam,qfnt->family().toLatin1().constData());
     fnt->m_size=qfnt->pointSizeF();
     fnt->m_style=style;
   }
@@ -164,19 +167,19 @@ int fromQAlign(int aa) {
 
 }
 
-int toQString(const aux::Asciistr *str,QString *qstr) {
+int toQString(mk_string str,QString *qstr) {
 
-  if (str && str->data())
-    *qstr=str->data();
-  else
+  if (mk_stringlength(str)==0)
     *qstr=QString::null;
+  else
+    *qstr=QLatin1String(&str[0]);
   return 0;
 
 }
 
 int toQString(const aux::Ucsstr *str,QString *qstr) {
 
-  int ll=(str ? str->len() : 0);
+  int ll=(str ? str->length() : 0);
   if (ll>0)
     qstr->setUtf16(str->data(),ll);
   else

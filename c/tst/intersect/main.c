@@ -401,9 +401,11 @@ int main(int argc,char **argv) {
   mk_vertexnan(dbgv);
   char *dbgstr=0;
   npinter=mk_polygonintersection(&poly1,&poly2,&pinter);
+  mk_string dbgvstr;
   for (ii=0;ii<npinter;ii++) {
     mk_listat(&pinter,ii,&dbgv);
-    printf("%d #%d %s\n",__LINE__,ii,mk_vertexdbg(dbgv));
+    mk_vertexdbg(dbgv,dbgvstr);
+    printf("%d #%d %s\n",__LINE__,ii,&dbgvstr[0]);
   }
 
   double plineq=lineq(p1x,p2x,p1y,p2y,8.);

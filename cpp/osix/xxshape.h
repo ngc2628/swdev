@@ -2,7 +2,7 @@
 #ifndef _xxshape_h_
 #define _xxshape_h_
 
-#include <auxx/auxx.h>
+#include <mkbase/mkmath.h>
 #include <numeric/vertex.h>
 
 namespace osix {
@@ -14,58 +14,25 @@ class oswinexp xxRectSize {
     double m_height;
 
   public:
-    xxRectSize(double w=.0,double h=.0) :
-      m_width(mk_isbusted(w) || w<.0 ? .0 : w),
-      m_height(mk_isbusted(h) || h<.0 ? .0 : h) {
+    xxRectSize(double ww=.0,double hh=.0) :
+      m_width(mk_isbusted(ww) || ww<.0 ? .0 : ww),
+      m_height(mk_isbusted(hh) || hh<.0 ? .0 : hh) {
     }
-    xxRectSize(const xxRectSize &ass) : m_width(ass.m_width),m_height(ass.m_height) {
+    xxRectSize(const xxRectSize &ass) : 
+      m_width(ass.m_width),m_height(ass.m_height) {
     }
     ~xxRectSize() {
     }
-    xxRectSize &operator=(const xxRectSize &ass) {
-      m_width=ass.m_width;
-      m_height=ass.m_height;
-      return *this;
-    }
-    bool operator==(const xxRectSize &cmp) const {
-      return (m_width==cmp.m_width && m_height==cmp.m_height);
-    }
-    bool operator<(const xxRectSize &cmp) const {
-      return (m_width*m_height<cmp.m_width*cmp.m_height);
-    }
-    double setWidth(double w) {
-      m_width=(mk_isbusted(w)!=0 || w<0. ? 0. : w);
-      return m_width;
-    }
-    double setHeight(double h) {
-      m_height=(mk_isbusted(h)!=0 || h<0. ? 0. : h);
-      return m_height;
-    }
-    xxRectSize set(double w=.0,double h=.0) {
-      m_width=(mk_isbusted(w)!=0 || w<0. ? 0. : w);
-      m_height=(mk_isbusted(h)!=0 || h<0. ? 0. : h); 
-      return *this;
-    }
-    double width() const {
-      return m_width;
-    }
-    double height() const {
-      return m_height;
-    }
-    bool empty() const {
-      return (m_width<=.0 || m_height<=.0);
-    }
-    void toString(aux::Asciistr *str) const {
-      str->reserve(1024);
-      aux::Asciistr numstr;
-      str->append("w=");
-      aux::d2a(m_width,&numstr,-1);
-      str->append((const char*)numstr);
-      str->append(" , h=");
-      aux::d2a(m_height,&numstr,-1);
-      str->append((const char*)numstr);
-      str->append("\n");
-    }
+    xxRectSize &operator=(const xxRectSize &);
+    bool operator==(const xxRectSize &) const;
+    bool operator<(const xxRectSize &) const;
+    double setWidth(double);
+    double setHeight(double);
+    xxRectSize set(double ww=.0,double hh=.0);
+    double width() const;
+    double height() const;
+    bool empty() const;
+    int toString(mk_string) const;
     
 };
 
@@ -97,11 +64,7 @@ class oswinexp xxLine {
     num::Vector3 &operator[](int idx) {
       return m_l[idx];
     }
-    void set(num::Vector3 p0=num::Vector3(),num::Vector3 p1=num::Vector3()) {
-      if (mk_dlt(p1.x(),p0.x()))
-        aux::swap(&p0,&p1);
-      m_l[0]=p0; m_l[1]=p1;
-    }
+    void set(num::Vector3 p0=num::Vector3(),num::Vector3 p1=num::Vector3());
     void setP0(num::Vector3);
     void setP1(num::Vector3);
     num::Vector3 p0() const {
@@ -115,7 +78,7 @@ class oswinexp xxLine {
     double angrad() const;
     int busted() const;
     int empty() const;
-    void toString(aux::Asciistr *) const;
+    int toString(mk_string) const;
 
 };
 
@@ -202,7 +165,7 @@ class oswinexp xxRect {
     }
     double scale(double,unsigned char type=0); // type, 1:left 2:top 4:right 8:bottom any:center
     void rotate(double,num::Vector3 *,num::Vector3 *,num::Vector3 *,num::Vector3 *) const;
-    void toString(aux::Asciistr *) const;
+    int toString(mk_string) const;
     
 };
 

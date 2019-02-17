@@ -6,6 +6,7 @@
 #include <numeric/vertex.h>
 #include <numeric/matrix.h>
 #include <osix/xxstyle.h>
+#include <mkbase/mkconv.h>
 
 namespace shapes {
 
@@ -19,19 +20,18 @@ class oswinexp Shape2 : public aux::TypeId {
     double m_rotate;
     num::Vector3 m_translate;
     num::VertexList m_points;
-    aux::Asciistr m_descr;
+    mk_string m_descr;
        
   public:
     osix::xxStyle m_styleO;
     osix::xxStyle m_styleF;
-    Shape2(const char *type) : 
-      aux::TypeId(type),m_scale(1.),m_rotate(.0),
-      m_translate(num::Vector3(0.,0.)),m_descr(type) {
-    }
+    Shape2(const char *);
     Shape2(const Shape2 &ass) : 
       aux::TypeId((const aux::TypeId &)ass),m_scale(ass.m_scale),
       m_rotate(ass.m_rotate),m_translate(ass.m_translate),m_points(ass.m_points),
-      m_descr(ass.m_descr),m_styleO(ass.m_styleO),m_styleF(ass.m_styleF) { 
+      m_styleO(ass.m_styleO),m_styleF(ass.m_styleF) { 
+      if (&ass!=this)
+        mk_stringset(m_descr,ass.m_descr);
     }
     virtual ~Shape2() { }
     Shape2 &operator=(const Shape2 &);
@@ -62,11 +62,13 @@ class oswinexp Shape2 : public aux::TypeId {
     }
     virtual int eval(num::VertexList *pointL,int npoints=-1)=0;
     void setDescr(const char *);
-    const char * descr() {
-      return m_descr.data();
+    int descr(mk_string str) {
+      return mk_stringset(&str[0],&m_descr[0]);
     }
-    virtual void toString(aux::Asciistr*) const;
-    virtual void toStringType(aux::Asciistr*) const { }
+    virtual int toString(mk_string) const;
+    virtual int toStringType(mk_string) const { 
+      return 1; 
+    }
 
 };
 
