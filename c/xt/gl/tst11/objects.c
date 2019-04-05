@@ -47,19 +47,19 @@ int sphere_level=0,cube_level=0;
 
 static int trianglenormal(
   mk_vertex v1,mk_vertex v2,mk_vertex v3,
-  mk_vertex trianglenormal,mk_vertex trianglecenter) {
+  mk_vertex trianglenn,mk_vertex trianglecenter) {
 
   trianglecenter[0]=(v1[0]+v2[0]+v3[0])/3.;
   trianglecenter[1]=(v1[1]+v2[1]+v3[1])/3.;
   trianglecenter[2]=(v1[2]+v2[2]+v3[2])/3.;
 
-  mk_vertex vv23;
-  mk_vertexcopy(trianglenormal,v1);
-  mk_vertexsubs(trianglenormal,v2);
-  mk_vertexcopy(vv23,v2);
-  mk_vertexsubs(vv23,v3);
-  mk_vertexcross(trianglenormal,vv23);
-  mk_vertexnorm(trianglenormal);
+  mk_vertexzero(v12);
+  mk_vertexsubs(v1,v2,v12);
+  mk_vertexzero(v23);
+  mk_vertexsubs(v2,v3,v23);
+  mk_vertexzero(vc);
+  mk_vertexcross(v12,v23,vc);
+  mk_vertexnorm(vc,trianglenn);  
   return 0;
 
 }
@@ -67,11 +67,13 @@ static int trianglenormal(
 static void obj_trianglenormal(
   mk_vertex v1,mk_vertex v2,mk_vertex v3) {
 
-  mk_vertex normal,center;
+  mk_vertexzero(normal);
+  mk_vertexzero(center);
   trianglenormal(v1,v2,v3,normal,center);
   glVertex3dv(&center[0]);
-  mk_vertexadd(center,normal);
-  glVertex3dv(&center[0]);
+  mk_vertexzero(vnc);
+  mk_vertexadd(center,normal,vnc);
+  glVertex3dv(&vnc[0]);
 
 }
 
@@ -96,15 +98,12 @@ static void subtriangle(
     return;
 
   mk_vertexzero(v1);
-  mk_vertexzero(v2);
-  mk_vertexzero(v3);
-  mk_vertexzero(v12);
-  mk_vertexzero(v23);
-  mk_vertexzero(v31);
-
   mk_vertexcopy(v1,vv1);
+  mk_vertexzero(v2);
   mk_vertexcopy(v2,vv2);
+  mk_vertexzero(v3);
   mk_vertexcopy(v3,vv3);
+
   if (level==0) {
     mk_listsetat(vL,(void*)&v1,vL->count,1);
     mk_listsetat(vL,(void*)&v2,vL->count,1);
@@ -112,21 +111,24 @@ static void subtriangle(
     return;
   }
 
-  mk_vertexcopy(v12,v1);
-  mk_vertexadd(v12,v2);
-  mk_vertexcopy(v23,v2);
-  mk_vertexadd(v23,v3);
-  mk_vertexcopy(v31,v3);
-  mk_vertexadd(v31,v1);
+  mk_vertexzero(v12);
+  mk_vertexzero(v23);
+  mk_vertexzero(v31);
+  mk_vertexzero(v12n);
+  mk_vertexzero(v23n);
+  mk_vertexzero(v31n);  
 
-  mk_vertexnorm(v12);
-  mk_vertexnorm(v23);
-  mk_vertexnorm(v31);
+  mk_vertexadd(v1,v2,v12);
+  mk_vertexadd(v2,v3,v23);
+  mk_vertexadd(v3,v1,v31);
+  mk_vertexnorm(v12,v12n);  
+  mk_vertexnorm(v23,v23n);  
+  mk_vertexnorm(v31,v31n);  
 
-  subtriangle(v1,v12,v31,level-1,vL);
-  subtriangle(v2,v23,v12,level-1,vL);
-  subtriangle(v3,v31,v23,level-1,vL);
-  subtriangle(v12,v23,v31,level-1,vL);
+  subtriangle(v1,v12n,v31n,level-1,vL);
+  subtriangle(v2,v23n,v12n,level-1,vL);
+  subtriangle(v3,v31n,v23n,level-1,vL);
+  subtriangle(v12n,v23n,v31n,level-1,vL);
 
 }
 

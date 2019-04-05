@@ -15,18 +15,17 @@
 
 typedef double mk_vertex[4];
 #define mk_vertexnan(name) mk_vertex name={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
-#define mk_vertexzero(name) mk_vertex name={.0,.0,.0,.0};
+#define mk_vertexzero(name) mk_vertex name={.0,.0,.0,1.};
 
 struct oswinexp mk_matrix {
   int rows,cols;
-  double **matrix;
+  double *matrix;
 };
 
 struct oswinexp mk_polynomial {
-  int len;
-  mk_vertex *ctrlL;
-  double **cc;
-  double **dd;
+  struct mk_list ctrlL;
+  struct mk_matrix cc;
+  struct mk_matrix dd;
 };
 
 #ifdef __cplusplus
@@ -91,24 +90,24 @@ typedef int (*mk_vertexcmpf)(const void *,const void *);
 xtern oswinexp mk_vertexcmpf mk_vertexcmp[4];
 
 /*
-  inout vertex-mod , in vertex-addend  , return 0,1
+  in vertex1 , in vertex2  , out vertex-result , return 0,1
 */
-xtern int oswinexp mk_vertexadd(mk_vertex,const mk_vertex);
+xtern int oswinexp mk_vertexadd(const mk_vertex,const mk_vertex,mk_vertex);
 
 /*
-  inout vertex-mod , in vertexaddend  , return 0,1
+  in vertex1 , in vertex2 , out vertex-result , return 0,1
 */
-xtern int oswinexp mk_vertexsubs(mk_vertex,const mk_vertex);
+xtern int oswinexp mk_vertexsubs(const mk_vertex,const mk_vertex,mk_vertex);
 
 /*
-  inout vertex-mod , in multiplier  , return 0,1
+  in vertex , in multiplier  , out vertex-result , return 0,1
 */
-xtern int oswinexp mk_vertexmult(mk_vertex,double);
+xtern int oswinexp mk_vertexmult(const mk_vertex,double,mk_vertex);
 
 /*
-  inout vertex-mod , in divisor  , return 0,1
+  in vertex , in divisor  , out vertex-result , return 0,1
 */
-xtern int oswinexp mk_vertexdiv(mk_vertex,double);
+xtern int oswinexp mk_vertexdiv(const mk_vertex,double,mk_vertex);
 
 /*
   in vertex1 , in vertex2  , return dotproduct
@@ -116,14 +115,14 @@ xtern int oswinexp mk_vertexdiv(mk_vertex,double);
 xtern double oswinexp mk_vertexdot(const mk_vertex,const mk_vertex);
 
 /*
-  inout vertex-mod , return 0,1
+  in vertex , out vertex-result , return 0,1
 */
-xtern int oswinexp mk_vertexnorm(mk_vertex);
+xtern int oswinexp mk_vertexnorm(const mk_vertex,mk_vertex);
 
 /*
-  inout mod-vertex , in multiplier  , return 0,1
+  inout vertex1 , in vertex2  , out vertex-result , return 0,1
 */
-xtern int oswinexp mk_vertexcross(mk_vertex,const mk_vertex);
+xtern int oswinexp mk_vertexcross(const mk_vertex,const mk_vertex,mk_vertex);
 
 /*
   in vertex1 , int vertex2 , return angle(rad)-vertex1-vertex2
@@ -138,18 +137,19 @@ xtern double oswinexp mk_vertexangdeg(const mk_vertex,const mk_vertex);
 /* 
   in linep1 , in linep2 , in xarg , return result 
 */
-xtern double oswinexp mk_lineq(mk_vertex,mk_vertex,double);
+xtern double oswinexp mk_lineq(const mk_vertex,const mk_vertex,double);
 
 /* 
   in hp1 , in hp2 , in xarg , return result 
 */
-xtern double oswinexp mk_lgeq(mk_vertex,mk_vertex,double);
+xtern double oswinexp mk_lgeq(const mk_vertex,const mk_vertex,double);
 
 /*
   in line1.p1 , in line1.p2 , in line2.p1 , in line2.p2 ,
   out intersection.p , in prec , in box-restraint 0,1,2 , return 0,1
 */
-xtern int oswinexp mk_linesintersection(mk_vertex,mk_vertex,mk_vertex,mk_vertex,mk_vertex,int,int);
+xtern int oswinexp mk_linesintersection(
+  const mk_vertex,const mk_vertex,const mk_vertex,const mk_vertex,mk_vertex,int,int);
 
 /*
   in rect.topleft , in rect.bottomright , in line.p1 , in line.p2 ,
@@ -157,8 +157,8 @@ xtern int oswinexp mk_linesintersection(mk_vertex,mk_vertex,mk_vertex,mk_vertex,
   out (left,top,right,bottom) as 0,1 indicator line-cuts-rect , 
   in cliplinetorect 0,1
 */
-xtern int oswinexp mk_intersectionpointslinerect(mk_vertex,mk_vertex,mk_vertex,mk_vertex,
-  mk_vertex,mk_vertex,mk_vertex,mk_vertex,mk_vertex,int);
+xtern int oswinexp mk_intersectionpointslinerect(const mk_vertex,const mk_vertex,const mk_vertex,
+  const mk_vertex,mk_vertex,mk_vertex,mk_vertex,mk_vertex,mk_vertex,int);
 
 /*
   inout list-of-vertices* , in number-of-points , return 0,1
@@ -168,7 +168,7 @@ xtern int oswinexp mk_ellipse(struct mk_list *,int);
 /*
   in polygon1* , in polygon2* , out *intersection points , return numberintersectionpoints
 */
-xtern int mk_polygonintersection(struct mk_list *,struct mk_list *,struct mk_list *);
+xtern int oswinexp mk_polygonintersection(struct mk_list *,struct mk_list *,struct mk_list *);
 
 /*
   in list-of-vertices* , out list-of-1st-derivatives* (df/dx)[i][0], (df/dy)[i][1] , 
@@ -195,12 +195,22 @@ xtern int oswinexp mk_matrixfree(struct mk_matrix *);
 /*
   in matrix* , in row , in col , return value at row,col | nan
 */
-double mk_matrixget(struct mk_matrix *,int,int);
+double oswinexp mk_matrixget(const struct mk_matrix *,int,int);
 
 /*
   inout matrix* , in row , in col , in new value , return old value at row,col | nan
 */
-double mk_matrixset(struct mk_matrix *,int,int,double);
+int oswinexp mk_matrixset(struct mk_matrix *,int,int,double);
+
+/*
+  inout matrix* , in matrix* , return 0|1
+*/
+int oswinexp mk_matrixcopy(struct mk_matrix *,const struct mk_matrix *);
+
+/*
+  inout matrix* , in identity 0|1 , return 0|1
+*/
+int oswinexp mk_matrixreset(struct mk_matrix *,int);
 
 /*
   in squarematrix* , out decomposited squarematrix ,
@@ -223,7 +233,7 @@ xtern int oswinexp mk_matrixsolve(struct mk_matrix *,double *,double *);
 /*
   inout polynomial* , return 0,length
 */
-xtern int oswinexp mk_polynomialalloc(struct mk_polynomial *);
+xtern int oswinexp mk_polynomialalloc(struct mk_polynomial *,int);
 
 /*
   inout polynomial* , return 0,1
@@ -233,12 +243,12 @@ xtern int oswinexp mk_polynomialfree(struct mk_polynomial *);
 /*
   in polynomial* , interpolation at x-value , return 0,1
 */
-xtern double mk_polynomialinterp(struct mk_polynomial *,double);
+xtern double oswinexp mk_polynomialinterp(struct mk_polynomial *,double);
 
 /*
   inout polynomial* , interpolation at x-value , intern slat 
 */
-xtern int mk_polynomialcoeff(struct mk_polynomial *,double *);
+xtern int oswinexp mk_polynomialcoeff(struct mk_polynomial *,double *);
 
 #ifdef __cplusplus
 }

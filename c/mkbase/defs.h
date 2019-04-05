@@ -110,5 +110,6 @@ static const union tp_ucpf mk_deffsinf={{0,0,128,255}};  /* little endian */
 #define mk_sz 1024
 #define mk_maxarrsz 20
 #define mk_maxintbase 36
+#define mk_maxmem 2147483647
 
 #endif

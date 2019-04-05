@@ -4,6 +4,7 @@
 #include <mkbase/mkmath.h>
 #include <mkbase/mkconv.h>
 #include <mkbase/mkla.h>
+#include <tst/croutdoolittle.2d/mmat.h>
 
 int usage() {
 

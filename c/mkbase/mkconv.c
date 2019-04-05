@@ -1002,7 +1002,7 @@ int mk_d2a_(int cnt,...) {
   char *str=(cnt>1 ? va_arg(valist,char *) : 0);
   int prec=(cnt>2 ? va_arg(valist,int) : 15);
   int fmt=(cnt>3 ? va_arg(valist,int) : -1);
-  int pad=(cnt>4 ? va_arg(valist,int) : -1);
+  int pad=(cnt>4 ? va_arg(valist,int) : 0);
   char *dec=(cnt>5 ? va_arg(valist,char *) : ".");
   char *group=(cnt>6 ? va_arg(valist,char *) : 0);
   va_end(valist);

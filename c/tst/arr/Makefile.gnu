@@ -2,11 +2,11 @@
 ####### definitions #######
 
 PRJROOT       = $(SWDIR)
-PRJ           = tstcroutdoolittle
+PRJ           = tstarr
 DESTDIR       = $(BINDIR)
 TARGET        = $(PRJ)
 DEFINES       =
-HEADER        =
+HEADER        = 
 SOURCES       = main.c
 LIBS          = -lmkbase -lz -lm
 SOLN					=

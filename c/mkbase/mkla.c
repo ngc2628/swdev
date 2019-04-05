@@ -18,7 +18,7 @@ int mk_vertexdbg(const mk_vertex vertex,mk_string str) {
   for (ii=3;ii>-1;ii--) {
     if (mk_isnan(vertex[ii])==0) {
       for (jj=0;jj<ii+1;jj++) {
-        mk_d2a(vertex[jj],resx,6);
+        mk_d2a(vertex[jj],resx,3);
         mk_stringappend(str,&resx[0]);
         if (jj<ii)
           mk_stringappend(str,";");
@@ -115,56 +115,56 @@ int mk_vertexcmpw(const void *cmp1,const void *cmp2) {
 mk_vertexcmpf mk_vertexcmp[4]={mk_vertexcmpx,mk_vertexcmpy,mk_vertexcmpz,mk_vertexcmpw};
 
 /* ########## */
-int mk_vertexadd(mk_vertex vertex,const mk_vertex addend) {
+int mk_vertexadd(const mk_vertex vertex1,const mk_vertex vertex2,mk_vertex res) {
 
   int ii=0;
   for (ii=0;ii<4;ii++) {
-    if (mk_isbusted(vertex[ii])==0 && mk_isbusted(addend[ii])==0)
-      vertex[ii]+=addend[ii];
+    if (mk_isbusted(vertex1[ii])==0 && mk_isbusted(vertex2[ii])==0)
+      res[ii]=vertex1[ii]+vertex2[ii];
     else
-      vertex[ii]=mk_dnan;
+      res[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexsubs(mk_vertex vertex,const mk_vertex addend) {
+int mk_vertexsubs(const mk_vertex vertex1,const mk_vertex vertex2,mk_vertex res) {
 
   int ii=0;
   for (ii=0;ii<4;ii++) {
-    if (mk_isbusted(vertex[ii])==0 && mk_isbusted(addend[ii])==0)
-      vertex[ii]-=addend[ii];
+    if (mk_isbusted(vertex1[ii])==0 && mk_isbusted(vertex2[ii])==0)
+      res[ii]=vertex1[ii]-vertex2[ii];
     else
-      vertex[ii]=mk_dnan;
+      res[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexmult(mk_vertex vertex,double sc) {
+int mk_vertexmult(const mk_vertex vertex,double sc,mk_vertex res) {
 
   int bsc=mk_isbusted(sc),ii=0;
   for (ii=0;ii<4;ii++) {
     if (mk_isbusted(vertex[ii])==0 && bsc==0)
-      vertex[ii]*=sc;
+      res[ii]=vertex[ii]*sc;
     else
-      vertex[ii]=mk_dnan;
+      res[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexdiv(mk_vertex vertex,double sc) {
+int mk_vertexdiv(const mk_vertex vertex,double sc,mk_vertex res) {
 
   int bsc=(mk_isbusted(sc) && sc!=.0 ? 0 : 1),ii=0;
   for (ii=0;ii<4;ii++) {
     if (mk_isbusted(vertex[ii])==0 && bsc==0)
-      vertex[ii]/=sc;
+      res[ii]=vertex[ii]/sc;
     else
-      vertex[ii]=mk_dnan;
+      res[ii]=mk_dnan;
   }
   return 0;
 
@@ -173,48 +173,46 @@ int mk_vertexdiv(mk_vertex vertex,double sc) {
 /* ########## */
 double mk_vertexdot(const mk_vertex vertex1,const mk_vertex vertex2) {
 
-  mk_vertexnan(resv);
+  mk_vertexzero(vertex);
   int ii=0;
   for (ii=0;ii<3;ii++) {
-    if (mk_isbusted(vertex1[ii])==0 && mk_isbusted(vertex2[ii]))
-      resv[ii]=vertex1[ii]*vertex2[ii];
+    if (mk_isbusted(vertex1[ii])==0 && mk_isbusted(vertex2[ii])==0)
+      vertex[ii]=vertex1[ii]*vertex2[ii];
   }
-  double res=mk_dnan;
-  if (mk_isbusted(resv[0])==0 && mk_isbusted(resv[1])==0 && mk_isbusted(resv[2])==0)
-    res=(resv[0]+resv[1]+resv[2]);
+  double res=vertex[0]+vertex[1]+vertex[2];
   return res;
 
 }
 
 /* ########## */
-int mk_vertexnorm(mk_vertex vertex) {
+int mk_vertexnorm(const mk_vertex vertex,mk_vertex vn) {
 
+  mk_vertexset(vn,mk_dnan);
   double ll=mk_vertexlen(vertex);
   int ii=0;
   for (ii=0;ii<3;ii++) {
     if (mk_isbusted(vertex[ii])==0 && ll>.0)
-      vertex[ii]/=ll;
+      vn[ii]=vertex[ii]/ll;
     else
-      vertex[ii]=mk_dnan;
+      vn[ii]=mk_dnan;
   }
   return 0;
 
 }
 
 /* ########## */
-int mk_vertexcross(mk_vertex vertex1,const mk_vertex vertex2) {
+int mk_vertexcross(const mk_vertex vertex1,const mk_vertex vertex2,mk_vertex vc) {
 
-  mk_vertexnan(pp);
+  mk_vertexset(vc,mk_dnan);
   if (mk_isbusted(vertex1[1])==0 && mk_isbusted(vertex1[2])==0 &&
       mk_isbusted(vertex2[1])==0 && mk_isbusted(vertex2[2])==0)
-    pp[0]=vertex1[1]*vertex2[2]-vertex1[2]*vertex2[1];
+    vc[0]=vertex1[1]*vertex2[2]-vertex1[2]*vertex2[1];
   if (mk_isbusted(vertex1[0])==0 && mk_isbusted(vertex1[2])==0 &&
       mk_isbusted(vertex2[0])==0 && mk_isbusted(vertex2[2])==0)
-    pp[1]=vertex1[2]*vertex2[0]-vertex1[0]*vertex2[2];
+    vc[1]=vertex1[2]*vertex2[0]-vertex1[0]*vertex2[2];
   if (mk_isbusted(vertex1[0])==0 && mk_isbusted(vertex1[1])==0 &&
       mk_isbusted(vertex2[0])==0 && mk_isbusted(vertex2[1])==0)
-    pp[2]=vertex1[0]*vertex2[1]-vertex1[1]*vertex2[0];
-  mk_vertexcopy(vertex1,pp);
+    vc[2]=vertex1[0]*vertex2[1]-vertex1[1]*vertex2[0];
   return 0;
 
 }
@@ -242,7 +240,7 @@ double mk_vertexangdeg(const mk_vertex vertex1,const mk_vertex vertex2) {
 }
 
 /* ########## */
-double mk_lineq(mk_vertex lp1,mk_vertex lp2,double xarg) {
+double mk_lineq(const mk_vertex lp1,const mk_vertex lp2,double xarg) {
 
   int dfx=0,dbx=mk_dbusted(lp2[0],lp1[0],&dfx),dfy=0,dby=mk_dbusted(lp2[1],lp1[1],&dfy),
       dfa=0,dba=mk_dbusted(xarg,lp1[0],&dfa),dbsgxl=mk_dsgn(lp1[0]),dbsg=(dfx==0 ? dbsgxl : dfx);
@@ -261,14 +259,18 @@ double mk_lineq(mk_vertex lp1,mk_vertex lp2,double xarg) {
 }
 
 /* ########## */
-double mk_lgeq(mk_vertex hp1,mk_vertex hp2,double xarg) {
+double mk_lgeq(const mk_vertex hhp1,const mk_vertex hhp2,double xarg) {
 
-  if (mk_isbusted(hp1[0])!=0 || mk_isbusted(hp2[0])!=0 || mk_isbusted(hp1[1])!=0 ||
-      mk_isbusted(hp2[1])!=0 || mk_isbusted(xarg)!=0)
+  if (mk_isbusted(hhp1[0])!=0 || mk_isbusted(hhp2[0])!=0 || mk_isbusted(hhp1[1])!=0 ||
+      mk_isbusted(hhp2[1])!=0 || mk_isbusted(xarg)!=0)
     return mk_dnan;
-  double dy=hp2[1]-hp1[1];
-  if (xarg<=.0 || hp1[0]<.0 || hp2[0]<.0 || dy==.0)
+  double dy=hhp2[1]-hhp1[1];
+  if (xarg<=.0 || hhp1[0]<.0 || hhp2[0]<.0 || dy==.0)
     return mk_dnan;
+  mk_vertex hp1;
+  mk_vertex hp2;
+  mk_vertexcopy(hp1,hhp1);
+  mk_vertexcopy(hp2,hhp2);
   int vv=0;
   if (hp2[0]<hp1[0]) {
     mk_swapf(&hp1[0],&hp2[0]);
@@ -281,22 +283,30 @@ double mk_lgeq(mk_vertex hp1,mk_vertex hp2,double xarg) {
   if (hp1[0]<=.0)
     /* i do not like this - but what would the left edge be otherwise ? */
     hp1[0]=mk_ipow10((-1)*mk_dprec); 
-  double m=1.*pow(hp2[0]/hp1[0],1./(hp2[1]-hp1[1]));
-  double n=hp1[1]-mk_logm(hp1[0],m);
-  double res=mk_logm(xarg,m)+n;
+  double mm=1.*pow(hp2[0]/hp1[0],1./(hp2[1]-hp1[1]));
+  double nn=hp1[1]-mk_logm(hp1[0],mm);
+  double res=mk_logm(xarg,mm)+nn;
   return ((vv&1)>0 ? hp2[1]-res+hp1[1] : res);
 
 }
 
 /* ########## */
-int mk_linesintersection(
-  mk_vertex l1p1,mk_vertex l1p2,mk_vertex l2p1,mk_vertex l2p2,mk_vertex pinter,int prec,int box) {
+int mk_linesintersection(const mk_vertex ll1p1,const mk_vertex ll1p2,const mk_vertex ll2p1,
+  const mk_vertex ll2p2,mk_vertex pinter,int prec,int box) {
   /* line equation :
    y=m*x+b
    m=(y2-y1)/(x2-x1)
    b=y1-m*x1
    condition : m1x+b1==m2x+b2 ->
    xintersect=(b2-b1)/(m1-m2) ; yintersect=(b2*m1-b1*m2)/(m1-m2) */
+  mk_vertex l1p1;
+  mk_vertex l1p2;
+  mk_vertex l2p1;
+  mk_vertex l2p2;
+  mk_vertexcopy(l1p1,ll1p1);
+  mk_vertexcopy(l1p2,ll1p2);
+  mk_vertexcopy(l2p1,ll2p1);
+  mk_vertexcopy(l2p2,ll2p2);
   double eps=mk_ipow10(-prec);
   if (mk_diff(l1p1[0],l1p2[0],eps)>.0)
     mk_vertexswap(l1p1,l1p2);
@@ -373,6 +383,7 @@ int mk_linesintersection(
     else {
       pinter[0]=(b2-b1)/mk_diff(m1,m2);
       pinter[1]=(b2*m1-b1*m2)/mk_diff(m1,m2);
+/*printf("%d [%.1f,%.1f]\n",__LINE__,pinter[0],pinter[1]);*/
     }
   }
   if ((box&1)>0 && (mk_diff(pinter[0],l1p1[0],eps)<.0 || mk_diff(pinter[0],l2p1[0],eps)<.0 || 
@@ -399,11 +410,19 @@ int mk_linesintersection(
 
 /* ########## */
 int mk_intersectionpointslinerect(
-  mk_vertex rtl,mk_vertex rbr,mk_vertex lp1,mk_vertex lp2,
+  const mk_vertex rrtl,const mk_vertex rrbr,const mk_vertex llp1,const mk_vertex llp2,
   mk_vertex pl,mk_vertex pt,mk_vertex pr,mk_vertex pb,mk_vertex cut_ltrb,int clip) {
 
   /* cuts at every rect-bound */
   mk_vertexset(cut_ltrb,1.);
+  mk_vertex rtl;
+  mk_vertex rbr;
+  mk_vertex lp1;
+  mk_vertex lp2;
+  mk_vertexcopy(rtl,rrtl);
+  mk_vertexcopy(rbr,rrbr);
+  mk_vertexcopy(lp1,llp1);
+  mk_vertexcopy(lp2,llp2);
   /* normalize rect */
   if (rtl[0]>rbr[0])
     mk_swapf(&rtl[0],&rbr[0]);
@@ -685,50 +704,81 @@ int mk_derivativesmixed(struct mk_list *vertices,struct mk_list *der,int cols) {
 /* ########## */
 int mk_matrixalloc(struct mk_matrix *mat,int rows_,int cols_) {
 
-  int ii=0,jj=0;
-  mat->rows=MAX(rows_,1);
-  mat->cols=MAX(cols_,1);
-  mat->matrix=(double **)malloc(mat->rows*sizeof(double *));
-  for (ii=0;ii<mat->rows;ii++) {
-    mat->matrix[ii]=(double *)malloc(mat->cols*sizeof(double));
-    for (jj=0;jj<mat->cols;jj++)
-      mat->matrix[ii][jj]=(ii==jj ? 1. : .0);
+  mat->rows=MAX(rows_,0);
+  mat->cols=MAX(cols_,0);
+  mat->matrix=0;
+  int sz=mat->rows*mat->cols;
+  if (sz==0)
+    mat->rows=mat->cols=0;
+  if (sz>0) {
+    mat->matrix=(double *)malloc(sz*sizeof(double));
+    memset(&mat->matrix[0],0,sz*sizeof(double));
   }
-  return mat->rows*mat->cols; 
+  return sz; 
 
 }
 
 /* ########## */
 int mk_matrixfree(struct mk_matrix *mat) {
 
-  if (!mat || !mat->matrix)
-    return 1;
-  int ii=0;
-  for (ii=0;ii<mat->rows;ii++)
-    free(mat->matrix[ii]);
-  free(mat->matrix);
+  if (mat && mat->matrix)
+    free(mat->matrix);
   mat->matrix=0;
+  mat->rows=mat->cols=0;
   return 0;
 
 }
 
 /* ########## */
-double mk_matrixget(struct mk_matrix *mat,int row,int col) {
+double mk_matrixget(const struct mk_matrix *mat,int row,int col) {
 
-  if (!mat || row<0 || row>=mat->rows || col<0 || col>=mat->cols)
-    return mk_dnan;
-  return mat->matrix[row][col];
+  if (mat && mat->matrix && row>=0 && row<mat->rows && col>=0 && col<mat->cols)
+    return *(mat->matrix+(row*mat->rows+col));
+  return mk_dnan;
 
 }
 
 /* ########## */
-double mk_matrixset(struct mk_matrix *mat,int row,int col,double val) {
+int mk_matrixset(struct mk_matrix *mat,int row,int col,double val) {
 
-  if (!mat || row<0 || row>=mat->rows || col<0 || col>=mat->cols)
-    return mk_dnan;
-  double oldval=mat->matrix[row][col];
-  mat->matrix[row][col]=val;
-  return oldval;
+  int res=1;
+  if (mat && mat->matrix && row>=0 && row<mat->rows && col>=0 && col<mat->cols) {
+    *(mat->matrix+(row*mat->rows+col))=val;
+    res=0;
+  } 
+  return res;
+
+}
+
+/* ########## */
+int mk_matrixcopy(struct mk_matrix *dest,const struct mk_matrix *src) {
+
+  mk_matrixfree(dest);
+  int rr=(src && src->matrix ? src->rows : 0),cc=(src && src->matrix ? src->cols : 0);
+  if (rr*cc>0) {
+    if (mk_matrixalloc(dest,rr,cc)>0)
+      memcpy((void*)dest->matrix,(void*)src->matrix,rr*cc*sizeof(double));
+  }
+  return rr*cc;
+
+}
+
+/* ########## */
+int mk_matrixreset(struct mk_matrix *mat,int identity) {
+
+  if (!mat || mat->rows*mat->cols==0)
+    return 1;
+  memset((void*)mat->matrix,0,mat->rows*mat->cols*sizeof(double));
+  if (identity==0)
+    return 0;
+  int ii=0,jj=0;
+  for (ii=0;ii<mat->rows;ii++) {
+    for (jj=0;jj<mat->cols;jj++) {
+      if (ii==jj)
+        mk_matrixset(mat,ii,jj,1.);
+    }
+  }
+  return 0;  
 
 }
 
@@ -760,8 +810,8 @@ int mk_matrixludecomposition(
   for (ii=0;ii<num;ii++) {
     maxcoeff=.0;
     for (jj=0;jj<num;jj++) {
-      lumat->matrix[ii][jj]=mat->matrix[ii][jj];
-      tmp=fabs(lumat->matrix[ii][jj]);
+      mk_matrixset(lumat,ii,jj,mk_matrixget(mat,ii,jj));
+      tmp=fabs(mk_matrixget(lumat,ii,jj));
       if (tmp>maxcoeff)
         maxcoeff=tmp;
     }
@@ -776,8 +826,10 @@ int mk_matrixludecomposition(
     for (ii=0;ii<jj;ii++) {
       /* do the matrix multiplication
        beta[i,j]=m[i,j]-sum(alpha[i,k]*beta[k,j]) */
-      for (kk=0;kk<ii;kk++)
-        lumat->matrix[ii][jj]-=lumat->matrix[ii][kk]*lumat->matrix[kk][jj];     
+      for (kk=0;kk<ii;kk++) {
+        tmp=mk_matrixget(lumat,ii,jj)-mk_matrixget(lumat,ii,kk)*mk_matrixget(lumat,kk,jj);
+        mk_matrixset(lumat,ii,jj,tmp);
+      }    
     }
     maxcoeff=.0;
     /* loop rows for 'l'ower triangular matrix
@@ -785,11 +837,13 @@ int mk_matrixludecomposition(
     for (ii=jj;ii<num;ii++) {
       /* do the matrix multiplication
        beta[j,j]*alpha[i,j]=m[i,j]-sum(alpha[i,k]*beta[k,j]) */
-      for (kk=0;kk<jj;kk++)
-        lumat->matrix[ii][jj]-=lumat->matrix[ii][kk]*lumat->matrix[kk][jj];
+      for (kk=0;kk<jj;kk++) {
+        tmp=mk_matrixget(lumat,ii,jj)-mk_matrixget(lumat,ii,kk)*mk_matrixget(lumat,kk,jj);
+        mk_matrixset(lumat,ii,jj,tmp);
+      }
       /* beta[j,j] is to calculate as pivot(largest element)
        from this row=i and (precalculated) =rowscale[i] */
-      tmp=fabs(lumat->matrix[ii][jj])/rowscale[ii];
+      tmp=fabs(mk_matrixget(lumat,ii,jj))/rowscale[ii];
       if (tmp>=maxcoeff) {
         maxcoeff=tmp;
         imax=ii;
@@ -804,18 +858,23 @@ int mk_matrixludecomposition(
      which means that the out-matrix may look queer but dissolves into
      a rowwise permutation of m */
     if (jj!=imax) {
-      for (ii=0;ii<num;ii++)
-        mk_swapf(&lumat->matrix[imax][ii],&lumat->matrix[jj][ii]);
+      for (ii=0;ii<num;ii++) {
+        tmp=mk_matrixget(lumat,imax,ii);
+        mk_matrixset(lumat,imax,ii,mk_matrixget(lumat,jj,ii));
+        mk_matrixset(lumat,jj,ii,tmp);
+      }
       rowscale[imax]=rowscale[jj]; /* rowscale[j] is not needed anymore */
       mk_swapi(&rowperm[jj],&rowperm[imax]);
       *parity=-(*parity);
     }
-    if (mk_deq(lumat->matrix[jj][jj],.0))
+    if (mk_deq(mk_matrixget(lumat,jj,jj),.0))
       return -1;
     /* finallly (for this column) divide all lower row elements by the pivot */
     if (jj<(num-1)) {
-      for (ii=(jj+1);ii<num;ii++)
-        lumat->matrix[ii][jj]/=lumat->matrix[jj][jj];
+      for (ii=(jj+1);ii<num;ii++) {
+        tmp=mk_matrixget(lumat,ii,jj)/mk_matrixget(lumat,jj,jj);
+        mk_matrixset(lumat,ii,jj,tmp);
+      }
     }
   }
   free(rowscale);
@@ -843,7 +902,7 @@ int mk_matrixlubacksubstitution(struct mk_matrix *lumat,int *lurowperm,double *r
    in --> ludecomposition */
   for (ii=0;ii<num;ii++) {
     for (jj=0;jj<ii;jj++)
-      xx[ii]-=lumat->matrix[ii][jj]*xx[jj];
+      xx[ii]-=mk_matrixget(lumat,ii,jj)*xx[jj];
   }
   /* now do the backsubstitution by solving for the upper triangular matrix (beta)
    e.g. for (rows=cols=3) lum(upperpart)={lum[1,1],lum[1,2],lum[1,3],
@@ -853,10 +912,9 @@ int mk_matrixlubacksubstitution(struct mk_matrix *lumat,int *lurowperm,double *r
   double tmp=.0;
   for (ii=(num-1);ii>-1;ii--) {
     tmp=xx[ii];
-    for (jj=(ii+1);jj<num;jj++) {
-      tmp-=lumat->matrix[ii][jj]*xx[jj];
-    }
-    xx[ii]=tmp/lumat->matrix[ii][ii];
+    for (jj=(ii+1);jj<num;jj++)
+      tmp-=mk_matrixget(lumat,ii,jj)*xx[jj];
+    xx[ii]=tmp/mk_matrixget(lumat,ii,ii);
   }
   return 0;
 
@@ -885,22 +943,16 @@ int mk_matrixsolve(struct mk_matrix *mat,double *rr,double *xx) {
 }
 
 /* ########## */
-int mk_polynomialalloc(struct mk_polynomial *polynomial) {
+int mk_polynomialalloc(struct mk_polynomial *polynomial,int len) {
 
-  if (mk_polynomialfree(polynomial)==1)
-    return 1;
-  int ii=0,jj=0,ll=polynomial->len;
-  polynomial->ctrlL=(mk_vertex*)malloc(polynomial->len*sizeof(mk_vertex));
-  polynomial->cc=(double**)malloc(polynomial->len*sizeof(double *));
-  polynomial->dd=(double**)malloc(polynomial->len*sizeof(double *));
-  for (ii=0;ii<polynomial->len;ii++) {
-    memset(&polynomial->ctrlL[ii],0,sizeof(mk_vertex));
-    polynomial->cc[ii]=(double*)malloc(ll*sizeof(double));
-    polynomial->dd[ii]=(double*)malloc(ll*sizeof(double));
-    for (jj=0;jj<ll;jj++)
-      polynomial->cc[ii][jj]=polynomial->dd[ii][jj]=.0;
-    ll--;
-  }
+  len=MAX(0,len);
+  mk_listalloc(&polynomial->ctrlL,sizeof(mk_vertex),len);
+  mk_vertexzero(vv);
+  int ii=0;
+  for (ii=0;ii<len;ii++)
+    mk_listappend(&polynomial->ctrlL,(void*)&vv);
+  mk_matrixalloc(&polynomial->cc,len,len);
+  mk_matrixalloc(&polynomial->dd,len,len);
   return 0;
  
 }
@@ -910,15 +962,9 @@ int mk_polynomialfree(struct mk_polynomial *polynomial) {
 
   if (!polynomial)
     return 1;
-  if (polynomial->ctrlL)
-    free(polynomial->ctrlL);
-  polynomial->ctrlL=0;
-  if (polynomial->cc)
-    free(polynomial->cc);
-  polynomial->cc=0;
-  if (polynomial->dd)
-    free(polynomial->dd);
-  polynomial->dd=0;
+  mk_matrixfree(&polynomial->dd);
+  mk_matrixfree(&polynomial->cc);
+  mk_listfree(&polynomial->ctrlL);
   return 0;
 
 }
@@ -928,16 +974,23 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
 
   if (!polynomial || mk_isnan(xx))
     return mk_dnan;
-  int ii=0,jj=0,idx=0,downward=0;
-  double res=.0,dxmin=fabs(polynomial->ctrlL[0][0]-xx),dxl=.0,dxh=.0,dxincr=.0;
+  int ii=0,jj=0,idx=0,downward=0,len=polynomial->ctrlL.count;
+  mk_vertexzero(vv0);
+  mk_vertexzero(vv1);
+  mk_listat(&polynomial->ctrlL,0,(void*)&vv0);
+  double res=.0,tmp=.0,dxmin=fabs(vv0[0]-xx),dxl=.0,dxh=.0,dxincr=.0;
   /* first columns of cc,dd are the ctrlL function values */ 
-  for (ii=0;ii<polynomial->len;ii++)
-    polynomial->cc[0][ii]=polynomial->dd[0][ii]=polynomial->ctrlL[ii][1];
+  for (ii=0;ii<len;ii++) {
+    mk_listat(&polynomial->ctrlL,ii,(void*)&vv0);
+    mk_matrixset(&polynomial->cc,0,ii,vv0[1]);
+    mk_matrixset(&polynomial->dd,0,ii,vv0[1]);
+  }
   /* update cc,dd */
-  for (ii=1;ii<polynomial->len;ii++) {
+  for (ii=1;ii<len;ii++) {
     /* calc nearest distance to (then) starting point in ctrlL underway */
-    if (fabs(polynomial->ctrlL[ii][0]-xx)<dxmin) {
-      dxmin=fabs(polynomial->ctrlL[ii][0]-xx);
+    mk_listat(&polynomial->ctrlL,ii,(void*)&vv0);
+    if (fabs(vv0[0]-xx)<dxmin) {
+      dxmin=fabs(vv0[0]-xx);
       idx=ii;
     }
     /* 
@@ -963,13 +1016,15 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
                c21=p123-p12=((x1-x)*(c12-d11))/(x1-x3)
                d21=p123-p23=((x3-x)*(c12-d11))/(x1-x3)
     */
-    for (jj=0;jj<(polynomial->len-ii);jj++) {
-      dxl=polynomial->ctrlL[jj][0]-xx;
-      dxh=polynomial->ctrlL[jj+ii][0]-xx;
-      dxincr=polynomial->cc[ii-1][jj+1]-polynomial->dd[ii-1][jj];
+    for (jj=0;jj<(len-ii);jj++) {
+      mk_listat(&polynomial->ctrlL,jj,(void*)&vv0);
+      mk_listat(&polynomial->ctrlL,jj+ii,(void*)&vv1);
+      dxl=vv0[0]-xx;
+      dxh=vv1[0]-xx;
+      dxincr=mk_matrixget(&polynomial->cc,ii-1,jj+1)-mk_matrixget(&polynomial->dd,ii-1,jj);
       dxincr=(mk_deq(dxh-dxl,.0) ? .0 : dxincr/(dxl-dxh));
-      polynomial->cc[ii][jj]=dxincr*dxl;
-      polynomial->dd[ii][jj]=dxincr*dxh;
+      mk_matrixset(&polynomial->cc,ii,jj,dxincr*dxl);
+      mk_matrixset(&polynomial->dd,ii,jj,dxincr*dxh);
     }
   }
   /*
@@ -979,20 +1034,21 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
   p(x)=p2+d11+c20 up-up | p2+d11+c21 up-down | p2+c12+d21 down-up
   way up-or-down to nearest difference at resp index position 
   */
-  res=polynomial->cc[0][idx];
-  if (idx==0 || polynomial->len/idx>=2)
+  res=mk_matrixget(&polynomial->cc,0,idx);
+  if (idx==0 || len/idx>=2)
     downward=1;
-  for (ii=1;ii<polynomial->len;ii++) {
+  for (ii=1;ii<len;ii++) {
     if (downward==1) {
       if (idx>=1)
         downward=0;
-      res+=polynomial->cc[ii][idx];
+      tmp=mk_matrixget(&polynomial->cc,ii,idx);
     }
     else {
-      if (idx<1 || idx<(polynomial->len-ii-1))
+      if (idx<1 || idx<(len-ii-1))
         downward=1;
-      res+=polynomial->dd[ii][--idx];
+      tmp=mk_matrixget(&polynomial->dd,ii,--idx);
     }
+    res+=tmp;
   }
   return res;
 
@@ -1003,46 +1059,45 @@ int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeff) {
 
   if (!polynomial || !coeff)
     return 1;
-  int ii=0,idx=0,jj=0,kk=0,ll=0;
+  int ii=0,idx=0,jj=0,kk=0,ll=0,len=polynomial->ctrlL.count;
   double min=mk_dnan,zcoeff=.0;
+  mk_vertexzero(vv0);
   struct mk_polynomial pp;
-  pp.ctrlL=0;
-  pp.cc=0;
-  pp.dd=0;
-  pp.len=polynomial->len;
-  mk_polynomialalloc(&pp);
-  memcpy(&pp.ctrlL[0],&(polynomial->ctrlL[0]),pp.len*sizeof(mk_vertex));
-  for (ii=0;ii<polynomial->len;ii++) {
+  mk_polynomialalloc(&pp,len);
+  mk_listcopy(&pp.ctrlL,&polynomial->ctrlL);
+  for (ii=0;ii<len;ii++) {
     zcoeff=mk_polynomialinterp(&pp,.0);
     coeff[idx++]=zcoeff;
     min=mk_dnan;
     kk=0;
-    for (jj=0;jj<polynomial->len-ii;jj++) {
-      if (mk_isnan(min)!=0 || fabs(pp.ctrlL[jj][0])<min) {
-        min=fabs(pp.ctrlL[jj][0]);
+    for (jj=0;jj<len-ii;jj++) {
+      mk_listat(&pp.ctrlL,jj,(void*)&vv0);
+      if (mk_isnan(min)!=0 || fabs(vv0[0])<min) {
+        min=fabs(vv0[0]);
         kk=jj;
       }
       /* p(x)=a0+a1*x+a2*x*x+a3*x*x*x+a4*x*x*x*x .....
       ===> (p(x)-a0)/x=a1+a2*x+a3*x*x+a4*x*x*x ... */
-      pp.ctrlL[jj][1]=(pp.ctrlL[jj][1]-zcoeff)/pp.ctrlL[jj][0];
+      vv0[1]=(vv0[1]-zcoeff)/vv0[0];
+      mk_listsetat(&pp.ctrlL,(void*)&vv0,jj,0);
     }
     /* recycle pp with shifted down elements and reinitialize cc,dd */
-    for (jj=kk+1;jj<polynomial->len-ii;jj++) {
-      pp.ctrlL[jj-1][0]=pp.ctrlL[jj][0];
-      pp.ctrlL[jj-1][1]=pp.ctrlL[jj][1];
+    for (jj=kk+1;jj<len-ii;jj++) {
+      mk_listat(&pp.ctrlL,jj,(void*)&vv0);
+      mk_listsetat(&pp.ctrlL,(void*)&vv0,jj-1,0);
     }
-    pp.len--;
-    jj=pp.len;
-    for (kk=0;kk<pp.len;kk++) {
-      pp.cc[0][kk]=pp.dd[0][kk]=pp.ctrlL[kk][1];
-      if (kk>0) {
-        for (ll=0;ll<jj;ll++)
-          pp.cc[kk][ll]=pp.dd[kk][ll]=.0;
-      }
-      jj--;
+    mk_listpop(&pp.ctrlL,(void*)&vv0);
+    jj=pp.ctrlL.count;
+    mk_matrixreset(&pp.cc,0);
+    mk_matrixreset(&pp.dd,0);
+    for (kk=0;kk<pp.ctrlL.count;kk++) {
+      mk_listat(&pp.ctrlL,kk,(void*)&vv0);
+      mk_matrixset(&pp.cc,0,kk,vv0[1]);
+      mk_matrixset(&pp.dd,0,kk,vv0[1]);
     }
   }
   mk_polynomialfree(&pp);
+
   return 0;
 
 }

@@ -196,33 +196,59 @@ int mk_cmptypeid(const void *tid1,const void *tid2) {
 }
 
 /* ########## */
-int mk_typeid2string(const struct mk_typeid *typeid,mk_string str) {
+int mk_cmptypeidref(const void *tid1,const void *tid2) {
 
-  mk_stringset(str,&typeid->type[0]);
+  const struct mk_typeid **typeid1=(const struct mk_typeid**)tid1;
+  const struct mk_typeid **typeid2=(const struct mk_typeid**)tid2;
+  int typecmp=mk_cmptypeidtype((const void*)(*typeid1),(const void*)(*typeid2));
+  if (typecmp!=0)
+    return typecmp;
+  typecmp=((*typeid1)->idd<(*typeid2)->idd ? -1 : ((*typeid2)->idd<(*typeid1)->idd ? 1 : 0));  
+  return typecmp;
+
+}
+
+/* ########## */
+int mk_cmptypeidrefi(const void *tid1,const void *tid2) {
+
+  const struct mk_typeid **typeid1=(const struct mk_typeid**)tid1;
+  const struct mk_typeid *typeid2=(const struct mk_typeid*)tid2;
+  int typecmp=mk_cmptypeidtype((const void*)(*typeid1),(const void*)typeid2);
+  if (typecmp!=0)
+    return typecmp;
+  typecmp=((*typeid1)->idd<typeid2->idd ? -1 : (typeid2->idd<(*typeid1)->idd ? 1 : 0));  
+  return typecmp;
+
+}
+
+/* ########## */
+int mk_typeid2string(const struct mk_typeid *tid,mk_string str) {
+
+  mk_stringset(str,&tid->type[0]);
   if (mk_stringlength(str)==0)
     return 1;
   mk_string numstr;
-  mk_ui2str(typeid->idd,numstr,mk_maxintbase,alnumlen,1,0);  
+  mk_ui2str(tid->idd,numstr,mk_maxintbase,alnumlen,1,0);  
   mk_stringappend(str,&numstr[0]);
   return 0;  
 
 }
 
 /* ########## */
-int mk_typeid4string(struct mk_typeid *typeid,mk_string str) {
+int mk_typeid4string(struct mk_typeid *tid,mk_string str) {
 
-  if (!typeid)
+  if (!tid)
     return 1;
-  memset(typeid,0,sizeof(struct mk_typeid));
+  memset(tid,0,sizeof(struct mk_typeid));
   int ii=0,jj=0,base=-1,len=mk_stringlength(str);
   if (len<=alnumlen)
     return 1;
   mk_string stridd;
   mk_stringsubstr(str,len-alnumlen,mk_sz,stridd);
-  typeid->idd=mk_str2ui(stridd,&base,0,0);
+  tid->idd=mk_str2ui(stridd,&base,0,0);
   if (base<0)
     return 1;
-  mk_stringsubstr(str,0,len-alnumlen,typeid->type);
+  mk_stringsubstr(str,0,len-alnumlen,tid->type);
   return 0;
 
 }
@@ -415,7 +441,7 @@ int mk_binsearchinterval(
     else
       il=ii;
   }
-  int ret=0;
+  int res=0;
   if (ih>=cnt) {
     ih=(cnt==0 ? 0 : cnt-1);
     il=(cnt==0 ? 0 : (cnt>1 ? cnt-2 : cnt-1));
@@ -428,7 +454,7 @@ int mk_binsearchinterval(
     *idxl=il;
   if (idxh)
     *idxh=ih;
-  return ret;
+  return res;
 
 }
 
@@ -561,12 +587,12 @@ int mk_listfind(const struct mk_list *list,void *itm,int *idxl,int *idxh) {
   else {
     ih=il=mk_binsearch(itm,list->typesize,list->count,list->arr,list->cmp,0);
     if (ih>=0) {
-      for (ii=il-1;il>-1;il--) {
+      for (ii=il-1;ii>-1;ii--) {
         if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
           break;
         il=ii;
       }
-      for (ii=ih+1;ih<list->count;ih++) {
+      for (ii=ih+1;ii<list->count;ii++) {
         if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
           break;
         ih=ii;
@@ -641,9 +667,10 @@ int mk_listsetat(struct mk_list *list,void *itm,int idx,int insert) {
     memcpy(list->arr+idx*sz,itm,sz);
   else
     memset(list->arr+idx*sz,0,sz);
-  if ((insert&1)>0)
+  if ((insert&1)>0) {
     list->count++;
-  list->sorted=0;
+    list->sorted=0;
+  }
   return 0;
 
 }
@@ -671,13 +698,14 @@ int mk_listinsort(struct mk_list *list,void *itm) {
     mk_listsort(list);
   int idxl=mk_listfindnextindex(list,itm),idxh=-1;
   mk_listsetat(list,itm,idxl,1); 
+  list->sorted=1;
   mk_listfind(list,itm,&idxl,&idxh);
   return idxl;
 
 }
 
 /* ########## */
-int oswinexp mk_listremove(struct mk_list *list,int idx,void *itm) {
+int mk_listremove(struct mk_list *list,int idx,void *itm) {
 
   mk_listat(list,idx,itm);
   if (!list || !list->arr || idx<0 || idx>=list->count)
@@ -692,15 +720,42 @@ int oswinexp mk_listremove(struct mk_list *list,int idx,void *itm) {
 }
 
 /* ########## */
-int oswinexp mk_listpush(struct mk_list *list,void *itm) {
+int mk_listpush(struct mk_list *list,void *itm) {
 
   return mk_listappend(list,itm);
 
 }
 
 /* ########## */
-int oswinexp mk_listpop(struct mk_list *list,void *itm) {
+int mk_listpop(struct mk_list *list,void *itm) {
 
   return mk_listremove(list,list ? list->count-1 : -1,itm);
 
 }
+
+/* ########## */
+int mk_listcopy(struct mk_list *dest,const struct mk_list *src) {
+
+  if (!src || !dest)
+    return 1;
+  mk_listfree(dest);
+  dest->typesize=src->typesize;
+  dest->reserved=(src->reserved<4 ? src->reserved : src->reserved-1);
+  dest->count=src->count;
+  dest->sorted=src->sorted;
+  dest->cmp=src->cmp;
+  dest->arr=0;
+  if (dest->reserved>0)
+    mk_listalloc(dest,dest->typesize,dest->reserved);
+  void *itm=(void*)malloc(dest->typesize);
+  int ii=0;
+  for (ii=0;ii<src->count;ii++) {
+    mk_listat(src,ii,itm);
+    mk_listappend(dest,itm);
+  }
+  free(itm);
+  return 0;
+
+}
+
+
