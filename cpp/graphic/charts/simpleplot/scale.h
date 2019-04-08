@@ -2,8 +2,10 @@
 #ifndef _scale_H_
 #define _scale_H_
 
-#include <auxx/auxx.h>
-#include <numeric/vertex.h>
+#include <mkbase/mkutil.h>
+#include <tools/char.h>
+#include <tools/misc.h>
+#include <tools/typeid.h>
 
 namespace simpleplot {
 
@@ -17,20 +19,22 @@ const int maxRangeStack=127;
 
 class oswinexp Tic {
 
+  mk_string m_str; 
   public:
     double m_val;
     unsigned char m_size,m_drawable,m_ucs; 
-    mk_string m_str; 
     Tic(double val=mk_dnan,unsigned char sz=1,unsigned char drawable=1,unsigned char ucs=0);
     Tic(const Tic &);
     ~Tic() { }
     Tic &operator=(const Tic &);
-    bool operator==(const Tic &) const;
-    bool operator<(const Tic &) const;
-    int setUcsText(const aux::Ucsstr &);
-    int ucsText(aux::Ucsstr *) const;
-
+    int text(mk_string) const;
+    int ucsText(mk::Ucsstr *) const;
+    int setText(mk_string);
+    int setUcsText(const mk::Ucsstr &);
+    
 };
+
+extern "C" int oswinexp cmpTic(const void *,const void *);
 
 class oswinexp Range {
 
@@ -53,37 +57,31 @@ class oswinexp Range {
       m_option=ass.m_option;
       return *this;
     }
-    bool operator==(const Range &cmp) const {
-      return (m_min==cmp.m_min && m_max==cmp.m_max);
-    }
-    bool operator<(const Range &cmp) const {
-      return (m_min<cmp.m_min || (m_min==cmp.m_min && m_max<cmp.m_max));
-    }
     
 };
 
-class oswinexp Scale : public aux::TypeId {	
+class oswinexp Scale : public mk::TypeId {	
 	
   protected:
     mk_list m_range;
-    aux::TVList<Tic> m_tics;
-    aux::Rounded m_interval;
+    mk_list m_tics;
+    mk::Rounded m_interval;
     virtual double calcInterval(int,int *);
     virtual void setMajTics();
 		virtual double growIntervalSize (double);
 		virtual void rollInnerTics (double);
 		virtual int adaptShiftedTicArray (double,bool,int);
-		virtual int failsave(aux::TVList<Tic> *ticL=0);
+		virtual int failsave(mk_list *ticL=0);
     virtual Range currRange() const;
            	
 	public:
 		Scale ();
 		virtual ~Scale ();
     bool operator==(const Scale &cmp) const {
-      return ((const aux::TypeId*)this)->operator==((const aux::TypeId&)cmp);
+      return ((const mk::TypeId*)this)->operator==((const mk::TypeId&)cmp);
     }
     bool operator<(const Scale &cmp) const {
-      return ((const aux::TypeId*)this)->operator<((const aux::TypeId&)cmp);
+      return ((const mk::TypeId*)this)->operator<((const mk::TypeId&)cmp);
     }
     virtual int range(double *min=0,double *max=0,int *option=0) const;
     virtual int effRange(double *min=0,double *max=0,int *option=0) const;
@@ -91,14 +89,14 @@ class oswinexp Scale : public aux::TypeId {
     virtual double stackRange(double,double,int);
     virtual int unstackRange(int);
     virtual int rangeOption (int *mod=0);
-    virtual int tics(aux::TVList<Tic> *ticL=0) const;
-    virtual aux::Rounded interval() const;
+    virtual int tics(mk_list *ticL=0) const;
+    virtual mk::Rounded interval() const;
     virtual void clear();
-    virtual int calcTics (int,aux::TVList<Tic> *ticL=0);
+    virtual int calcTics (int,mk_list *ticL=0);
     virtual int doShift (double);
 
 	protected:
-		Scale(const Scale &) : aux::TypeId() {
+		Scale(const Scale &) : mk::TypeId() {
 		}
 		Scale &operator=(const Scale &) {
 		  return *this;

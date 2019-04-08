@@ -22,12 +22,6 @@ struct oswinexp mk_matrix {
   double *matrix;
 };
 
-struct oswinexp mk_polynomial {
-  struct mk_list ctrlL;
-  struct mk_matrix cc;
-  struct mk_matrix dd;
-};
-
 #ifdef __cplusplus
 /* #pragma message "cplusplus" */
 extern "C" {
@@ -213,6 +207,16 @@ int oswinexp mk_matrixcopy(struct mk_matrix *,const struct mk_matrix *);
 int oswinexp mk_matrixreset(struct mk_matrix *,int);
 
 /*
+  inout matrix* , return 0|1
+*/
+int oswinexp mk_matrixtranspose(struct mk_matrix *);
+
+/*
+  inout matrix* , int matrix* , return 0|1
+*/
+int oswinexp mk_matrixmult(struct mk_matrix *,const struct mk_matrix *);
+
+/*
   in squarematrix* , out decomposited squarematrix ,
   out row permutation (which row goes where) , out row interchangeables even(1)/odd(-1) 
 */
@@ -225,30 +229,20 @@ xtern int oswinexp mk_matrixludecomposition(struct mk_matrix *,struct mk_matrix 
 xtern int oswinexp mk_matrixlubacksubstitution(struct mk_matrix *,int *,double *,double *);
 
 /*
+  inout matrix* , return determinant
+*/
+double oswinexp mk_matrixdet(struct mk_matrix *);
+
+/*
+  inout matrix* , return 0|1
+*/
+int oswinexp mk_matrixinvert(struct mk_matrix *);
+
+/*
   in squarematrix* , in right hand side column vector* , 
   out result vector* a : a0+a1x+a2x**2 ... anx**n
 */
 xtern int oswinexp mk_matrixsolve(struct mk_matrix *,double *,double *);
-
-/*
-  inout polynomial* , return 0,length
-*/
-xtern int oswinexp mk_polynomialalloc(struct mk_polynomial *,int);
-
-/*
-  inout polynomial* , return 0,1
-*/
-xtern int oswinexp mk_polynomialfree(struct mk_polynomial *);
-
-/*
-  in polynomial* , interpolation at x-value , return 0,1
-*/
-xtern double oswinexp mk_polynomialinterp(struct mk_polynomial *,double);
-
-/*
-  inout polynomial* , interpolation at x-value , intern slat 
-*/
-xtern int oswinexp mk_polynomialcoeff(struct mk_polynomial *,double *);
 
 #ifdef __cplusplus
 }

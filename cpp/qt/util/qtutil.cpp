@@ -14,7 +14,6 @@
 #include <osix/xxtxt.h>
 #include <qt/util/qtutil.h>
 #include <stdio.h>
-#include <auxx/auxx.h>
 
 namespace qtutil {
 
@@ -84,9 +83,9 @@ int fromQString(const QString *qstr,mk_string str) {
 
 }
 
-int fromQString(const QString *qstr,aux::Ucsstr *str) {
+int fromQString(const QString *qstr,mk::Ucsstr *str) {
 
-  aux::Ucsstr ucsstr(qstr ? qstr->length() : 0,qstr ? qstr->utf16() : 0);
+  mk::Ucsstr ucsstr(qstr ? qstr->length() : 0,qstr ? qstr->utf16() : 0);
   *str=ucsstr;
   return 0;
 
@@ -94,8 +93,9 @@ int fromQString(const QString *qstr,aux::Ucsstr *str) {
 
 int fromQLineF(const QLineF *ql,osix::xxLine *ll) {
 
-  ll->set(num::Vector3(ql ? ql->p1().x() : .0,ql ? ql->p1().y() : .0),
-          num::Vector3(ql ? ql->p2().x() : .0,ql ? ql->p2().y() :.0));
+  mk_vertex vl1={(ql ? ql->p1().x() : .0),(ql ? ql->p1().y() : .0),.0,1.};
+  mk_vertex vl2={(ql ? ql->p2().x() : .0),(ql ? ql->p2().y() : .0),.0,1.};
+  ll->set(vl1,vl2);
   return 0;
 
 }
@@ -140,7 +140,7 @@ int fromQFont(const QFont *qfnt,osix::xxFnt *fnt) {
 
 }
 
-int fromQClipboard(aux::Ucsstr *str) {
+int fromQClipboard(mk::Ucsstr *str) {
 
   QString qstr=QApplication::clipboard()->text();
   fromQString(&qstr,str);
@@ -177,7 +177,7 @@ int toQString(mk_string str,QString *qstr) {
 
 }
 
-int toQString(const aux::Ucsstr *str,QString *qstr) {
+int toQString(const mk::Ucsstr *str,QString *qstr) {
 
   int ll=(str ? str->length() : 0);
   if (ll>0)
@@ -190,7 +190,13 @@ int toQString(const aux::Ucsstr *str,QString *qstr) {
 
 int toQLineF(const osix::xxLine *ll,QLineF *ql) {
 
-  ql->setLine(ll ? ll->p0().x() : 0,ll ? ll->p0().y() : 0,ll ? ll->p1().x() : 0,ll ? ll->p1().y() : 0);
+  mk_vertexzero(vl1);
+  mk_vertexzero(vl2);
+  if (ll) {
+    ll->p0(vl1);
+    ll->p1(vl2);
+  }
+  ql->setLine(vl1[0],vl1[1],vl2[0],vl2[1]);
   return 0;
 
 }
@@ -238,7 +244,7 @@ int toQFont(const osix::xxFnt *fnt,QFont *qfnt) {
 
 }
 
-int toQClipboard(aux::Ucsstr *str) {
+int toQClipboard(mk::Ucsstr *str) {
 
   QString qstr;
   toQString(str,&qstr);

@@ -8,7 +8,7 @@ TARGET        = lib$(PRJ).so
 DEFINES       =
 HEADER        = spreadsheetdata.h spreadsheet.h
 SOURCES       = spreadsheetdata.cpp spreadsheet.cpp 
-LIBS          = -lnumeric -losix -lauxx -lmkbase -lz -lm 
+LIBS          = -lnumeric -losix -ltools -lmkbase -lz -lm 
 SOLN					= -shared
 
 ####### names and locations #######

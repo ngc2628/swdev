@@ -13,43 +13,70 @@ namespace spreadsheet {
 
 static const osix::xxStyle defFocusStyle(defFgColor,3,1);
 
-bool SpreadsheetSelection::operator==(const SpreadsheetSelection &) const {
+SpreadsheetSelection::SpreadsheetSelection() : m_isRect(0) {
 
-  return false;
+  mk_listalloc(&m_list,sizeof(Coords),0); 
+  m_list.cmp=cmpCoords;
+  
+}
+
+SpreadsheetSelection::SpreadsheetSelection(const SpreadsheetSelection &ass) :
+  m_isRect(ass.m_isRect),m_anchor(ass.m_anchor) {
+  
+  if (&ass!=this)
+    mk_listcopy(&m_list,&ass.m_list);
 
 }
 
-bool SpreadsheetSelection::operator<(const SpreadsheetSelection &) const {
+SpreadsheetSelection::~SpreadsheetSelection() {
 
-  return false;
+  mk_listfree(&m_list);
+    
+}
 
+SpreadsheetSelection &SpreadsheetSelection::operator=(const SpreadsheetSelection &ass) {
+      
+  m_isRect=ass.m_isRect;
+  m_anchor=ass.m_anchor;
+  if (&ass!=this)
+    mk_listcopy(&m_list,&ass.m_list);
+  return *this;
+  
 }
 
 int SpreadsheetSelection::count() const {
 
-  if (m_isRect==0)
-    return m_list.count();
-  return ((m_list[m_list.count()-1].m_row-m_list[0].m_row+1)*(m_list[m_list.count()-1].m_col-m_list[0].m_col+1));
+  int cnt=m_list.count;
+  if (m_isRect==0 || cnt==0)
+    return cnt;
+  Coords lt,rb;
+  mk_listat(&m_list,0,(void*)&lt);
+  mk_listat(&m_list,cnt-1,(void*)&rb);
+  return ((rb.m_row-lt.m_row+1)*(rb.m_col-lt.m_col+1));
 
 }
 
-int SpreadsheetSelection::bounds(Coords *lt,Coords *rb) const {
+int SpreadsheetSelection::bounds(Coords *lt_,Coords *rb_) const {
 
-  int cnt=m_list.count();
-  if (m_list.sorted()==0 || cnt==0)
+  int cnt=m_list.count;
+  if (m_list.sorted==0 || cnt==0)
     return -1;
-  *lt=m_list[0];
-  *rb=m_list[cnt-1];
+  Coords lt,rb;
+  mk_listat(&m_list,0,(void*)&lt);
+  mk_listat(&m_list,cnt-1,(void*)&rb);
+  *lt_=lt;
+  *rb_=rb;
   return 0;
 
 }
 
-int SpreadsheetSelection::setRect(Coords lt,Coords rb) {
+int SpreadsheetSelection::setRect(Coords lt_,Coords rb_) {
 
-  m_list.clear();
-  m_list.inSort(lt);
+  Coords lt(lt_),rb(rb_);
+  mk_listclear(&m_list,0);
+  mk_listinsort(&m_list,(void*)&lt);
   if (!(lt==rb))
-    m_list.inSort(rb);
+    mk_listinsort(&m_list,(void*)&rb);
   m_isRect=1;
   return 0;
 
@@ -59,7 +86,7 @@ int SpreadsheetSelection::clear(int mod) {
 
   mod=(abs(mod)&7);
   if ((mod&1)>0)
-    m_list.clear();
+    mk_listclear(&m_list,0);
   if ((mod&2)>0)
     m_isRect=0;
   if ((mod&4)>0)
@@ -70,27 +97,45 @@ int SpreadsheetSelection::clear(int mod) {
 
 int SpreadsheetSelection::resolve() {
 
-  int ii=0,jj=0,cnt=m_list.count();
+  int ii=0,jj=0,cnt=m_list.count;
   if (cnt<2 || !m_isRect)
     return -1;
-  Coords si,lt=m_list[0],rb=m_list[cnt-1];
-  m_list.clear();
+  Coords si,lt,rb;
+  mk_listat(&m_list,0,(void*)&lt);
+  mk_listat(&m_list,cnt-1,(void*)&rb);
+  mk_listclear(&m_list,0);
   m_isRect=0;
   for (ii=lt.m_row;ii<=rb.m_row;ii++) {
     for (jj=lt.m_col;jj<=rb.m_col;jj++) {
       si.set(ii,jj);
-      m_list.append(si);
+      mk_listappend(&m_list,(void*)&si);
     }
   }
-  m_list.setSorted(1);
+  mk_listsort(&m_list);
   return 0;
+
+}
+
+int SpreadsheetSelection::toString(mk_string str) const {
+
+  mk_stringset(str,0);
+  if (m_isRect==0)
+    return m_list.count;
+  Coords lt,rb;
+  mk_listat(&m_list,0,(void*)&lt);
+  mk_listat(&m_list,m_list.count-1,(void*)&rb);
+  char buf[32];
+  memset(&buf[0],0,32);
+  sprintf(&str[0],"[%d,%d] - [%d,%d]",lt.m_row,lt.m_col,rb.m_row,rb.m_col);
+  mk_stringappend(str,&buf[0]);
+  return m_list.count;
 
 }
 
 // **********
 Spreadsheet::Spreadsheet(const char *) :
   m_bgStyle(osix::xxStyle(osix::xx_somecolors[4],1,1)),
-  m_focusStyle(defFocusStyle),m_actPos(Coords(0,0)),m_lastPos(Coords(0,0)), m_data(0) {
+  m_focusStyle(defFocusStyle),m_currPos(Coords(0,0)),m_lastPos(Coords(0,0)),m_data(0) {
 
 }
 
@@ -103,11 +148,12 @@ Spreadsheet::~Spreadsheet() {
 SpreadsheetData *Spreadsheet::setSpreadsheetData(SpreadsheetData *data,bool remove) {
 
   SpreadsheetData *olddata=m_data;
-  if (remove&&m_data)
+  if (remove && m_data)
     delete m_data;
   m_data=data;
-  m_selection.m_list.resize(m_data ? m_data->nrows()*m_data->ncols() : 0);
-  m_selection.m_list.clear();
+  mk_listclear(&m_selection.m_list,0);
+  int cnt=(m_data ? m_data->nrows()*m_data->ncols() : 0);
+  mk_listrealloc(&m_selection.m_list,cnt);
   m_selection.m_anchor.set(-1,-1);
   m_selection.m_isRect=0;
   return olddata;
@@ -175,11 +221,11 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
 //printf ("r=%d h=%f static=%d\n",i,descr.m_sz,descr.m_static);
     tmpsz=descr.m_sz;
     if (mysz+tmpsz>wh) {
-      /*m_rects[0][0].m_rect.resize(aux::dnan,m_rects[0][0].m_rect.size().height()+wh-mysz); // row0>>
+      /*m_rects[0][0].m_rect.resize(mk::dnan,m_rects[0][0].m_rect.size().height()+wh-mysz); // row0>>
        for (k=1;k<j;k++) {
        corrsz=m_rects[k][0].m_rect.size().height();
        m_rects[k][0].m_rect.setTop(m_rects[k-1][0].m_rect.bottom()+1.);
-       m_rects[k][0].m_rect.resize(aux::dnan,corrsz);
+       m_rects[k][0].m_rect.resize(mk::dnan,corrsz);
        }*/
       break;
     }
@@ -300,10 +346,10 @@ int Spreadsheet::calcGeometry(osix::xxRectSize sz) {
 
   int maxscrrows=m_data->nrows()-vrows,maxscrcols=m_data->ncols()-vcols,reposrow=-1,reposcol=-1;
 //printf ("vrows=%d vcols=%d\n",vrows,vcols);
-  if (m_actPos.m_col>maxscrcols)
-    m_actPos.m_col=reposcol=0;
-  if (m_actPos.m_row>maxscrrows)
-    m_actPos.m_row=reposrow=0;
+  if (m_currPos.m_col>maxscrcols)
+    m_currPos.m_col=reposcol=0;
+  if (m_currPos.m_row>maxscrrows)
+    m_currPos.m_row=reposrow=0;
   adjustSliders(reposrow,reposcol,maxscrrows,maxscrcols,1,1);
   calcPositions();
 
@@ -381,11 +427,11 @@ int Spreadsheet::calcPositions() {
 
   for (ii=0;ii<vrows;ii++) {
     for (jj=scrcol0;jj<=scrcol1;jj++)
-      m_rects[ii][jj].m_pos.m_col=m_actPos.m_col+jj;
+      m_rects[ii][jj].m_pos.m_col=m_currPos.m_col+jj;
   }
   for (ii=0;ii<vcols;ii++) {
     for (jj=scrrow0;jj<=scrrow1;jj++)
-      m_rects[jj][ii].m_pos.m_row=m_actPos.m_row+jj;
+      m_rects[jj][ii].m_pos.m_row=m_currPos.m_row+jj;
   }
 
   adjustEditor();
@@ -394,7 +440,7 @@ int Spreadsheet::calcPositions() {
 }
 
 // **********
-Coords Spreadsheet::cellAt(num::Vector3 pos,int *dir) const {
+Coords Spreadsheet::cellAt(mk_vertex pos,int *dir) const {
 
   Coords coords(-1,-1);
   if (dir)
@@ -407,11 +453,11 @@ Coords Spreadsheet::cellAt(num::Vector3 pos,int *dir) const {
   while ((ub-lb)>1) {
     mb=(ub+lb)/2;
     pr=&m_rects[mb][0];
-    if (pr->m_rect.top()<=pos.y() && pr->m_rect.bottom()>=pos.y()) {
+    if (pr->m_rect.top()<=pos[1] && pr->m_rect.bottom()>=pos[1]) {
       coords.m_row=pr->m_pos.m_row;
       break;
     }
-    if (pr->m_rect.bottom()<pos.y())
+    if (pr->m_rect.bottom()<pos[1])
       lb=mb;
     else
       ub=mb;
@@ -428,11 +474,11 @@ Coords Spreadsheet::cellAt(num::Vector3 pos,int *dir) const {
   while ((ub-lb)>1) {
     mb=(ub+lb)/2;
     pr=&m_rects[0][mb];
-    if (pr->m_rect.left()<=pos.x() && pr->m_rect.right()>=pos.x()) {
+    if (pr->m_rect.left()<=pos[0] && pr->m_rect.right()>=pos[0]) {
       coords.m_col=pr->m_pos.m_col;
       break;
     }
-    if (pr->m_rect.right()<pos.x())
+    if (pr->m_rect.right()<pos[0])
       lb=mb;
     else
       ub=mb;
@@ -624,7 +670,7 @@ Coords Spreadsheet::nextVisible(Coords coords) const {
 osix::xxRect Spreadsheet::calcPaintRect(Coords pos1,Coords pos2,osix::xxRect *rr) {
 
   int rows=0,cols=0;
-  if (!validView(&rows,&cols)||!pos1.valid()||!pos2.valid())
+  if (!validView(&rows,&cols) || !pos1.valid() || !pos2.valid())
     return osix::xxRect();
   int r1=MIN(pos1.m_row,pos2.m_row),r2=MAX(pos1.m_row,pos2.m_row),
       c1=MIN(pos1.m_col,pos2.m_col),c2=MAX(pos1.m_col,pos2.m_col);
@@ -643,6 +689,7 @@ osix::xxRect Spreadsheet::calcPaintRect(Coords pos1,Coords pos2,osix::xxRect *rr
   }
   Coords vpos1,vpos2;
   osix::xxRect rect1=cellRect(pos1,&vpos1),rect2=cellRect(pos2,&vpos2);
+
 //printf ("%d vpos1=%d,%d vpos2=%d,%d\n",__LINE__,vpos1.m_row,vpos1.m_col,vpos2.m_row,vpos2.m_col);
   if (rect1.empty())
     rect1=cellRect(pos2,&vpos1);
@@ -658,10 +705,12 @@ osix::xxRect Spreadsheet::calcPaintRect(Coords pos1,Coords pos2,osix::xxRect *rr
     rect2.setBottom(m_rects[vpos2.m_row+1][0].m_rect.bottom());
   if (vpos2.m_col>=0 && vpos2.m_col<cols-1)
     rect2.setRight(m_rects[0][vpos2.m_col+1].m_rect.right());
-  rect1.setRightBottom(rect2.rightBottom());
+
+  mk_vertexzero(rb);
+  rect2.rightBottom(rb);
+  rect1.setRightBottom(rb);
   if (rr)
     *rr=rr->unite(rect1);
-
   return rect1;
 
 }
@@ -730,7 +779,7 @@ Coords Spreadsheet::setFocusPos(Coords focusPos,int repaint,osix::xxRect *paintr
       redraw(paintrect ? *paintrect : rr);
     return m_focusPos;
   }
-  Coords shpos=m_actPos;
+  Coords shpos=m_currPos;
   while (vis>0) {
     if ((vis&1)>0)
       shpos.m_col--;
@@ -756,7 +805,7 @@ Coords Spreadsheet::setFocusPos(Coords focusPos,int repaint,osix::xxRect *paintr
 Coords Spreadsheet::setPos(Coords pos,int repaint,osix::xxRect *paintrect,int fromslider) {
 
   int rows=0,cols=0;
-  m_lastPos=m_actPos;
+  m_lastPos=m_currPos;
   if (!validView(&rows,&cols))
     return m_lastPos;
   if (pos.m_row<0)
@@ -767,9 +816,9 @@ Coords Spreadsheet::setPos(Coords pos,int repaint,osix::xxRect *paintrect,int fr
     pos.m_row=m_data->nrows()-rows;
   if (pos.m_col>=m_data->ncols()-cols)
     pos.m_col=m_data->ncols()-cols;
-  m_actPos=pos;
+  m_currPos=pos;
   int move=0;
-  if (m_actPos!=m_lastPos) {
+  if (m_currPos!=m_lastPos) {
     calcPositions();
     move=1;
   }
@@ -783,44 +832,44 @@ Coords Spreadsheet::setPos(Coords pos,int repaint,osix::xxRect *paintrect,int fr
   }
 
   if (fromslider==0)
-    adjustSliders(m_actPos.m_row,m_actPos.m_col,-1,-1,-1,-1);
+    adjustSliders(m_currPos.m_row,m_currPos.m_col,-1,-1,-1,-1);
 
-  return m_actPos;
+  return m_currPos;
 
 }
 
 // **********
 int Spreadsheet::selRect(Coords *cmin,Coords *cmax) const {
 
-  int cnt=m_selection.m_list.count(),maxcol=(m_data ? m_data->ncols()-1 : maxNumCols-1);
+  int cnt=m_selection.m_list.count,maxcol=(m_data ? m_data->ncols()-1 : maxNumCols-1);
   //maxrow=(m_data ? m_data->nrows()-1 : maxNumRows-1);
   cmin->set();
   cmax->set();
   if (cnt==0)
     return 0;
-  *cmin=m_selection.m_list[0];
-  *cmax=m_selection.m_list[cnt-1];
+  mk_listat(&m_selection.m_list,0,cmin);
+  mk_listat(&m_selection.m_list,cnt-1,cmax);
   if (cnt<3)
     return 1;
   else if (m_selection.m_isRect)
     return 2;
-  Coords nrow(cmin->m_row,maxcol),act,last;
-  int idx=m_selection.m_list.findNextIndex(nrow);
-  while (idx>0&&idx<cnt) {
-    act=m_selection.m_list[idx];
-    last=m_selection.m_list[idx-1];
-    if (act.m_row==last.m_row)
+  Coords nrow(cmin->m_row,maxcol),curr,last;
+  int idx=mk_listfindnextindex(&m_selection.m_list,(void *)&nrow);
+  while (idx>0 && idx<cnt) {
+    mk_listat(&m_selection.m_list,idx,(void*)&curr);
+    mk_listat(&m_selection.m_list,idx-1,(void*)&last);
+    if (curr.m_row==last.m_row)
       break;
-    if (act.m_col<cmin->m_col)
-      cmin->m_col=act.m_col;
-    if (cmax->m_col<act.m_col)
-      cmax->m_col=act.m_col;
+    if (curr.m_col<cmin->m_col)
+      cmin->m_col=curr.m_col;
+    if (cmax->m_col<curr.m_col)
+      cmax->m_col=curr.m_col;
     if (last.m_col<cmin->m_col)
       cmin->m_col=last.m_col;
     if (cmax->m_col<last.m_col)
       cmax->m_col=last.m_col;
-    nrow.m_row=act.m_row;
-    idx=m_selection.m_list.findNextIndex(nrow);
+    nrow.m_row=curr.m_row;
+    idx=mk_listfindnextindex(&m_selection.m_list,(void *)&nrow);
   }
 
   return 2;
@@ -828,27 +877,33 @@ int Spreadsheet::selRect(Coords *cmin,Coords *cmax) const {
 }
 
 // **********
-int isRectSel(const aux::TVList<Coords> &ss,Coords *s0,Coords *s1) {
+static int isRectSel(mk_list *ss,Coords *s0,Coords *s1) {
 
-  int cnt=ss.count();
+  int cnt=ss->count;
   if (cnt==0)
     return 0;
   if (cnt==1)
     return 1;
-  Coords lt=ss[0],rb=ss[cnt-1],nrow(lt.m_row,maxNumCols);
-  Coords last;
-  int ii=0,actrow=lt.m_row,lastcol=rb.m_col,idx=ss.findNextIndex(nrow),nidx=idx;
-  while (idx>0&&idx<cnt) {
-    actrow=ss[idx].m_row;
-    last=ss[idx-1];
-    if (actrow==last.m_row)
+  Coords lt,rb,last,cc0,cc1;
+  mk_listat(ss,0,(void*)&lt);
+  mk_listat(ss,cnt-1,(void*)&rb);
+  Coords nrow(lt.m_row,maxNumCols);
+  int ii=0,currow=lt.m_row,lastcol=rb.m_col;
+  int idx=mk_listfindnextindex(ss,(void*)&nrow),nidx=idx;
+  while (idx>0 && idx<cnt) {
+    mk_listat(ss,idx,(void*)&cc0);
+    currow=cc0.m_row;
+    mk_listat(ss,idx-1,(void*)&last);
+    if (currow==last.m_row)
       break;
-    if (actrow-last.m_row>1||last.m_col!=lastcol)
+    if (currow-last.m_row>1 || last.m_col!=lastcol)
       return 0;
-    nrow.m_row=actrow;
-    nidx=ss.findNextIndex(nrow);
+    nrow.m_row=currow;
+    nidx=mk_listfindnextindex(ss,(void*)&nrow);
     for (ii=idx+1;ii<nidx;ii++) {
-      if (ss[ii].m_col-ss[ii-1].m_col>1)
+      mk_listat(ss,ii,(void*)&cc1);
+      mk_listat(ss,ii-1,(void*)&cc0);
+      if (cc1.m_col-cc0.m_col>1)
         return 0;
     }
     idx=nidx;
@@ -863,11 +918,11 @@ int isRectSel(const aux::TVList<Coords> &ss,Coords *s0,Coords *s1) {
 }
 
 // **********
-int Spreadsheet::setSelection(aux::TVList<Coords> ss,int mod) {
+int Spreadsheet::setSelection(mk_list *ss,int mod) {
 
-  ss.setCmp(0);
-  ss.sort();
-  int ii=0,idx=-1,cnt=m_selection.m_list.count(),scnt=ss.count();
+  ss->cmp=cmpCoords;
+  mk_listsort(ss);
+  int ii=0,idxl=-1,idxh=-1,cnt=m_selection.m_list.count,scnt=ss->count;
   osix::xxRect rr;
   Coords si,lt,rb;
   if (selRect(&lt,&rb)>0)
@@ -884,12 +939,12 @@ int Spreadsheet::setSelection(aux::TVList<Coords> ss,int mod) {
   }
   if (mod==0 || cnt==0) {
     if (scnt==0 && cnt>0)
-      m_selection.clear();
+      mk_listclear(&m_selection.m_list,0);
     else if (scnt>0) {
-      m_selection.m_list=ss;
-      m_selection.m_anchor=m_selection.m_list[0];
-      m_selection.m_list.sort();
-      if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+      mk_listcopy(&m_selection.m_list,ss);
+      mk_listat(&m_selection.m_list,0,(void*)&m_selection.m_anchor);
+      mk_listsort(&m_selection.m_list);
+      if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
         m_selection.setRect(lt,rb);
       if (selRect(&lt,&rb)>0)
         calcPaintRect(lt,rb,&rr);
@@ -899,24 +954,24 @@ int Spreadsheet::setSelection(aux::TVList<Coords> ss,int mod) {
   }
   m_selection.resolve();
   for (ii=0;ii<scnt;ii++) {
-    si=ss[ii];
-    idx=m_selection.m_list.find(si);
+    mk_listat(ss,ii,(void*)&si);
+    mk_listfind(&m_selection.m_list,(void*)&si,&idxl,&idxh);
     if (mod==1) {
-      if (idx<0)
-        m_selection.m_list.inSort(si);
+      if (idxl<0)
+        mk_listinsort(&m_selection.m_list,(void*)&si);
     }
     else if (mod==2) {
-      if (idx>=0)
-        m_selection.m_list.remove(idx);
+      if (idxl>=0)
+        mk_listremove(&m_selection.m_list,idxl,0);
     }
   }
-  if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+  if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
     m_selection.setRect(lt,rb);
   cnt=m_selection.count();
   if (cnt==0)
     m_selection.m_anchor.set();
   else {
-    m_selection.m_anchor=m_selection.m_list[0];
+    mk_listat(&m_selection.m_list,0,(void*)&m_selection.m_anchor);
     if (selRect(&lt,&rb)>0)
       calcPaintRect(lt,rb,&rr);
   }
@@ -927,10 +982,10 @@ int Spreadsheet::setSelection(aux::TVList<Coords> ss,int mod) {
 }
 
 // **********
-int Spreadsheet::selection(aux::TVList<Coords> *ss,int *isRect) const {
+int Spreadsheet::selection(mk_list *ss,int *isRect) const {
 
   if (ss)
-    *ss=m_selection.m_list;
+    mk_listcopy(ss,&m_selection.m_list);
   if (isRect)
     *isRect=m_selection.m_isRect;
   return m_selection.count();
@@ -938,28 +993,35 @@ int Spreadsheet::selection(aux::TVList<Coords> *ss,int *isRect) const {
 }
 
 // **********
-int Spreadsheet::isSelected(Coords ss) const {
+int Spreadsheet::isSelected(Coords ss_) const {
 
-  int res=0,cnt=m_selection.m_list.count();
+  int res=0,cnt=m_selection.m_list.count;
   if (cnt==0)
     return res;
+  Coords ss(ss_);
   SpreadsheetDataItem *itm=0;
   if (m_data) {
     itm=m_data->data(ss.m_row,ss.m_col);
     if (itm)
       res=itm->m_selectable;
   }
+  mk_string str;
+  mk_stringset(str,0);
   if ((res&cellUnselectable)==0) {
     if (m_selection.m_isRect && cnt>1) {
-      int t=m_selection.m_list[0].m_row,l=m_selection.m_list[0].m_col,
-          b=m_selection.m_list[cnt-1].m_row,r=m_selection.m_list[cnt-1].m_col;
-      if (t<=ss.m_row && ss.m_row<=b && l<=ss.m_col && ss.m_col<=r)
+      Coords cc0,cc1;
+      mk_listat(&m_selection.m_list,0,(void*)&cc0);
+      mk_listat(&m_selection.m_list,cnt-1,(void*)&cc1);
+      int tt=cc0.m_row,ll=cc0.m_col,bb=cc1.m_row,rr=cc1.m_col;
+//printf("%d [%d,%d] [%d,%d,%d,%d]\n",__LINE__,ss.m_row,ss.m_col,tt,ll,bb,rr);
+      if (tt<=ss.m_row && ss.m_row<=bb && ll<=ss.m_col && ss.m_col<=rr)
         res|=cellSelected;
     }
-    else if (m_selection.m_list.find(ss)>=0)
-      res|=cellSelected;
+    else {
+      if (mk_listfind(&m_selection.m_list,(void*)&ss,0,0)>0)
+        res|=cellSelected;
+    }
   }
-
   return res;
 
 }
@@ -971,26 +1033,30 @@ int Spreadsheet::isEditing(Coords *) const {
 }
 
 // **********
-int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,int) {
+int Spreadsheet::select(Coords ss,int mods,int repaint,osix::xxRect *paintrect,int) {
 
   int vrows=0,vcols=0;
-  if (!s.valid()||!validView(&vrows,&vcols))
+  if (!ss.valid() || !validView(&vrows,&vcols))
     return -1;
-//printf ("mod=%d\n",mod);
+//printf ("%d mods [%d,%d,%d]\n",__LINE__,mods,mods&osix::xx_modCtrl,mods&osix::xx_modShift);
+  mk_string str;
+  mk_stringset(str,0);
   osix::xxRect rr;
-  Coords si,lt,rb;
-  int ii=0,selflag=isSelected(s),maxrow=m_data->nrows()-1,maxcol=m_data->ncols()-1;
-  //iRect=m_selection.m_iRect;
-//printf ("oldsel beg=%d,%d end=%d,%d\n",m_selection[0].m_row,m_selection[0].m_col,m_selection[cnt-1].m_row,m_selection[cnt-1].m_col);
+  Coords si,lt,rb,cc;
+  int ii=0,idxl=-1,selflag=isSelected(ss),maxrow=m_data->nrows()-1,maxcol=m_data->ncols()-1;
+//mk_listat(&m_selection.m_list,0,(void*)&cc);
+//printf ("%d oldsel beg [%d,%d]  ",__LINE__,cc.m_row,cc.m_col);
+//mk_listat(&m_selection.m_list,m_selection.count()-1,(void*)&cc);
+//printf ("end [%d,%d]\n",cc.m_row,cc.m_col);
   if (selRect(&lt,&rb)>0)
     calcPaintRect(lt,rb,&rr);
   bool rowsel=false,colsel=false,expand=false;
-  SpreadsheetIndex descr(sectiontypeRow,s.m_row);
+  SpreadsheetIndex descr(sectiontypeRow,ss.m_row);
   m_data->indexDescr(&descr);
   if (descr.isHeader())
     colsel=true;
   descr.m_type=sectiontypeCol;
-  descr.m_idx=s.m_col;
+  descr.m_idx=ss.m_col;
   m_data->indexDescr(&descr);
   if (descr.isHeader())
     rowsel=true;
@@ -1005,33 +1071,33 @@ int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,in
       m_selection.setRect(lt,rb);
     }
     else if (rowsel) {
-      lt.set(s.m_row,0);
-      rb.set(s.m_row,maxcol);
+      lt.set(ss.m_row,0);
+      rb.set(ss.m_row,maxcol);
       m_selection.setRect(lt,rb);
     }
     else if (colsel) {
-      lt.set(0,s.m_col);
-      rb.set(maxrow,s.m_col);
+      lt.set(0,ss.m_col);
+      rb.set(maxrow,ss.m_col);
       m_selection.setRect(lt,rb);
     }
     else if ((selflag&cellUnselectable)==0)
-      m_selection.setRect(s,s);
+      m_selection.setRect(ss,ss);
     if ((selflag&cellUnselectable)==0)
-      m_selection.m_anchor=s;
+      m_selection.m_anchor=ss;
   }
   else if ((mods&osix::xx_modCtrl)>0) {
     if ((selflag&cellUnselectable)==0) {
       if (!m_selection.m_anchor.valid())
-        m_selection.m_anchor=s;
+        m_selection.m_anchor=ss;
       if ((selflag&cellSelected)==0) {
         expand=false;
         if (rowsel) {
           if (m_selection.m_isRect && m_selection.bounds(&lt,&rb)>0) {
             if (lt.m_col==0 && rb.m_col==maxcol) {
-              if (s.m_row<lt.m_row && lt.m_row-s.m_row<2)
-                m_selection.setRect(Coords(s.m_row,0),rb);
-              else if (s.m_row>rb.m_row&&s.m_row-rb.m_row<2)
-                m_selection.setRect(lt,Coords(s.m_row,maxcol));
+              if (ss.m_row<lt.m_row && lt.m_row-ss.m_row<2)
+                m_selection.setRect(Coords(ss.m_row,0),rb);
+              else if (ss.m_row>rb.m_row && ss.m_row-rb.m_row<2)
+                m_selection.setRect(lt,Coords(ss.m_row,maxcol));
               else
                 expand=true;
             }
@@ -1043,21 +1109,21 @@ int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,in
           if (expand) {
             m_selection.resolve();
             for (ii=0;ii<=maxcol;ii++) {
-              si.set(s.m_row,ii);
-              if (m_selection.m_list.find(si)<0)
-                m_selection.m_list.inSort(si);
+              si.set(ss.m_row,ii);
+              if (mk_listfind(&m_selection.m_list,(void*)&si,&idxl,0)==0)
+                mk_listinsort(&m_selection.m_list,(void*)&si);
             }
-            if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+            if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
               m_selection.setRect(lt,rb);
           }
         }
         else if (colsel) {
           if (m_selection.m_isRect && m_selection.bounds(&lt,&rb)>0) {
             if (lt.m_row==0 && rb.m_row==maxrow) {
-              if (s.m_col<lt.m_col && lt.m_col-s.m_col<2)
-                m_selection.setRect(Coords(0,s.m_col),rb);
-              else if (s.m_col>rb.m_col && s.m_col-rb.m_col<2)
-                m_selection.setRect(lt,Coords(maxrow,s.m_col));
+              if (ss.m_col<lt.m_col && lt.m_col-ss.m_col<2)
+                m_selection.setRect(Coords(0,ss.m_col),rb);
+              else if (ss.m_col>rb.m_col && ss.m_col-rb.m_col<2)
+                m_selection.setRect(lt,Coords(maxrow,ss.m_col));
               else
                 expand=true;
             }
@@ -1069,18 +1135,19 @@ int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,in
           if (expand) {
             m_selection.resolve();
             for (ii=0;ii<=maxrow;ii++) {
-              si.set(ii,s.m_col);
-              if (m_selection.m_list.find(si)<0)
-                m_selection.m_list.inSort(si);
+              si.set(ii,ss.m_col);
+              if (mk_listfind(&m_selection.m_list,(void*)&si,&idxl,0)==0)
+                mk_listinsort(&m_selection.m_list,(void*)&si);
             }
-            if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+            if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
               m_selection.setRect(lt,rb);
           }
         }
         else {
           m_selection.resolve();
-          m_selection.m_list.inSort(s);
-          if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+          cc=ss;
+          mk_listinsort(&m_selection.m_list,(void*)&cc);
+          if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
             m_selection.setRect(lt,rb);
           else
             m_selection.clear(2);
@@ -1091,10 +1158,10 @@ int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,in
         if (rowsel) {
           if (m_selection.m_isRect && m_selection.bounds(&lt,&rb)>0) {
             if (lt.m_col==0 && rb.m_col==maxcol) {
-              if (lt.m_row==s.m_row)
-                m_selection.setRect(Coords(s.m_row,0),rb);
-              else if (rb.m_row==s.m_row)
-                m_selection.setRect(lt,Coords(s.m_row,maxcol));
+              if (lt.m_row==ss.m_row)
+                m_selection.setRect(Coords(ss.m_row,0),rb);
+              else if (rb.m_row==ss.m_row)
+                m_selection.setRect(lt,Coords(ss.m_row,maxcol));
               else
                 expand=true;
             }
@@ -1106,20 +1173,21 @@ int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,in
           if (expand) {
             m_selection.resolve();
             for (ii=0;ii<=maxcol;ii++) {
-              si.set(s.m_row,ii);
-              m_selection.m_list.remove(m_selection.m_list.find(si));
+              si.set(ss.m_row,ii);
+              if (mk_listfind(&m_selection.m_list,(void*)&si,&idxl,0)>0) 
+                mk_listremove(&m_selection.m_list,idxl,(void*)&cc);
             }
-            if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+            if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
               m_selection.setRect(lt,rb);
           }
         }
         else if (colsel) {
           if (m_selection.m_isRect && m_selection.bounds(&lt,&rb)>0) {
             if (lt.m_row==0 && rb.m_row==maxrow) {
-              if (lt.m_col==s.m_col)
-                m_selection.setRect(Coords(0,s.m_col),rb);
-              else if (rb.m_col==s.m_col)
-                m_selection.setRect(lt,Coords(maxrow,s.m_col));
+              if (lt.m_col==ss.m_col)
+                m_selection.setRect(Coords(0,ss.m_col),rb);
+              else if (rb.m_col==ss.m_col)
+                m_selection.setRect(lt,Coords(maxrow,ss.m_col));
               else
                 expand=true;
             }
@@ -1131,22 +1199,25 @@ int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,in
           if (expand) {
             m_selection.resolve();
             for (ii=0;ii<=maxrow;ii++) {
-              si.set(ii,s.m_col);
-              m_selection.m_list.remove(m_selection.m_list.find(si));
+              si.set(ii,ss.m_col);
+              if (mk_listfind(&m_selection.m_list,(void*)&si,&idxl,0)>0) 
+                mk_listremove(&m_selection.m_list,idxl,(void*)&cc);
             }
-            if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+            if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
               m_selection.setRect(lt,rb);
           }
         }
         else {
           m_selection.resolve();
-          m_selection.m_list.remove(m_selection.m_list.find(s));
-          if (isRectSel(m_selection.m_list,&lt,&rb)>0)
+          cc=ss;
+          if (mk_listfind(&m_selection.m_list,(void*)&cc,&idxl,0)>0) 
+            mk_listremove(&m_selection.m_list,idxl,(void*)&cc);
+          if (isRectSel(&m_selection.m_list,&lt,&rb)>0)
             m_selection.setRect(lt,rb);
           else
             m_selection.clear(2);
         }
-        if (m_selection.m_anchor==s) {
+        if (m_selection.m_anchor==ss) {
           if (m_lastFocusPos.valid())
             m_selection.m_anchor=m_lastFocusPos;
           else
@@ -1156,19 +1227,20 @@ int Spreadsheet::select(Coords s,int mods,int repaint,osix::xxRect *paintrect,in
     }
   }
   else if ((mods&osix::xx_modShift)>0) {
-    int minr=MIN(m_selection.m_anchor.m_row,s.m_row),minc=MIN(m_selection.m_anchor.m_col,s.m_col),
-        maxr=MAX(m_selection.m_anchor.m_row,s.m_row),maxc=MAX(m_selection.m_anchor.m_col,s.m_col);
+    int minr=MIN(m_selection.m_anchor.m_row,ss.m_row),
+        minc=MIN(m_selection.m_anchor.m_col,ss.m_col),
+        maxr=MAX(m_selection.m_anchor.m_row,ss.m_row),
+        maxc=MAX(m_selection.m_anchor.m_col,ss.m_col);
     if (rowsel)
       maxc=maxcol;
     if (colsel)
       maxr=maxrow;
     m_selection.clear(3);
     m_selection.setRect(Coords(minr,minc),Coords(maxr,maxc));
-//printf ("%d rt=%d rb=%d cl=%d cr=%d selcnt=%d listcnt=%d\n",__LINE__,minr,maxr,minc,maxc,m_selection.count(),m_selection.m_list.count());
+    m_selection.toString(str);
     if ((isSelected(m_selection.m_anchor)&cellSelected)==0)
-      m_selection.m_anchor=m_selection.m_list[0];
+      mk_listat(&m_selection.m_list,0,(void*)&m_selection.m_anchor);
   }
-
   if (selRect(&lt,&rb)>0)
     calcPaintRect(lt,rb,&rr);
   if (paintrect)
@@ -1195,7 +1267,8 @@ class Gridline {
     osix::xxRect m_rect;
     Gridline() {
     }
-    Gridline(const Gridline &ass) : m_type(ass.m_type),m_section(ass.m_section),m_rect(ass.m_rect) {
+    Gridline(const Gridline &ass) : 
+      m_type(ass.m_type),m_section(ass.m_section),m_rect(ass.m_rect) {
     }
     ~Gridline() {
     }
@@ -1205,18 +1278,24 @@ class Gridline {
       m_rect=ass.m_rect;
       return *this;
     }
-    bool operator==(const Gridline &cmp) const {
-      return (m_type==cmp.m_type && m_section==cmp.m_section);
-    }
-    bool operator<(const Gridline &cmp) const {
-      return (m_type<cmp.m_type || (m_type==cmp.m_type && m_section<cmp.m_section));
-    }
     void set(int type,int section,osix::xxRect rect) {
       m_type=type;
       m_section=section;
       m_rect=rect;
     }
 };
+
+static int cmpGridline(const void *cgl1,const void *cgl2) {
+
+  const Gridline *gl1=(const Gridline *)cgl1;
+  const Gridline *gl2=(const Gridline *)cgl2;
+  if (gl1->m_type<gl2->m_type)
+    return -1;
+  if (gl2->m_type<gl1->m_type)
+    return 1;
+  return (gl1->m_section<gl2->m_section ? -1 : (gl2->m_section<gl1->m_section ? 1 : 0));
+
+}
 
 int Spreadsheet::paintCells(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc) {
 
@@ -1227,7 +1306,6 @@ int Spreadsheet::paintCells(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *
     return -1;
   if (!disp)
     disp=findDisplay();
-//printf ("%d l=%f t=%f r=%f b=%f\n",__LINE__,rr.left(),rr.top(),rr.right(),rr.bottom());
   int ii=0,jj=0,rowf=0,rowl=rows-1,colf=0,coll=cols-1;
   PosRect *pr=0;
 
@@ -1268,43 +1346,53 @@ int Spreadsheet::paintCells(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *
     colf=0;
   if (coll>=cols || coll<colf)
     coll=cols-1;
+//printf("%d [%d,%d] - [%d,%d]\n",__LINE__,rowf,colf,rowl,coll);
 
+  mk_string str;
+  mk_stringset(str,0);
   osix::xxRect focusRect;
   osix::xxStyle sStyle=defSelectedStyle;
-  aux::TVList<Gridline> gridlines(rowl-rowf+2+coll-colf+2);
+  mk_list gridlines;
+  mk_listalloc(&gridlines,sizeof(Gridline),rowl-rowf+2+coll-colf+2);
+  gridlines.cmp=cmpGridline;
   Gridline gridline;
   PosRect *prnext=0;
+  osix::xxRect rxr;
   int selflag=0;
-//aux::Asciistr strDbg;
-//printf ("%d rowf=%d rowl=%d colf=%d coll=%d\n",__LINE__,rowf,rowl,colf,coll);
   for (jj=colf;jj<=coll;jj++) {
     pr=m_rects.at(rowf,jj);
     prnext=m_rects.at(rowl,jj);
-    gridline.set(sectiontypeCol,pr->m_pos.m_col,osix::xxRect(pr->m_rect.leftTop(),prnext->m_rect.leftBottom()));
+    rxr.set(pr->m_rect.left(),pr->m_rect.top(),prnext->m_rect.left(),prnext->m_rect.bottom());
+    gridline.set(sectiontypeCol,pr->m_pos.m_col,rxr);
     gridline.m_rect.setBottom(gridline.m_rect.bottom());
-    gridlines.inSort(gridline);
+    mk_listinsort(&gridlines,(void*)&gridline);
     if (jj==coll) {
-      gridline.set(sectiontypeCol,pr->m_pos.m_col+1,osix::xxRect(pr->m_rect.rightTop(),prnext->m_rect.rightBottom()));
-      gridlines.inSort(gridline);
+      rxr.set(pr->m_rect.right(),pr->m_rect.top(),prnext->m_rect.right(),prnext->m_rect.bottom());
+      gridline.set(sectiontypeCol,pr->m_pos.m_col+1,rxr);
+      mk_listinsort(&gridlines,(void*)&gridline);
     }
   }
   for (ii=rowf;ii<=rowl;ii++) {
     pr=m_rects.at(ii,colf);
     prnext=m_rects.at(ii,coll);
-    gridline.set(sectiontypeRow,pr->m_pos.m_row,osix::xxRect(pr->m_rect.leftTop(),prnext->m_rect.rightTop()));
-    gridlines.inSort(gridline);
+    rxr.set(pr->m_rect.left(),pr->m_rect.top(),prnext->m_rect.right(),prnext->m_rect.top());
+    gridline.set(sectiontypeRow,pr->m_pos.m_row,rxr);
+    mk_listinsort(&gridlines,(void*)&gridline);
     if (ii==rowl) {
-      gridline.set(sectiontypeRow,pr->m_pos.m_row+1,osix::xxRect(pr->m_rect.leftBottom(),prnext->m_rect.rightBottom()));
-      gridlines.inSort(gridline);
+      rxr.set(pr->m_rect.left(),pr->m_rect.bottom(),prnext->m_rect.right(),prnext->m_rect.bottom());
+      gridline.set(sectiontypeRow,pr->m_pos.m_row+1,rxr);
+      mk_listinsort(&gridlines,(void*)&gridline);
     }
     for (jj=colf;jj<=coll;jj++) {
       pr=m_rects.at(ii,jj);
-//printf ("%d i=%d j=%d r=%d c=%d r=%f,%f,%f,%f\n",__LINE__,i,j,pr->m_pos.m_row,pr->m_pos.m_col,
+//printf ("%d i=%d j=%d r=%d c=%d r=%f,%f,%f,%f\n",__LINE__,ii,jj,pr->m_pos.m_row,pr->m_pos.m_col,
 //pr->m_rect.left(),pr->m_rect.top(),pr->m_rect.right(),pr->m_rect.bottom());
 //if (pr->m_pos.m_row==rows-1 || pr->m_pos.m_col==cols-1)
 //printf ("%d r=%d c=%d r=%f,%f,%f,%f\n",__LINE__,pr->m_pos.m_row,pr->m_pos.m_col,
 //pr->m_rect.left(),pr->m_rect.top(),pr->m_rect.right(),pr->m_rect.bottom());
-//printf ("%d cell=%d,%d sel=%d\n",__LINE__,pr->m_pos.m_row,pr->m_pos.m_col,isSelected(pr->m_pos));
+//m_selection.toString(str);
+//printf ("%d cell [%d,%d] sel [%d] %s\n",__LINE__,
+//pr->m_pos.m_row,pr->m_pos.m_col,isSelected(pr->m_pos),&str[0]);
       gc.m_r=pr->m_rect;
       gc.m_bg=sStyle;
       gc.m_w=m_winscr.m_w;
@@ -1314,12 +1402,12 @@ int Spreadsheet::paintCells(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *
         focusRect=pr->m_rect;
     }
   }
-  Gridline *pgridline=0;
-  for (ii=0;ii<gridlines.count();ii++) {
-    pgridline=gridlines.at(ii);
-    gc.m_r=pgridline->m_rect;
-    m_data->drawGridLine(disp,xxdrawable,&gc,pgridline->m_type,pgridline->m_section);
+  for (ii=0;ii<gridlines.count;ii++) {
+    mk_listat(&gridlines,ii,(void*)&gridline);
+    gc.m_r=gridline.m_rect;
+    m_data->drawGridLine(disp,xxdrawable,&gc,gridline.m_type,gridline.m_section);
   }
+  mk_listfree(&gridlines);
 
 /*pr=m_rects.at(rowf,colf);
 printf ("i=%d j=%d r=%d c=%d r=%f,%f,%f,%f\n",i,j,pr->m_pos.m_row,pr->m_pos.m_col,
@@ -1333,13 +1421,12 @@ pr->m_rect.left(),pr->m_rect.top(),pr->m_rect.right(),pr->m_rect.bottom());*/
     gc.m_fg=m_focusStyle;
     osix::xxdrawRect(disp,xxdrawable,&gc);
   }
-
   return 0;
 
 }
 
 // **********
-int Spreadsheet::scrollAction(int,num::Vector3 vpos) {
+int Spreadsheet::scrollAction(int,mk_vertex vpos) {
 
   int out=0,rows=0,cols=0;
   if (!validView(&rows,&cols))
@@ -1369,48 +1456,48 @@ int Spreadsheet::scrollAction(int,num::Vector3 vpos) {
   m_data->indexDescr(&fcdescr);
   if (rdescr.isStatic() && !frdescr.isStatic()) {
     if (pos.m_row<m_focusPos.m_row) {
-      if (0<m_actPos.m_row)
+      if (0<m_currPos.m_row)
         pos.m_row=m_focusPos.m_row-1;
     }
     else if (m_focusPos.m_row<pos.m_row) {
-      if (m_actPos.m_row+rows<m_data->nrows())
+      if (m_currPos.m_row+rows<m_data->nrows())
         pos.m_row=m_focusPos.m_row+1;
     }
   }
   else if (frdescr.isStatic() && !rdescr.isStatic()) {
     if (pos.m_row<m_focusPos.m_row) {
-      if (m_actPos.m_row+rows<m_data->nrows())
+      if (m_currPos.m_row+rows<m_data->nrows())
         pos.m_row=m_focusPos.m_row+1;
     }
     else if (m_focusPos.m_row<pos.m_row) {
-      if (0<m_actPos.m_row)
+      if (0<m_currPos.m_row)
         pos.m_row=m_focusPos.m_row-1;
     }
   }
   if (cdescr.isStatic() && !fcdescr.isStatic()) {
     if (pos.m_col<m_focusPos.m_col) {
-      if (0<m_actPos.m_col)
+      if (0<m_currPos.m_col)
         pos.m_col=m_focusPos.m_col-1;
     }
     else if (m_focusPos.m_col<pos.m_col) {
-      if (m_actPos.m_col+cols<m_data->ncols())
+      if (m_currPos.m_col+cols<m_data->ncols())
         pos.m_col=m_focusPos.m_col+1;
     }
   }
   else if (fcdescr.isStatic() && !cdescr.isStatic()) {
     if (pos.m_col<m_focusPos.m_col) {
-      if (m_actPos.m_col+cols<m_data->ncols())
+      if (m_currPos.m_col+cols<m_data->ncols())
         pos.m_col=m_focusPos.m_col+1;
     }
     else if (m_focusPos.m_col<pos.m_col) {
-      if (0<m_actPos.m_col)
+      if (0<m_currPos.m_col)
         pos.m_col=m_focusPos.m_col-1;
     }
   }
   if (m_focusPos==pos)
     return stopScrolling();
   setFocusPos(pos,0,&rr);
-//printf ("%d pos=%d,%d actp=%d,%d vr=%d vc=%d fp=%d,%d mfp=%d,%d\n",__LINE__,pos.m_row,pos.m_col,m_actPos.m_row,m_actPos.m_col,rows,cols,focusPos.m_row,focusPos.m_col,m_focusPos.m_row,m_focusPos.m_col);
+//printf ("%d pos=%d,%d actp=%d,%d vr=%d vc=%d fp=%d,%d mfp=%d,%d\n",__LINE__,pos.m_row,pos.m_col,m_currPos.m_row,m_currPos.m_col,rows,cols,focusPos.m_row,focusPos.m_col,m_focusPos.m_row,m_focusPos.m_col);
   if (rdescr.isHeader() || cdescr.isHeader()) {
     select(pos,osix::xx_modShift,0,&rr,1);
     redraw(rr);
@@ -1483,7 +1570,7 @@ int Spreadsheet::inputEvent(osix::xxEvent *xxev) {
     redraw(rr);
     xxev->m_consumer|=osix::xx_processed;
     res=xxev->m_consumer;
-    xxev->m_lastpos=m_xxlastinputev.m_pos;
+    mk_vertexcopy(xxev->m_lastpos,m_xxlastinputev.m_pos);
   }
   else if (xxev->m_type==osix::xx_mouseMove) {
     if (validview==0) {
@@ -1503,8 +1590,8 @@ int Spreadsheet::inputEvent(osix::xxEvent *xxev) {
     }
     else
       res=mouseMoved(xxev);
-    xxev->m_lastpos=m_xxlastinputev.m_pos;
-    xxev->m_downpos=m_xxlastinputev.m_downpos;
+    mk_vertexcopy(xxev->m_lastpos,m_xxlastinputev.m_pos);
+    mk_vertexcopy(xxev->m_downpos,m_xxlastinputev.m_downpos);
   }
   else if (xxev->m_type==osix::xx_mouseReleased) {
     if ((m_xxlastinputev.m_consumer&osix::xx_consumed)>0)
@@ -1512,8 +1599,8 @@ int Spreadsheet::inputEvent(osix::xxEvent *xxev) {
     xxev->m_consumer|=autoscrollconsumer;
     stopScrolling();
     res=xxev->m_consumer;
-    xxev->m_lastpos=m_xxlastinputev.m_pos;
-    xxev->m_downpos=m_xxlastinputev.m_downpos;
+    mk_vertexcopy(xxev->m_lastpos,m_xxlastinputev.m_pos);
+    mk_vertexcopy(xxev->m_downpos,m_xxlastinputev.m_downpos);
   }
   else if (xxev->m_type==osix::xx_mouseDblClicked) {
     if (validview==0) {
@@ -1561,41 +1648,41 @@ int Spreadsheet::mouseMoved(osix::xxEvent *xxev) {
   validView(&rows,&cols);
   if (rdescr.isStatic() && !frdescr.isStatic()) {
     if (pos.m_row<m_focusPos.m_row) {
-      if (0<m_actPos.m_row)
+      if (0<m_currPos.m_row)
         focusPos.m_row=m_focusPos.m_row-1;
     }
     else if (m_focusPos.m_row<pos.m_row) {
-      if (m_actPos.m_row+rows<m_data->nrows())
+      if (m_currPos.m_row+rows<m_data->nrows())
         focusPos.m_row=m_focusPos.m_row+1;
     }
   }
   else if (frdescr.isStatic() && !rdescr.isStatic()) {
     if (pos.m_row<m_focusPos.m_row) {
-      if (m_actPos.m_row+rows<m_data->nrows())
+      if (m_currPos.m_row+rows<m_data->nrows())
         focusPos.m_row=m_focusPos.m_row+1;
     }
     else if (m_focusPos.m_row<pos.m_row) {
-      if (0<m_actPos.m_row)
+      if (0<m_currPos.m_row)
         focusPos.m_row=m_focusPos.m_row-1;
     }
   }
   if (cdescr.isStatic() && !fcdescr.isStatic()) {
     if (pos.m_col<m_focusPos.m_col) {
-      if (0<m_actPos.m_col)
+      if (0<m_currPos.m_col)
         focusPos.m_col=m_focusPos.m_col-1;
     }
     else if (m_focusPos.m_col<pos.m_col) {
-      if (m_actPos.m_col+cols<m_data->ncols())
+      if (m_currPos.m_col+cols<m_data->ncols())
         focusPos.m_col=m_focusPos.m_col+1;
     }
   }
   else if (fcdescr.isStatic() && !cdescr.isStatic()) {
     if (pos.m_col<m_focusPos.m_col) {
-      if (m_actPos.m_col+cols<m_data->ncols())
+      if (m_currPos.m_col+cols<m_data->ncols())
         focusPos.m_col=m_focusPos.m_col+1;
     }
     else if (m_focusPos.m_col<pos.m_col) {
-      if (0<m_actPos.m_col)
+      if (0<m_currPos.m_col)
         focusPos.m_col=m_focusPos.m_col-1;
     }
   }
@@ -1630,7 +1717,7 @@ int Spreadsheet::keyPressed(osix::xxEvent *xxev) {
     if ((xxev->m_xxk==osix::xxk_C || xxev->m_xxk==osix::xxk_V || xxev->m_xxk==osix::xxk_X) &&
         (xxev->m_mods&osix::xx_modCtrl)>0 && (xxev->m_mods&osix::xx_modAlt)==0 &&
         (xxev->m_mods&osix::xx_modShift)==0) {
-      aux::Ucsstr str;
+      mk::Ucsstr str;
       if (xxev->m_xxk==osix::xxk_V)
         pasteCells(&str);
       else
@@ -1664,7 +1751,7 @@ int Spreadsheet::keyReleased(osix::xxEvent *xxev) {
   }
   /*else if (xxev->m_xxk==osix::xxk_F3) {
     SpreadsheetDataItem *chkitm=0;
-    aux::TPArr<SpreadsheetDataItem> chkarr;
+    mk::TPArr<SpreadsheetDataItem> chkarr;
     int ii=0,chkcnt=0;
     chkcnt=m_data->col(8,&chkarr);
     for (ii=0;ii<chkcnt;ii++) {
@@ -1717,14 +1804,14 @@ int Spreadsheet::navKeyReleased(osix::xxEvent *) {
 }
 
 // **********
-int Spreadsheet::copyCells(aux::Ucsstr *buf,int cut) {
+int Spreadsheet::copyCells(mk::Ucsstr *buf,int cut) {
 
   *buf=0;
   int ii=0,jj=0;
   Coords lt,rb;
   if (!m_data || m_selection.bounds(&lt,&rb)==0 || !lt.valid() || !rb.valid())
     return -1;
-  aux::Ucsstr extbuf;
+  mk::Ucsstr extbuf;
   buf->reserve((rb.m_row-lt.m_row+1)*(rb.m_col-lt.m_col+1)*128);
   SpreadsheetDataItem *itm=0;
   for (ii=lt.m_row;ii<=rb.m_row;ii++) {
@@ -1767,7 +1854,7 @@ int Spreadsheet::copyCells(aux::Ucsstr *buf,int cut) {
 }
 
 // **********
-int Spreadsheet::pasteCells(aux::Ucsstr *str) {
+int Spreadsheet::pasteCells(mk::Ucsstr *str) {
 
   if (!m_data)
     return -1;
@@ -1784,9 +1871,9 @@ int Spreadsheet::pasteCells(aux::Ucsstr *str) {
     if (buf[ii]==9 || buf[ii]==10 || buf[ii]==13) {
       itm=m_data->data(cc.m_row,cc.m_col);
       if (itm)
-        itm->m_text=aux::Ucsstr(ii-idx,&buf[idx]);
+        itm->m_text=mk::Ucsstr(ii-idx,&buf[idx]);
       else
-        m_data->setData(cc.m_row,cc.m_col,new SpreadsheetDataItem(aux::Ucsstr(ii-idx,&buf[idx])));
+        m_data->setData(cc.m_row,cc.m_col,new SpreadsheetDataItem(mk::Ucsstr(ii-idx,&buf[idx])));
       if (str[ii]==9)
         cc.m_col++;
       else {

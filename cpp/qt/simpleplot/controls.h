@@ -15,7 +15,6 @@
 #include <QtWidgets/QFontDialog>
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QTabWidget>
-#include <auxx/auxx.h>
 #include <qt/simpleplot/chart2.h> 
 
 namespace qtsimpleplot {

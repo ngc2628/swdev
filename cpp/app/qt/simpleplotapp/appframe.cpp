@@ -18,7 +18,7 @@
 #include <graphic/charts/simpleplot/graph.h>
 #include <app/qt/simpleplotapp/appframe.h>
 
-Q_DECLARE_METATYPE(aux::TypeId)
+Q_DECLARE_METATYPE(mk::TypeId)
 
 namespace qtsimpleplot {
 
@@ -32,6 +32,9 @@ AppFrame :: AppFrame (QWidget *parent,const char *datafile) : QFrame(parent,Qt::
 
   mk_stringset(m_datafile,datafile);
   memset(&m_tab[0],0,ntabs*sizeof(QWidget*));
+  mk_listalloc(&m_xaxes,sizeof(mk::TypeId),31);
+  mk_listalloc(&m_yaxes,sizeof(mk::TypeId),31);
+  mk_listalloc(&m_graphs,sizeof(mk::TypeId),31); 
   //qApp->setStyle(new QCDEStyle());    
   //tstfunc();
   
@@ -105,7 +108,9 @@ AppFrame :: AppFrame (QWidget *parent,const char *datafile) : QFrame(parent,Qt::
 // *****
 AppFrame :: ~AppFrame()
 {
-    // destroySomeThing
+    mk_listfree(&m_xaxes);
+    mk_listfree(&m_yaxes);
+    mk_listfree(&m_graphs);
 }
 
 // *****
@@ -322,28 +327,32 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
   simpleplot::Scale *sc=new simpleplot::Scale();
   sc->setRange(minx,maxx,boundsoption);
   xax->setScale(sc);
-  m_xaxes.inSort(m_chart2[idx]->setAxis(xax));
+  mk::TypeId tid=m_chart2[idx]->setAxis(xax);
+  mk_listinsort(&m_xaxes,(void*)&tid);
   simpleplot::Yaxis *yax=new simpleplot::Yaxis();
   sc=new simpleplot::Scale();
   sc->setRange(miny,maxy,boundsoption);
   yax->setScale(sc);
-  m_yaxes.inSort(m_chart2[idx]->setAxis(yax));
+  tid=m_chart2[idx]->setAxis(yax);
+  mk_listinsort(&m_yaxes,(void*)&tid);
     
   int cntctrl=MIN(cntx,cnty);
 
   simpleplot::GraphData2 *graphdata=new simpleplot::GraphData2(cntctrl);
   graphdata->setSortype(0);
-  num::VertexList vvL;
-  num::Vector3 vv;
+  mk_list vvL;
+  mk_listalloc(&vvL,sizeof(mk_vertex),4*cntctrl);
+  mk_vertexnan(vv);
   for (ii=0;ii<cntctrl;ii++) {
-    vv.setXY(xx[ii],yy[ii]);
-    jj=graphdata->setData(-1,&vv);
-    vvL.append(vv);
+    vv[0]=xx[ii];
+    vv[1]=yy[ii];
+    jj=graphdata->setData(-1,vv);
+    mk_listappend(&vvL,(void*)&vv);
   }
 
   shapes::Shape2 *mark=simpleplot::buildMarkshape2("triangle",5.);
-  mark->m_styleO=osix::xxStyle(osix::xx_somecolors[osix::magenta],1,1);
-  mark->m_styleF=osix::xxStyle(osix::xx_somecolors[osix::yellow],1,1);
+  mark->setStyleO(osix::xxStyle(osix::xx_somecolors[osix::magenta],1,1));
+  mark->setStyleF(osix::xxStyle(osix::xx_somecolors[osix::yellow],1,1));
   graphdata->setMark(0,mark);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
@@ -353,33 +362,37 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
-  m_graphs.inSort(m_chart2[idx]->setGraph(graph));
+  tid=m_chart2[idx]->setGraph(graph);
+  mk_listinsort(&m_graphs,(void*)&tid);
  
   num::Polynomial polyinter1(interpoloptL);
   polyinter1.setCtrl(&vvL);
-  num::VertexList cc;
-  polyinter1.coeff(.0,&cc);
-  for (ii=0;ii<cc.count();ii++) {
-    xx[ii]=cc[ii].y();
+  mk_listclear(&vvL,0);
+  polyinter1.coeff(.0,&vvL);
+  for (ii=0;ii<vvL.count;ii++) {
+    mk_listat(&vvL,ii,(void*)&vv);
+    xx[ii]=vv[1];
     printf ("%d coeff#%d=%.15f\n",__LINE__,ii,xx[ii]);
   }
 
   interpoloptL=num::interpolation_eq;
   num::Polynomial polyinter2(interpoloptL);
-  cc.clear();
-  for (ii=1;ii<cc.count();ii++) {
+  mk_listclear(&vvL,0);
+  for (ii=1;ii<vvL.count;ii++) {
     xx[ii-1]=(double)ii*xx[ii];
-    vv.setX(xx[ii-1]);
-    cc.append(vv);
+    vv[0]=xx[ii-1];
+    mk_listappend(&vvL,(void*)&vv);
   }
   
-  polyinter2.setCtrl(&cc);
+  polyinter2.setCtrl(&vvL);
   
   jj=polyinter2.rootsBrute(xx,minx,maxx);
   for (ii=0;ii<jj;ii++)
     printf ("%d root-%d=%.15f\n",__LINE__,ii,xx[ii]);
   
   m_chart2[idx]->show();
+
+  mk_listfree(&vvL);
 
 
 }
@@ -392,38 +405,44 @@ void AppFrame::slotChart2Action() {
   int ii=0,jj=0,idx=m_tabwidget->currentIndex();
   if (idx<0 || idx>=ntabs || m_chart2[idx]) 
     return;
+  mk_string str;
+  mk_stringset(str,0);
   m_chart2[idx]=new QtDiagramXY(m_tab[idx]);
   m_tablayout[idx]->addWidget(m_chart2[idx],0,0,100,100);
   
   simpleplot::Xaxis *xax=new simpleplot::Xaxis();
   simpleplot::Scale *sc=new simpleplot::Scale();
   xax->setScale(sc);
-  m_xaxes.inSort(m_chart2[idx]->setAxis(xax));
+  mk::TypeId tid=m_chart2[idx]->setAxis(xax);
+  mk_listinsort(&m_xaxes,(void*)&tid);
   simpleplot::Yaxis *yax=new simpleplot::Yaxis();
   sc=new simpleplot::Scale();
   int boundsoption=(simpleplot::typeBoundStaticMin|simpleplot::typeBoundStaticMax);
   sc->setRange(-101.,101.,boundsoption);
   yax->setScale(sc);
-  m_yaxes.inSort(m_chart2[idx]->setAxis(yax));
+  tid=m_chart2[idx]->setAxis(yax);
+  mk_listinsort(&m_yaxes,(void*)&tid);
     
   simpleplot::GraphData2 *graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
-  num::Vector3 vv;
+  mk_vertex vv;
   for (ii=0;ii<cnttstdata;ii++) {
-    vv.setXY((double)(ii*360/(cnttstdata-1)),100.*sin((double)(ii*360/(cnttstdata-1))*mk_rad));
+    vv[0]=(double)(ii*360/(cnttstdata-1));
+    vv[1]=100.*sin((double)(ii*360/(cnttstdata-1))*mk_rad);
     if (ii==cnttstdata/2-1) 
-      vv.setY(vv.y()-9.);
-    jj=graphdata->setData(-1,&vv);
+      vv[1]=vv[1]-9.;
+    jj=graphdata->setData(-1,vv);
   }
 
-//aux::TVList<num::Vector3> dbgdata;
+//mk::TVList<num::Vector3> dbgdata;
 //graphdata->data(&dbgdata);
 //for (i=0;i<dbgdata.count();i++) printf ("data-in %d  x=%f y=%f\n",i,dbgdata[i][0],dbgdata[i][1]);
 
-  shapes::Shape2 *mark=simpleplot::buildMarkshape2("triangle",5.);
-  mark->m_styleO=osix::xxStyle(osix::xx_somecolors[osix::magenta],1,1);
-  mark->m_styleF=osix::xxStyle(osix::xx_somecolors[osix::yellow],1,1);
-  //mark->rotate(45.);
+  shapes::Shape2 *mark=0;
+  mark=simpleplot::buildMarkshape2("triangle",5.);
+  mark->setStyleO(osix::xxStyle(osix::xx_somecolors[osix::magenta],1,1));
+  mark->setStyleF(osix::xxStyle(osix::xx_somecolors[osix::yellow],1,1));
+    //mark->rotate(45.);
   graphdata->setMark(0,mark);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
@@ -431,7 +450,8 @@ void AppFrame::slotChart2Action() {
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
-  m_graphs.inSort(m_chart2[idx]->setGraph(graph));
+  tid=m_chart2[idx]->setGraph(graph);
+  mk_listinsort(&m_graphs,(void*)&tid);
 
   //m_chart2[idx]->show();
   //return;
@@ -439,25 +459,28 @@ void AppFrame::slotChart2Action() {
   xax=new simpleplot::Xaxis();
   xax->setScale(new simpleplot::Scale());
   //xax->setPos(2);
-  m_xaxes.inSort(m_chart2[idx]->setAxis(xax));
+  tid=m_chart2[idx]->setAxis(xax);
+  mk_listinsort(&m_xaxes,(void*)&tid);
   yax=new simpleplot::Yaxis();
   yax->setScale(new simpleplot::Scale());
   //yax->setPos(8);
-  m_yaxes.inSort(m_chart2[idx]->setAxis(yax));
-  
+  tid=m_chart2[idx]->setAxis(yax);
+  mk_listinsort(&m_yaxes,(void*)&tid);
+    
   graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
   for (ii=0;ii<cnttstdata;ii++) {
-    vv.setXY((double)(ii*360/(cnttstdata-1)),50.*cos((double)(ii*360/(cnttstdata-1))*mk_rad));
-    jj=graphdata->setData(-1,&vv);
+    vv[0]=(double)(ii*360/(cnttstdata-1));
+    vv[1]=50.*cos((double)(ii*360/(cnttstdata-1))*mk_rad);
+    jj=graphdata->setData(-1,vv);
   }
   
 //graphdata->data(&dbgdata);
 //for (i=0;i<dbgdata.count();i++) printf ("data-in %d  x=%f y=%f\n",i,dbgdata[i][0],dbgdata[i][1]);
   
   mark=simpleplot::buildMarkshape2("circle",5.);
-  mark->m_styleO=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
-  mark->m_styleF=osix::xxStyle(osix::xx_somecolors[osix::orange],1,1);
+  mark->setStyleO(osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1));
+  mark->setStyleF(osix::xxStyle(osix::xx_somecolors[osix::orange],1,1));
   graphdata->setMark(0,mark);
   graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
@@ -465,8 +488,9 @@ void AppFrame::slotChart2Action() {
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::blue],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
-  m_graphs.inSort(m_chart2[idx]->setGraph(graph));
-  
+  tid=m_chart2[idx]->setGraph(graph);
+  mk_listinsort(&m_graphs,(void*)&tid);
+    
   m_chart2[idx]->show();
   //m_t1.start(500);
   //m_t2.start(500);
@@ -480,74 +504,91 @@ static int t1cnt=0,t2cnt=0;
 
 void AppFrame::slotT1Action() {
 
-  //TypeId idd=m_xaxes.
-  //simpleplot::Xaxis *ax=m_axes[
-  int i=0,j=0,idx=m_tabwidget->currentIndex();
+  int ii=0,jj=0,idx=m_tabwidget->currentIndex();
   if (idx<0 || idx>=ntabs || !m_chart2[idx]) 
     return;
-  aux::TPList<simpleplot::Graph> grL;
-  simpleplot::Graph *graph=0;
-  num::Vector3 v;
-  int ngr=m_chart2[idx]->typegraphs("graphxy",&grL),modbounds=0,modb=0;
-  for (i=0;i<ngr;i++) {
-    graph=grL.at(i);
-    for (j=0;j<cnttstdata;j++) {
-      v.setXY((double)(t1cnt+j*360/(cnttstdata-1)),100.*(i%2==1 ? cos((double)(t1cnt+j*360/(cnttstdata-1))*mk_rad) : sin((double)(t1cnt+j*360/(cnttstdata-1))*mk_rad)));
-      if (t1cnt==20) {
-        graph->setValue(j,&v,&modb);
+  mk_list grL;
+  mk_listalloc(&grL,sizeof(mk::TypeId),0);
+  mk::TypeId tid;
+  simpleplot::Graph *gr=0;
+  mk_vertexnan(vv);
+  int ngr=m_chart2[idx]->entities(&grL,"graphxy"),modbounds=0,modb=0;
+  for (ii=0;ii<ngr;ii++) {
+    mk_listat(&grL,ii,(void*)&tid);
+    gr=m_chart2[idx]->graph(tid);
+    for (jj=0;jj<cnttstdata;jj++) {
+      vv[0]=(double)(t1cnt+jj*360/(cnttstdata-1));
+      vv[1]=100.*(ii%2==1 ? cos((double)(t1cnt+jj*360/(cnttstdata-1))*mk_rad) : sin((double)(t1cnt+jj*360/(cnttstdata-1))*mk_rad));
+      if (gr && t1cnt==20) {
+        gr->setValue(jj,vv,&modb);
         if (modb>modbounds) 
           modbounds=modb;
       }
-      else if (graph->m_graphdata) 
-        graph->m_graphdata->setData(j,&v);
+      else if (gr && gr->m_graphdata) 
+        gr->m_graphdata->setData(jj,vv);
     } 
   }
   if (modbounds==0) {
-    for (i=0;i<ngr;i++) 
-      grL.at(i)->rescale();
+    for (ii=0;ii<ngr;ii++) {
+      mk_listat(&grL,ii,(void*)&tid);
+      gr=m_chart2[idx]->graph(tid);
+      if (gr)
+        gr->rescale();
+    }
   }
   else 
     ;//m_chart2[idx]->resetRect();
   m_chart2[idx]->redraw(simpleplot::redoDrawAxes|simpleplot::redoDrawGraph|simpleplot::redoScr);
   t1cnt++;
+  mk_listfree(&grL);
 
 }
 
 void AppFrame::slotT2Action() {
 
-  //TypeId idd=m_xaxes.
-  //simpleplot::Xaxis *ax=m_axes[
   int idx=m_tabwidget->currentIndex();
   if (idx<0 || idx>=ntabs || !m_chart2[idx]) 
     return;
-  aux::TPList<simpleplot::Axis> xaxL,yaxL;
+  mk_list xaxL;
+  mk_listalloc(&xaxL,sizeof(mk::TypeId),0);
+  mk_list yaxL;
+  mk_listalloc(&yaxL,sizeof(mk::TypeId),0);
+  mk::TypeId tid;
   simpleplot::Axis *ax=0;
-  int i=0,nxax=m_chart2[idx]->typeaxes("xaxis",&xaxL),
-      nyax=m_chart2[idx]->typeaxes("yaxis",&yaxL),n=nxax+nyax;
-  for (i=0;i<nxax;i++) {
-    ax=xaxL.at(i);
-    if (t2cnt%2) 
-      ax->m_style.m_color=osix::xx_somecolors[i%osix::xx_cntcolors];
-    else 
-      ax->m_style.m_color=osix::xx_somecolors[(i+1)%osix::xx_cntcolors];
+  int ii=0,nxax=m_chart2[idx]->entities(&xaxL,"xaxis"),
+      nyax=m_chart2[idx]->entities(&yaxL,"yaxis"),nn=nxax+nyax;
+  for (ii=0;ii<nxax;ii++) {
+    mk_listat(&xaxL,ii,(void*)&tid);
+    ax=m_chart2[idx]->axis(tid);
+    if (ax && t2cnt%2) 
+      ax->m_style.m_color=osix::xx_somecolors[ii%osix::xx_cntcolors];
+    else if (ax)
+      ax->m_style.m_color=osix::xx_somecolors[(ii+1)%osix::xx_cntcolors];
   }
-  for (i=0;i<nyax;i++) {
-    ax=yaxL.at(i);
-    if (t2cnt%2) 
-      ax->m_style.m_color=osix::xx_somecolors[(i+n)%osix::xx_cntcolors];
-    else 
-      ax->m_style.m_color=osix::xx_somecolors[(i+n+1)%osix::xx_cntcolors];
+  for (ii=0;ii<nyax;ii++) {
+    mk_listat(&yaxL,ii,(void*)&tid);
+    ax=m_chart2[idx]->axis(tid);
+    if (ax && t2cnt%2)
+      ax->m_style.m_color=osix::xx_somecolors[(ii+nn)%osix::xx_cntcolors];
+    else if (ax)
+      ax->m_style.m_color=osix::xx_somecolors[(ii+nn+1)%osix::xx_cntcolors];
   }
-  aux::TPList<simpleplot::Graph> grL;
-  simpleplot::Graph *graph=0;
-  int ngr=m_chart2[idx]->typegraphs("graphxy",&grL);
-  for (i=0;i<ngr;i++) {
-    graph=grL.at(i);
-    graph->m_linestyle.m_color=osix::xx_somecolors[t2cnt%osix::xx_cntcolors];
+  mk_list grL;
+  mk_listalloc(&grL,sizeof(mk::TypeId),0);
+  simpleplot::Graph *gr=0;
+  int ngr=m_chart2[idx]->entities(&grL,"graphxy");
+  for (ii=0;ii<ngr;ii++) {
+    mk_listat(&grL,ii,(void*)&tid);
+    gr=m_chart2[idx]->graph(tid);
+    if (gr)
+      gr->m_linestyle.m_color=osix::xx_somecolors[t2cnt%osix::xx_cntcolors];
   }
   
   m_chart2[idx]->redraw(simpleplot::redoDrawAxes|simpleplot::redoDrawGraph|simpleplot::redoScr);
   t2cnt++;
+  mk_listfree(&xaxL);
+  mk_listfree(&yaxL);
+  mk_listfree(&grL);
 
 }
 
@@ -577,8 +618,30 @@ void AppFrame::slotClearAction() {
   int idx=m_tabwidget->currentIndex();
   if (idx<0 || idx>=ntabs || !m_chart2[idx]) 
     return;
-  if (m_chart2[idx]) 
-    delete m_chart2[idx];
+  mk::TypeId tid;
+  int ii=0;
+  simpleplot::Graph *gr=0;
+  for (ii=m_graphs.count-1;ii>-1;ii--) {
+    mk_listremove(&m_graphs,ii,(void*)&tid);
+    gr=m_chart2[idx]->removeGraph(tid);
+    if (gr)
+      delete gr;
+  }
+  simpleplot::Axis *ax=0;
+  for (ii=m_xaxes.count-1;ii>-1;ii--) {
+    mk_listremove(&m_xaxes,ii,(void*)&tid);
+    ax=m_chart2[idx]->removeAxis(tid);
+    if (ax)
+      delete ax;
+  }
+  for (ii=m_yaxes.count-1;ii>-1;ii--) {
+    mk_listremove(&m_yaxes,ii,(void*)&tid);
+    ax=m_chart2[idx]->removeAxis(tid);
+    if (ax)
+      delete ax;
+  }
+  delete m_chart2[idx];
+  m_chart2[idx]=0;
 
 }
 
@@ -595,29 +658,36 @@ void AppFrame::slotChartInteractive() {
   simpleplot::Scale *sc=new simpleplot::Scale();
   sc->setRange(0.,20.,boundsoption);
   xax->setScale(sc);
-  m_xaxes.inSort(m_chart2[idx]->setAxis(xax));
+  mk::TypeId tid=m_chart2[idx]->setAxis(xax);
+  mk_listinsort(&m_xaxes,(void*)&tid);
   simpleplot::Yaxis *yax=new simpleplot::Yaxis();
   sc=new simpleplot::Scale();
   sc->setRange(0.,10.,boundsoption);
   yax->setScale(sc);
-  m_yaxes.inSort(m_chart2[idx]->setAxis(yax));
+  tid=m_chart2[idx]->setAxis(yax);
+  mk_listinsort(&m_yaxes,(void*)&tid);
   
   simpleplot::GraphData2 *graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
-  num::Vector3 v;
-  v.setXY(3.,4.);
-  graphdata->setData(-1,&v);
-  v.setXY(7.,6.);
-  graphdata->setData(-1,&v);
-  v.setXY(9.,5.);
-  graphdata->setData(-1,&v);
-  v.setXY(11.,2.);
-  graphdata->setData(-1,&v);
-  v.setXY(15.,9.);
-  graphdata->setData(-1,&v);
+  mk_vertexnan(vv);
+  vv[0]=3.;
+  vv[1]=4.;
+  graphdata->setData(-1,vv);
+  vv[0]=7.;
+  vv[1]=6.;
+  graphdata->setData(-1,vv);
+  vv[0]=9.;
+  vv[1]=5.;
+  graphdata->setData(-1,vv);
+  vv[0]=11.;
+  vv[1]=2.;
+  graphdata->setData(-1,vv);
+  vv[0]=15.;
+  vv[1]=9.;
+  graphdata->setData(-1,vv);
   shapes::Shape2 *mark=simpleplot::buildMarkshape2("circle",5.);
-  mark->m_styleO=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
-  mark->m_styleF=osix::xxStyle(osix::xx_somecolors[osix::orange],1,1);
+  mark->setStyleO(osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1));
+  mark->setStyleF(osix::xxStyle(osix::xx_somecolors[osix::orange],1,1));
   graphdata->setMark(0,mark);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
@@ -625,7 +695,8 @@ void AppFrame::slotChartInteractive() {
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::blue],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
-  m_graphs.inSort(m_chart2[idx]->setGraph(graph));
+  tid=m_chart2[idx]->setGraph(graph);
+  mk_listinsort(&m_graphs,(void*)&tid);
     
   m_chart2[idx]->redraw(simpleplot::redoDrawAxes|simpleplot::redoDrawGraph|simpleplot::redoScr);
   
@@ -673,7 +744,7 @@ TstFrame :: ~TstFrame()
 void tstfunc() {
 
   const char * const tstchar="hello-martinworld0004060019";
-  aux::TypeId tstid;
+  mk::TypeId tstid;
   bool ok=tstid.fromString(tstchar);
   mk_string str;
   tstid.toString(str);

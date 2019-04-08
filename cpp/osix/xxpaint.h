@@ -2,7 +2,6 @@
 #ifndef _xxpaint_h_
 #define _xxpaint_h_
 
-#include <auxx/auxx.h>
 #include <osix/xxstyle.h>
 #include <osix/xxshape.h>
 #include <osix/xxtxt.h>
@@ -81,9 +80,9 @@ typedef int (*xxdrawLineF)(void *,xxDrawable *,xxGC *);
 extern xxdrawLineF oswinexp xxdrawLineExt;
 extern int oswinexp xxdrawLine(void *,xxDrawable *,xxGC *);
 
-typedef int (*xxdrawLinesF)(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
+typedef int (*xxdrawLinesF)(void *,xxDrawable *,xxGC *,mk_vertex *,int,int);
 extern xxdrawLinesF oswinexp xxdrawLinesExt;
-extern int oswinexp xxdrawLines(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
+extern int oswinexp xxdrawLines(void *,xxDrawable *,xxGC *,mk_vertex *,int,int);
 
 typedef int (*xxdrawRectF)(void *,xxDrawable *,xxGC *);
 extern xxdrawRectF oswinexp xxdrawRectExt;
@@ -93,17 +92,17 @@ typedef int (*xxfillRectF)(void *,xxDrawable *,xxGC *);
 extern xxfillRectF oswinexp xxfillRectExt;
 extern int oswinexp xxfillRect(void *,xxDrawable *,xxGC *);
 
-typedef int (*xxfillPolygonF)(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
+typedef int (*xxfillPolygonF)(void *,xxDrawable *,xxGC *,mk_vertex *,int,int);
 extern xxfillPolygonF oswinexp xxfillPolygonExt;
-extern int oswinexp xxfillPolygon(void *,xxDrawable *,xxGC *,num::Vector3 *,int,int);
+extern int oswinexp xxfillPolygon(void *,xxDrawable *,xxGC *,mk_vertex *,int,int);
 
-typedef int (*xxdrawTextF)(void *,xxDrawable *,xxGC *,aux::Ucsstr *,int);
+typedef int (*xxdrawTextF)(void *,xxDrawable *,xxGC *,mk::Ucsstr *,int);
 extern xxdrawTextF oswinexp xxdrawTextExt;
-extern int oswinexp xxdrawText(void *,xxDrawable *,xxGC *,aux::Ucsstr *,int);
+extern int oswinexp xxdrawText(void *,xxDrawable *,xxGC *,mk::Ucsstr *,int);
 
-typedef int (*xxdrawCtrlF)(void *,xxDrawable *,xxGC *,int,aux::Ucsstr *,int);
+typedef int (*xxdrawCtrlF)(void *,xxDrawable *,xxGC *,int,mk::Ucsstr *,int);
 extern xxdrawCtrlF oswinexp xxdrawCtrlExt;
-extern int oswinexp xxdrawCtrl(void *,xxDrawable *,xxGC *,int,aux::Ucsstr *,int);
+extern int oswinexp xxdrawCtrl(void *,xxDrawable *,xxGC *,int,mk::Ucsstr *,int);
 
 typedef int (*xxresizeDrawableF)(void *,xxDrawable *,xxGC *);
 extern xxresizeDrawableF oswinexp xxresizeDrawableExt;

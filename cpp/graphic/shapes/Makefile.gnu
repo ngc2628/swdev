@@ -8,7 +8,7 @@ TARGET        = lib$(PRJ).so
 DEFINES       =
 HEADER        = ellipse.h line.h rect.h triangle.h polygon.h shape.h
 SOURCES       = ellipse.cpp line.cpp rect.cpp triangle.cpp polygon.cpp shape.cpp
-LIBS          = -losix -lnumeric -lauxx -lmkbase -lz -lm 
+LIBS          = -losix -lnumeric -ltools -lmkbase -lz -lm 
 SOLN					= -shared
 
 ####### names and locations #######

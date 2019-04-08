@@ -346,7 +346,7 @@ void AppFrame::slotSpreadsheetDataResizeAction() {
   section.m_gridstyle.set(osix::xx_somecolors[osix::blue],1,5);
   spreadsheetsdata[0]->setIndexDescr(section);
   
-  aux::Ucsstr txt;
+  mk::Ucsstr txt;
   txt.reserve(128);
   mk_string strnum;
   spreadsheet::SpreadsheetDataItem *itm=0;
@@ -412,7 +412,7 @@ void AppFrame::slotSpreadsheetDataResizeAction() {
     spreadsheets[0]->setSpreadsheetData(spreadsheetsdata[0]);
   spreadsheets[0]->updateGeometry();
   
-/*aux::Asciistr dbgstr;
+/*mk::Asciistr dbgstr;
 spreadsheetsdata[0]->toString(&dbgstr);
 printf ("%d data : \n%s\n",__LINE__,(const char *)dbgstr);*/
 

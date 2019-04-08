@@ -2,38 +2,34 @@
 #ifndef _matrix_H_
 #define _matrix_H_
 
-#include <numeric/vertex.h>
+#include <mkbase/mkla.h>
 
 namespace num {
 
 class oswinexp Matrix {
 
   protected:
-    int m_rows;
-    int m_cols;
-    double **m_m;
-    void clearArr();
-    int setArr(int,int,double **);
-    int mult(int,int,double **);
+    struct mk_matrix m_mat;
+    bool operator==(const Matrix &) const {
+      return false;
+    }
+    bool operator<(const Matrix &) const {
+      return false;
+    }
 
   public:
-    Matrix(int rows=0,int cols=0,double **m=0);
+    Matrix(int rows=0,int cols=0);
     Matrix(const Matrix &);
     virtual ~Matrix();
     Matrix &operator=(const Matrix &);
-    bool operator==(const Matrix &) const;
-    bool operator<(const Matrix &) const;
     int rows() const;
     int cols() const;
-    double **data(int *rows=0,int *cols=0);
-    double m(int,int);
-    bool isIdentity(double);
-    virtual void clearCtrl();
-    virtual int setCtrl(int,int,double **);
-    virtual void invalidate();
-    void reset(bool zero=false);
-    int alter(int, int, double);
-    void transpose();
+    double getValue(int,int) const;
+    virtual int setValue(int,int,double);
+    virtual int clear();
+    virtual int invalidate();
+    int reset(int identity=1);
+    int transpose();
     int mult(Matrix *);
     int toString(mk_string) const;
 
@@ -42,23 +38,27 @@ class oswinexp Matrix {
 class oswinexp SquareMatrix : public Matrix {
 
   protected:
-    double **m_lum;
     int *m_rowperm;
     double m_parity;
+    struct mk_matrix m_lum;
     int decomposition();
     int backsubstitution(double *,double *);
+    bool operator==(const SquareMatrix &cmp) const {
+      return false;
+    }
+    bool operator<(const SquareMatrix &cmp) const {
+      return false;
+    }
 
   public:
-    SquareMatrix(int rows=0,double **m=0);
+    SquareMatrix(int rows=0);
     virtual ~SquareMatrix();
     SquareMatrix(const SquareMatrix &);
     SquareMatrix &operator=(const SquareMatrix &);
-    bool operator==(const SquareMatrix &cmp) const;
-    bool operator<(const SquareMatrix &cmp) const;
-    virtual void clearCtrl();
-    virtual int setCtrl(int,int,double **);
-    int setCtrl(int,double **);
-    virtual void invalidate ();
+    int setValue(int,int,double);
+    virtual int clear();
+    virtual int invalidate();
+    bool isIdentity(double) const;
     double determinant();
     int invert();
     int solveFor(int,double *,double *);
@@ -67,13 +67,20 @@ class oswinexp SquareMatrix : public Matrix {
 
 class oswinexp TransformMatrix : public SquareMatrix {
 
+  protected:
+    bool operator==(const TransformMatrix &) const {
+      return false;
+    }
+    bool operator<(const TransformMatrix &) const {
+      return false;
+    }
+
   public:
     TransformMatrix();
     TransformMatrix(const TransformMatrix &);
     virtual ~TransformMatrix();
     TransformMatrix &operator=(const TransformMatrix &);
-    bool operator==(const TransformMatrix &) const;
-    bool operator<(const TransformMatrix &) const;
+    virtual int invalidate();
     int scale(double x=1.,double y=1.,double z=1.);
     int translate(double x=.0,double y=.0,double z=.0);
     int rotateX(double degrees=.0);
@@ -82,7 +89,7 @@ class oswinexp TransformMatrix : public SquareMatrix {
     int shearXY(double x=.0,double y=.0);
     int shearXZ(double x=.0,double z=.0);
     int shearYZ(double y=.0,double z=.0);
-    int transform(Vertex *);
+    int transform(mk_vertex);
 
 };
 

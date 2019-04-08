@@ -406,7 +406,7 @@ int d2a(double d,Asciistr *str,int p,char fmt,int pad,const char *dec,const char
 
 }
 
-static void dbgOp(Asciistr input,const aux::TVList<Entry> &opL,int line) {
+static void dbgOp(Asciistr input,const mk::TVList<Entry> &opL,int line) {
 
   Asciistr dbg,numstr;
   dbg.reserve(128);
@@ -938,8 +938,8 @@ int Calculator::validateHist() {
   if (opcnt==0)
     return -1;
 
-  aux::TVList<Entry> nums;
-  aux::TVList<Entry> acts;
+  mk::TVList<Entry> nums;
+  mk::TVList<Entry> acts;
   Entry actentry,nextentry;
   if (opcnt==1) {
     actentry=m_ops[0];
@@ -1542,7 +1542,7 @@ int Calculator::fnActive(const char *,int) {
 
 }
 
-static void key2calcstr(osix::xxEvent *keyInput,aux::Ucsstr *str) {
+static void key2calcstr(osix::xxEvent *keyInput,mk::Ucsstr *str) {
 
   if (keyInput->m_xxk==osix::xxk_comma)
     str->append(fn_decsep);
@@ -1592,7 +1592,7 @@ int Calculator::osEvent(void *disp,void *win,void *osev) {
   osix::xxEvent xxev;
   osix::xxtranslateEvent(osev,&xxev);
   osix::xxGC gc;
-  aux::Ucsstr str;
+  mk::Ucsstr str;
   if (xxev.m_type==osix::xx_resize) {
     if (win==m_outputwin.m_w)
       m_outputwin.m_r=xxev.m_r;
@@ -1646,7 +1646,7 @@ int Calculator::inputEvent(osix::xxEvent *xxev) {
   }
   xxev->m_xxk=osix::lowerkey(xxev);
   int twkey=osix::typewriterkey(xxev);
-  aux::Ucsstr str;
+  mk::Ucsstr str;
   mk_string mkstr;
   key2calcstr(xxev,&str);
   if ((twkey&osix::xxk_ascii)>0) {
@@ -1754,7 +1754,7 @@ int Calculator::inputEvent(osix::xxEvent *xxev) {
 
 int Calculator::doCopy() {
 
-  aux::Ucsstr str;
+  mk::Ucsstr str;
   str=(const char *)m_output;
   osix::xxtoClipboard(&str);
   return 0;
@@ -1763,7 +1763,7 @@ int Calculator::doCopy() {
 
 int Calculator::doCut() {
 
-  aux::Ucsstr str;
+  mk::Ucsstr str;
   str=(const char *)m_output;
   osix::xxtoClipboard(&str);
   int opscnt=m_ops.count();
@@ -1783,7 +1783,7 @@ int Calculator::doCut() {
 
 int Calculator::doPaste() {
 
-  aux::Ucsstr str;
+  mk::Ucsstr str;
   osix::xxfromClipboard(&str);
   mk_string mkstr;
   str.toAscii(mkstr);

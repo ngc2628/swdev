@@ -6,7 +6,6 @@
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
-#include <auxx/auxx.h>
 
 class QMenu;
 class QMenuBar;

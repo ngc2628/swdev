@@ -79,9 +79,9 @@ int QtDiagramXY::osUpdate(osix::xxRect rr) {
 
 } 
 
-aux::TypeId QtDiagramXY::setAxis(simpleplot::Axis *axis) {
+mk::TypeId QtDiagramXY::setAxis(simpleplot::Axis *axis) {
 
-  aux::TypeId axid=DiagramXY::setAxis(axis);
+  mk::TypeId axid=DiagramXY::setAxis(axis);
   if (axid.busted()) 
     return axid;
   QFont fnt(font());

@@ -7,8 +7,10 @@ namespace qtutil {
 
 int translateQmouse(QMouseEvent *qm,osix::xxEvent *xm) {
 
-  xm->m_pos=num::Vector3((double)qm->pos().x(),(double)qm->pos().y());
-  xm->m_globalpos=num::Vector3((double)qm->globalX(),(double)qm->globalY());
+  mk_vertex xmpos={(double)qm->pos().x(),(double)qm->pos().y(),.0,1.};
+  mk_vertex xmglpos={(double)qm->globalX(),(double)qm->globalY(),.0,1.};
+  mk_vertexcopy(xm->m_pos,xmpos);
+  mk_vertexcopy(xm->m_globalpos,xmglpos);
   
   if (((int)qm->buttons()&(int)Qt::LeftButton)>0)
     xm->m_buttons|=osix::xxm_leftButton;
@@ -18,7 +20,7 @@ int translateQmouse(QMouseEvent *qm,osix::xxEvent *xm) {
     xm->m_buttons|=osix::xxm_rightButton;
 
   if (xm->m_type==osix::xx_mousePressed)
-    xm->m_downpos=xm->m_pos;
+    mk_vertexcopy(xm->m_downpos,xm->m_pos);
   else if (xm->m_type==osix::xx_mouseReleased) {
     if (qm->button()==Qt::LeftButton)
       xm->m_buttons|=osix::xxm_leftButton;

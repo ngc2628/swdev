@@ -2,9 +2,11 @@
 #ifndef _xxkey_h_
 #define _xxkey_h_
 
-#include <auxx/auxx.h>
+#include <mkbase/exportdefs.h>
 
 namespace osix {
+
+class xxEvent;
 
 // ascii
 const int xxk_space=0x0020;

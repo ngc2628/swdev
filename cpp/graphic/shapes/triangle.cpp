@@ -1,51 +1,42 @@
 
 #include <mkbase/mkla.h>
+#include <mkbase/mkmath.h>
 #include <numeric/matrix.h>
 #include <graphic/shapes/triangle.h>
 #include <graphic/shapes/line.h>
 #include <stdio.h>
 #include <string.h>
 
-using namespace aux;
 using namespace num;
 
 namespace shapes {
 
 static const int defCntPoints=3;
 
-Triangle::Triangle(num::Vector3 t0,num::Vector3 t1,num::Vector3 t2) : Shape2("triangle") {
+Triangle::Triangle() : Shape2("triangle") {
 
-  if (t0.busted(num::typeX|num::typeY)!=0)
-    t0=num::Vector3(0.,0.);
-  if (t1.busted(num::typeX|num::typeY)!=0)
-    t1=num::Vector3(0.,0.);
-  if (t2.busted(num::typeX|num::typeY)!=0)
-    t2=num::Vector3(0.,0.);
-  if (t1[0]<t0[0])
-    aux::swap(&t0,&t1);
-  if (t2[0]<t1[0])
-    aux::swap(&t1,&t2);
-  m_t[0]=t0;
-  m_t[1]=t1;
-  m_t[2]=t2;
+  mk_listrealloc(&m_vertices,3);
+  mk_vertexzero(pp);
+  mk_listappend(&m_vertices,pp);
+  mk_listappend(&m_vertices,pp);
+  mk_listappend(&m_vertices,pp);
 
 }
     
 Triangle::Triangle(const Triangle &ass) : Shape2((const Shape2 &)ass) {
 
-  int ii=0;
-  for (ii=0;ii<3;ii++)
-    m_t[ii]=ass.m_t[ii];
-
 }
  
 Triangle &Triangle::operator=(const Triangle &ass) {
       
-  if (this!=&ass) {
-    ((Shape2*)this)->operator=((const Shape2 &)ass);
-    int ii=0;
-    for (ii=0;ii<3;ii++)
-      m_t[ii]=ass.m_t[ii];
+  if (&ass!=this) {
+    m_scale=ass.m_scale;
+    m_rotate=ass.m_rotate;
+    mk_vertexcopy(m_translate,ass.m_translate);
+    mk_stringset(m_descr,&ass.m_descr[0]);
+    m_styleO=ass.m_styleO;
+    m_styleF=ass.m_styleF;
+    mk_listcopy(&m_vertices,&ass.m_vertices);
   }
   return *this;
   
@@ -53,163 +44,168 @@ Triangle &Triangle::operator=(const Triangle &ass) {
    
 bool Triangle::operator==(const Triangle &cmp) const {
       
-  return ((const Shape2*)this)->operator==((const Shape2&)cmp);
+  return (circradius()==cmp.circradius());
   
 }
     
 bool Triangle::operator<(const Triangle &cmp) const {
 
-  return ((const Shape2*)this)->operator<((const Shape2&)cmp);
+  return (circradius()<cmp.circradius());
   
 }
 
-num::Vector3 Triangle::operator[](int idx) const {
-      
-  if (idx<=0)
-    return m_t[0];
-  if (idx>=2)
-    return m_t[2];
-  return m_t[1];
-  
-}
+int Triangle::setVertex(int idx,mk_vertex vertex) {
 
-aux::TypeId *Triangle::clone() const {
+  int res=Shape2::setVertex(idx,vertex);
+  if (res!=0)
+    return res;
+  mk_vertexzero(t1);
+  mk_vertexzero(t2);
+  mk_listat(&m_vertices,0,(void*)&t1);
+  mk_listat(&m_vertices,1,(void*)&t2);
+  if (t2[0]<t1[0]) {
+    mk_listsetat(&m_vertices,(void*)&t1,1,0);
+    mk_listsetat(&m_vertices,(void*)&t2,0,0);
+  }
+  return res;
 
-  return new Triangle((const Triangle &)(*this));
-  
-}
-    
-void Triangle::get(num::Vector3 *t0,num::Vector3 *t1,num::Vector3 *t2) const {
-
-  if (t0)
-    *t0=m_t[0];
-  if (t1)
-    *t1=m_t[1];
-  if (t2)
-    *t2=m_t[2];
-  
-}
-
-void Triangle::set(num::Vector3 t0,num::Vector3 t1,num::Vector3 t2) {
-
-  if (t0.busted(num::typeX|num::typeY)!=0)
-    t0=num::Vector3(0.,0.);
-  if (t1.busted(num::typeX|num::typeY)!=0)
-    t1=num::Vector3(0.,0.);
-  if (t2.busted(num::typeX|num::typeY)!=0)
-    t2=num::Vector3(0.,0.);
-  if (t1[0]<t0[0])
-    aux::swap(&t0,&t1);
-  if (t2[0]<t1[0])
-    aux::swap(&t1,&t2);
-  m_t[0]=t0;
-  m_t[1]=t1;
-  m_t[2]=t2;
-  m_points.clear();
-  
 }
 
 double Triangle::circradius() const { 
-      
-  Line2 aa(m_t[0],m_t[1]),bb(m_t[1],m_t[2]),cc(m_t[2],m_t[0]);
-  double la=aa.len(),lb=bb.len(),lc=cc.len(),ss=(la+lb+lc)/2.,A4=4*sqrt(ss*(ss-la)*(ss-lb)*(ss-lc));
+
+  Line2 aa,bb,cc;
+  mk_vertexzero(t1);
+  mk_vertexzero(t2);
+  mk_vertexzero(t3);
+  mk_listat(&m_vertices,0,(void*)&t1);
+  mk_listat(&m_vertices,1,(void*)&t2);
+  mk_listat(&m_vertices,2,(void*)&t3);
+  aa.setVertex(0,t1);
+  aa.setVertex(1,t2);
+  bb.setVertex(0,t2);
+  bb.setVertex(1,t3);
+  cc.setVertex(0,t3);
+  cc.setVertex(1,t1); 
+  double la=aa.len(),lb=bb.len(),lc=cc.len(),
+    ss=(la+lb+lc)/2.,A4=4*sqrt(ss*(ss-la)*(ss-lb)*(ss-lc));
   return (la*lb*lc/A4);
   
 }
 
-num::Vector3 Triangle::center() const {
+int Triangle::center(mk_vertex vc) const {
 
   TransformMatrix mm;
-  num::Vector3 mt0(m_t[0]),mt1(m_t[1]),mt2(m_t[2]),
-               m10(mt1-mt0),m21(mt2-mt1),nn(.0,.0,1.),
-               n10=m10.cross(nn),n21=m21.cross(nn);
-  double xm10=(mt1[0]+mt0[0])/2.,ym10=(mt1[1]+mt0[1])/2.,
-         xm21=(mt2[0]+mt1[0])/2.,ym21=(mt2[1]+mt1[1])/2.;
-  mm.translate(xm10,ym10);
-  mm.transform(&n10);
-  mm.reset();
+  mk_vertexzero(mt1);
+  mk_vertexzero(mt2);
+  mk_vertexzero(mt3);
+  mk_listat(&m_vertices,0,(void*)&mt1);
+  mk_listat(&m_vertices,1,(void*)&mt2);
+  mk_listat(&m_vertices,2,(void*)&mt3);
+  mk_vertexzero(m21); 
+  mk_vertexsubs(mt2,mt1,m21);
+  mk_vertexzero(m32); 
+  mk_vertexsubs(mt3,mt2,m32);
+  mk_vertex nn={.0,.0,1.,1.}; 
+  mk_vertexzero(n21); 
+  mk_vertexcross(m21,nn,n21);
+  mk_vertexzero(n32); 
+  mk_vertexcross(m32,nn,n32);
+  double xm21=(mt2[0]+mt1[0])/2.,ym21=(mt2[1]+mt1[1])/2.,
+         xm32=(mt3[0]+mt2[0])/2.,ym32=(mt3[1]+mt2[1])/2.;
+  mk_vertex vm21={xm21,ym21,.0,1.};
+  mk_vertex vm32={xm32,ym32,.0,1.};
   mm.translate(xm21,ym21);
-  mm.transform(&n21);
+  mm.transform(n21);
   mm.reset();
-  mk_vertex 
-    vm1={xm10,ym10,mk_dnan,mk_dnan},n1={n10[0],n10[1],mk_dnan,mk_dnan},
-    vm2={xm21,ym21,mk_dnan,mk_dnan},n2={n21[0],n21[1],mk_dnan,mk_dnan},
-    ss={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
-  mk_linesintersection(vm1,n1,vm2,n2,ss,3,0);
-  return num::Vector3(ss[0],ss[1]);
+  mm.translate(xm32,ym32);
+  mm.transform(n32);
+  mm.reset();
+  mk_vertexzero(vvc);
+  mk_linesintersection(vm21,n21,vm32,n32,vvc,3,0);
+  mk_vertexcopy(vc,vvc);
+  return 0;
 
 }
 
-int Triangle::eval(num::VertexList *pointL,int npoints) {
+int Triangle::eval(struct mk_list *pointL,int npoints) {
 
   if (npoints!=defCntPoints)
     npoints=defCntPoints;
-  if (npoints==m_points.count()) {
-    if (pointL)
-      *pointL=m_points;
-    return npoints; // cache
-  }
-  m_points.clear();
-  m_points.resize(npoints);
+  Shape2::eval(pointL,npoints);
+  mk_vertexzero(vc);
+  center(vc);
   TransformMatrix mm;
-  num::Vector3 mt0(m_t[0]),mt1(m_t[1]),mt2(m_t[2]),
-               m10(mt1-mt0),m21(mt2-mt1),nn(.0,.0,1.),
-               n10=m10.cross(nn),n21=m21.cross(nn);
-  double xm10=(mt1[0]+mt0[0])/2.,ym10=(mt1[1]+mt0[1])/2.,
-         xm21=(mt2[0]+mt1[0])/2.,ym21=(mt2[1]+mt1[1])/2.;
-  mm.translate(xm10,ym10);
-  mm.transform(&n10);
-  mm.reset();
-  mm.translate(xm21,ym21);
-  mm.transform(&n21);
-  mm.reset();
-  mk_vertex 
-    vm1={xm10,ym10,mk_dnan,mk_dnan},n1={n10[0],n10[1],mk_dnan,mk_dnan},
-    vm2={xm21,ym21,mk_dnan,mk_dnan},n2={n21[0],n21[1],mk_dnan,mk_dnan},
-    ss={mk_dnan,mk_dnan,mk_dnan,mk_dnan};  
-  mk_linesintersection(vm1,n1,vm2,n2,ss,3,0);
-  mm.translate(-ss[0],-ss[1]);
+  mk_vertexzero(mt1);
+  mk_vertexzero(mt2);
+  mk_vertexzero(mt3);
+  mk_listat(&m_vertices,0,(void*)&mt1);
+  mk_listat(&m_vertices,1,(void*)&mt2);
+  mk_listat(&m_vertices,2,(void*)&mt3);
+  mm.translate(-vc[0],-vc[1]);
   mm.scale(m_scale,m_scale,1.);
   mm.rotateZ(m_rotate);
-  mm.translate(ss[0]+m_translate[0],ss[1]+m_translate[1]);
-  mm.transform(&mt0);
-  m_points.append(mt0);
-  mm.transform(&mt1);
-  m_points.append(mt1);
-  mm.transform(&mt2);
-  m_points.append(mt2);
-  
-  if (pointL)
-    *pointL=m_points;
+  mm.translate(vc[0]+m_translate[0],vc[1]+m_translate[1]);
+  mm.transform(mt1);
+  mk_listappend(pointL,(void*)&mt1);
+  mm.transform(mt2);
+  mk_listappend(pointL,(void*)&mt2);
+  mm.transform(mt3);
+  mk_listappend(pointL,(void*)&mt3);
   return npoints;
 
 }
 
-int Triangle::toStringType(mk_string str) const {
+int Triangle::toString(mk_string str) const {
 
+  Shape2::toString(str);
+  mk_vertexzero(mt1);
+  mk_vertexzero(mt2);
+  mk_vertexzero(mt3);
+  mk_listat(&m_vertices,0,(void*)&mt1);
+  mk_listat(&m_vertices,1,(void*)&mt2);
+  mk_listat(&m_vertices,2,(void*)&mt3);
   mk_stringappend(str,"p0, ");
   mk_string numstr;
   mk_stringset(numstr,0);
-  m_t[0].toString(numstr);
+  mk_vertexdbg(mt1,numstr);
   mk_stringappend(str,numstr);
   mk_stringappend(str,"\np1, ");
   mk_stringset(numstr,0);
-  m_t[1].toString(numstr);
+  mk_vertexdbg(mt2,numstr);
   mk_stringappend(str,numstr);
   mk_stringappend(str,"\np2, ");
   mk_stringset(numstr,0);
-  m_t[2].toString(numstr);
+  mk_vertexdbg(mt3,numstr);
   mk_stringappend(str,numstr);
   mk_stringappend(str,"\n");
   return 0;
 
 }
 
+TriangleEq::TriangleEq(double aa) : Shape2("triangleeq") {
+
+  mk_listrealloc(&m_vertices,1);
+  if (mk_isbusted(aa)!=0 || aa<.0)
+    aa=.0;
+  mk_vertex vv={aa,.0,.0,1.};
+  mk_listappend(&m_vertices,vv);
+
+}
+    
+TriangleEq::TriangleEq(const TriangleEq &ass) : Shape2((const Shape2 &)ass) {
+
+}
+
 TriangleEq &TriangleEq::operator=(const TriangleEq &ass) {
       
-  if (this!=&ass) {
-    ((Shape2*)this)->operator=((const Shape2 &)ass);
-    m_a=ass.m_a;
+  if (&ass!=this) {
+    m_scale=ass.m_scale;
+    m_rotate=ass.m_rotate;
+    mk_vertexcopy(m_translate,ass.m_translate);
+    mk_stringset(m_descr,&ass.m_descr[0]);
+    m_styleO=ass.m_styleO;
+    m_styleF=ass.m_styleF;
+    mk_listcopy(&m_vertices,&ass.m_vertices);
   }
   return *this;
   
@@ -217,48 +213,51 @@ TriangleEq &TriangleEq::operator=(const TriangleEq &ass) {
 
 bool TriangleEq::operator==(const TriangleEq &cmp) const {
       
-  return ((const Shape2*)this)->operator==((const Shape2&)cmp);
+  mk_vertexzero(aa1);
+  mk_listat(&m_vertices,0,(void*)&aa1);
+  mk_vertexzero(aa2);
+  mk_listat(&cmp.m_vertices,0,(void*)&aa2);
+  return (aa1[0]==aa2[0]);
   
 }
     
 bool TriangleEq::operator<(const TriangleEq &cmp) const {
       
-  return ((const Shape2*)this)->operator<((const Shape2&)cmp);
+  mk_vertexzero(aa1);
+  mk_listat(&m_vertices,0,(void*)&aa1);
+  mk_vertexzero(aa2);
+  mk_listat(&cmp.m_vertices,0,(void*)&aa2);
+  return (aa1[0]<aa2[0]);
   
 }
     
-double TriangleEq::set(double a) {
-      
-  m_a=(mk_isfinite(a) ? a : 0.);
-  m_points.clear();
-  return m_a;
-  
-}
 
-int TriangleEq::eval(num::VertexList *pointL,int npoints) {
+int TriangleEq::eval(struct mk_list *pointL,int npoints) {
 
   if (npoints!=defCntPoints)
     npoints=defCntPoints;
-  if (npoints==m_points.count()) {
-    if (pointL)
-      *pointL=m_points;
-    return npoints; // cache
-  }
-  m_points.clear();
-  m_points.resize(npoints);
-  double xx=m_a/2.,yy=m_a*sqrt(3.)/6.;
-  Vector3 tt[3]={Vector3(-xx,-yy),Vector3(xx,-yy),Vector3(0.,2.*yy)};
+  Shape2::eval(pointL,npoints);
+  mk_vertexzero(aa);
+  mk_listat(&m_vertices,0,(void*)&aa);
+  double xx=aa[0]/2.,yy=aa[0]*sqrt(3.)/6.;
+  mk_vertexzero(mt1);
+  mk_vertexzero(mt2);
+  mk_vertexzero(mt3);
+  mt1[0]=-xx;
+  mt1[1]=-yy;
+  mt2[0]=xx;
+  mt2[1]=-yy;
+  mt3[0]=.0;
+  mt3[1]=2.*yy;
   TransformMatrix mm;
   mm.rotateZ(m_rotate);
   mm.translate(m_translate[0],m_translate[1]);
-  int ii=0;
-  for (ii=0;ii<npoints;ii++) {
-    mm.transform(&tt[ii]);
-    m_points.append(tt[ii]);
-  }
-
-  if (pointL)
-    *pointL=m_points;
+  mm.transform(mt1);
+  mk_listappend(pointL,(void*)&mt1);
+  mm.transform(mt2);
+  mk_listappend(pointL,(void*)&mt2);
+  mm.transform(mt3);
+  mk_listappend(pointL,(void*)&mt3);
   return npoints;
 
 }

@@ -12,7 +12,6 @@
 #include <QtGui/QFontMetrics>
 #include <QtWidgets/QGroupBox>
 #include <stdio.h>
-#include <auxx/auxx.h>
 #include <qt/util/qtwidgets.h>
 #include <calculator/calculator.h>
 
@@ -52,7 +51,7 @@ class oswinexp CalculatorOutput : public QFrame {
 class oswinexp QtCalculatorTimer : public qtutil::QtTimer {
 
   public:
-    aux::TVList<calculator::Asciistr> m_qtinfoL;
+    mk::TVList<calculator::Asciistr> m_qtinfoL;
     QtCalculatorTimer() : qtutil::QtTimer() {
     }
     virtual ~QtCalculatorTimer() {

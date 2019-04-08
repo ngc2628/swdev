@@ -45,9 +45,14 @@ int xxdrawLineQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc) {
   QPainter *pp=(QPainter*)(xxdrawable->m_extra);
   QPen qp;
   toQPen(&xxgc->m_fg,&qp);
-  osix::xxLine l(xxgc->m_r.leftTop(),xxgc->m_r.rightBottom());
+  mk_vertexzero(lt);
+  xxgc->m_r.leftTop(lt);
+  mk_vertexzero(rb);
+  xxgc->m_r.rightBottom(rb);
+  osix::xxLine ll;
+  ll.set(lt,rb);
   QLineF ql;
-  toQLineF(&l,&ql);
+  toQLineF(&ll,&ql);
   pp->setPen(qp);
   pp->setBrush(Qt::NoBrush);
   pp->drawLine(ql);
@@ -55,7 +60,7 @@ int xxdrawLineQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc) {
 
 }
 
-int xxdrawLinesQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,num::Vector3 *pL,int pcnt,int) {
+int xxdrawLinesQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,mk_vertex *pL,int pcnt,int) {
 
   if (!xxdrawable->m_extra)
     return 1;
@@ -63,9 +68,12 @@ int xxdrawLinesQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,num::
   QPen qp;
   toQPen(&xxgc->m_fg,&qp);
   QPointF *qpL=new QPointF[pcnt];
+  mk_vertexzero(vv);
   int ii=0;
-  for (ii=0;ii<pcnt;ii++) 
-    qpL[ii]=QPointF(pL[ii].x(),pL[ii].y()); 
+  for (ii=0;ii<pcnt;ii++) {
+    mk_vertexcopy(vv,pL[ii]);
+    qpL[ii]=QPointF(vv[0],vv[1]); 
+  }
   pp->setPen(qp);
   pp->setBrush(Qt::NoBrush);
   pp->drawPolyline (qpL,pcnt);
@@ -108,7 +116,7 @@ int xxfillRectQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc) {
 
 }
 
-int xxfillPolygonQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,num::Vector3 *pL,int pcnt,int opt) {
+int xxfillPolygonQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,mk_vertex *pL,int pcnt,int opt) {
 
   if (!xxdrawable->m_extra)
     return 1;
@@ -118,9 +126,12 @@ int xxfillPolygonQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,num
   QBrush qb;
   toQBrush(&xxgc->m_bg,&qb);
   QPointF *qpL=new QPointF[pcnt];
+  mk_vertexzero(vv);
   int ii=0;
-  for (ii=0;ii<pcnt;ii++) 
-    qpL[ii]=QPointF(pL[ii].x(),pL[ii].y());
+  for (ii=0;ii<pcnt;ii++) {
+    mk_vertexcopy(vv,pL[ii]);
+    qpL[ii]=QPointF(vv[0],vv[1]);
+  }
   pp->setPen(qp);
   pp->setBrush(qb);
   pp->drawPolygon(qpL,pcnt,(opt&osix::xx_convex)>0 ? Qt::WindingFill : Qt::OddEvenFill);
@@ -129,7 +140,7 @@ int xxfillPolygonQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,num
 
 }
 
-int xxdrawTextQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,aux::Ucsstr *t,int a) {
+int xxdrawTextQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,mk::Ucsstr *t,int a) {
 
   if (!xxdrawable->m_extra)
     return 1;
@@ -142,7 +153,7 @@ int xxdrawTextQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,aux::U
   toQFont(&xxgc->m_fnt,&qfnt);
   QString qstr;
   toQString(t,&qstr);
-  //aux::Asciistr strDbg1=t->asciistr(),strDbg2;
+  //mk::Asciistr strDbg1=t->asciistr(),strDbg2;
   //xxgc->m_r.toString(&strDbg2);
   pp->setPen(qp);
   pp->setBrush(Qt::NoBrush);
@@ -152,7 +163,7 @@ int xxdrawTextQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,aux::U
 
 }
 
-int xxdrawCtrlQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,int ctrltype,aux::Ucsstr *t,int) {
+int xxdrawCtrlQt(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC *xxgc,int ctrltype,mk::Ucsstr *t,int) {
 
   if (!xxdrawable->m_extra)
     return 1;

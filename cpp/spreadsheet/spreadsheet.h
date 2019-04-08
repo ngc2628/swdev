@@ -2,7 +2,6 @@
 #ifndef _spreadsheet_
 #define _spreadsheet_
 
-#include <auxx/auxx.h>
 #include <osix/xxevent.h>
 #include <osix/xxpaint.h>
 #include <spreadsheet/spreadsheetdata.h>
@@ -26,7 +25,8 @@ class PosRect {
   public:
     Coords m_pos;
     osix::xxRect m_rect;
-    PosRect(Coords pos=Coords(),osix::xxRect rect=osix::xxRect()) : m_pos(pos),m_rect(rect) {
+    PosRect(Coords pos=Coords(),osix::xxRect rect=osix::xxRect()) : 
+      m_pos(pos),m_rect(rect) {
     }
     PosRect(const PosRect &ass) : m_pos(ass.m_pos),m_rect(ass.m_rect) {
     }
@@ -69,29 +69,19 @@ inline int cmpCoordsCol(const void *c1,const void *c2) {
 class oswinexp SpreadsheetSelection {
 
   public:
-    aux::TVList<Coords> m_list;
     int m_isRect;
     Coords m_anchor;
-    SpreadsheetSelection() : m_isRect(0) {
-    }
-    SpreadsheetSelection(const SpreadsheetSelection &ass) :
-      m_list(ass.m_list),m_isRect(ass.m_isRect),m_anchor(ass.m_anchor) {
-    }
-    virtual ~SpreadsheetSelection() {
-    }
-    SpreadsheetSelection &operator=(const SpreadsheetSelection &ass) {
-      m_list=ass.m_list;
-      m_isRect=ass.m_isRect;
-      m_anchor=ass.m_anchor;
-      return *this;
-    }
-    bool operator==(const SpreadsheetSelection &) const;
-    bool operator<(const SpreadsheetSelection &) const;
+    mk_list m_list;
+    SpreadsheetSelection();
+    SpreadsheetSelection(const SpreadsheetSelection &);
+    virtual ~SpreadsheetSelection();
+    SpreadsheetSelection &operator=(const SpreadsheetSelection &);
     int count() const;
     int bounds(Coords *,Coords *) const;
     int setRect(Coords,Coords);
     int clear(int mod=7);
     int resolve();
+    int toString(mk_string) const;
 
 };
 
@@ -104,13 +94,13 @@ class oswinexp Spreadsheet {
     Spreadsheet(const char *name=0);
     virtual ~Spreadsheet();
     virtual SpreadsheetData *setSpreadsheetData(SpreadsheetData *,bool remove=true);
-    virtual Coords cellAt(num::Vector3,int *dir=0) const;
+    virtual Coords cellAt(mk_vertex,int *dir=0) const;
     virtual osix::xxRect cellRect(Coords,Coords *vpos=0) const;
     virtual Coords setPos(Coords pos) {
       return setPos(pos,1,0,false);
     }
     Coords pos() const {
-      return m_actPos;
+      return m_currPos;
     }
     Coords focusPos() const {
       return m_focusPos;
@@ -122,8 +112,8 @@ class oswinexp Spreadsheet {
     virtual int updateGeometry() {
       return 0;
     }
-    virtual int setSelection(aux::TVList<Coords>,int mod=0); // 0:set 1:add 2:remove
-    virtual int selection(aux::TVList<Coords>*,int *iRect=0) const;
+    virtual int setSelection(mk_list *,int mod=0); // 0:set 1:add 2:remove
+    virtual int selection(mk_list *,int *iRect=0) const;
     virtual int isSelected(Coords s) const;
     virtual int isScrolling() const {
       return 0;
@@ -146,12 +136,12 @@ class oswinexp Spreadsheet {
     }
 
   protected:
-    Coords m_actPos;
+    Coords m_currPos;
     Coords m_lastPos;
     SpreadsheetData *m_data;
     Coords m_focusPos;
     Coords m_lastFocusPos;
-    aux::TVArr2d<PosRect> m_rects; // view rects
+    mk::TVArr2d<PosRect> m_rects; // view rects
     SpreadsheetSelection m_selection;
     osix::xxEvent m_xxlastinputev;
 
@@ -165,16 +155,16 @@ class oswinexp Spreadsheet {
     virtual Coords setPos(Coords,int,osix::xxRect *,int fromslider=0);
     virtual Coords setFocusPos(Coords,int,osix::xxRect *);
     virtual int select(Coords,int,int,osix::xxRect *,int mode=0); // char= 0:new 1:add 2:unite
-    virtual int createEditor(aux::Ucsstr) {
+    virtual int createEditor(mk::Ucsstr) {
       return 0;
     }
     virtual int startEditCell(Coords,int sym=0);
     virtual int stopEditCell(int) {
       return -1;
     }
-    virtual int copyCells(aux::Ucsstr *,int);
-    virtual int pasteCells(aux::Ucsstr *);
-    virtual int scrollAction(int,num::Vector3);
+    virtual int copyCells(mk::Ucsstr *,int);
+    virtual int pasteCells(mk::Ucsstr *);
+    virtual int scrollAction(int,mk_vertex);
     virtual int adjustSliders(int,int,int,int,int,int) {
       return 0;
     }

@@ -31,7 +31,7 @@ class oswinexp SpreadsheetView : public QWidget {
 
   public:
     QtSpreadsheet *m_spreadsheet;
-    num::Vector3 m_pointerPos;
+    mk_vertex m_pointerPos;
     SpreadsheetView(QtSpreadsheet *, const char *);
     virtual ~SpreadsheetView();
     bool operator==(const SpreadsheetView &cmp) const {

@@ -13,30 +13,17 @@ class oswinexp RectSize {
     double m_height;
 
   public:
-    RectSize(double w=.0,double h=.0) :
-      m_width(mk_isbusted(w)!=0 || w<.0 ? .0 : w),
-      m_height(mk_isbusted(h)!=0 || h<.0 ? .0 : h) { 
-    }
-    RectSize(const RectSize &ass) : m_width(ass.m_width),m_height(ass.m_height) {
-    }
+    RectSize(double ww=.0,double hh=.0);
+    RectSize(const RectSize &);
     ~RectSize() {
     }
-    RectSize &operator=(const RectSize &ass) {
-      m_width=ass.m_width;
-      m_height=ass.m_height;
-      return *this;
-    }
+    RectSize &operator=(const RectSize &);
     bool operator==(const RectSize &) const;
     bool operator<(const RectSize &) const;
     double setWidth(double);
     double setHeight(double);
-    RectSize set(double w=.0,double h=.0);
-    double width() const {
-      return m_width;
-    }
-    double height() const {
-      return m_height;
-    }
+    double getWidth() const;
+    double getHeight() const;
     bool empty() const;
     int toString(mk_string) const;
 
@@ -48,23 +35,20 @@ class oswinexp Rect : public Shape2 {
     RectSize m_sz;
           
   public:
-    Rect(RectSize sz=RectSize(.0,.0)) : Shape2("rect"),m_sz(sz) { }
-    Rect(num::Vector3,RectSize sz=RectSize(.0,.0));
-    Rect(const Rect &ass) : Shape2((const Shape2 &)ass),m_sz(ass.m_sz) { }
-    virtual ~Rect() { }
+    Rect(RectSize sz=RectSize());
+    Rect(const Rect &);
+    virtual ~Rect() { 
+    }
     Rect &operator=(const Rect &);
     bool operator==(const Rect &) const;
     bool operator<(const Rect &) const;
-    aux::TypeId *clone() const;
-    RectSize size() const {
-      return m_sz;
-    }
+    RectSize getSize() const;
     RectSize setSize(RectSize);
-    double rotate(double);
-    num::Vector3 center() const;
+    double setRotate(double);
+    int center(mk_vertex) const;
     double circradius() const;
-    int eval(num::VertexList *,int npoints=-1);
-    int toStringType(mk_string) const;
+    int eval(struct mk_list *,int npoints=-1);
+    int toString(mk_string) const;
 
 };
 

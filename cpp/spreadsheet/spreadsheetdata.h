@@ -3,7 +3,7 @@
 #define _spreadsheetdata_
 
 #include <mkbase/mkconv.h>
-#include <auxx/auxx.h>
+#include <tools/tlist.h>
 #include <osix/xxstyle.h>
 #include <osix/xxshape.h>
 #include <osix/xxtxt.h>
@@ -75,13 +75,15 @@ class oswinexp Coords {
 
 };
 
+extern int cmpCoords(const void *,const void *);
+
 class oswinexp SpreadsheetDataItemText {
 
   public:
-    aux::Ucsstr m_txt;
+    mk::Ucsstr m_txt;
     osix::xxFnt m_fnt;
     int m_align;
-    SpreadsheetDataItemText(const aux::Ucsstr &txt=aux::Ucsstr(),
+    SpreadsheetDataItemText(const mk::Ucsstr &txt=mk::Ucsstr(),
                             osix::xxFnt fnt=osix::xxFnt(),
                             int align=(osix::xx_alignhcenter|osix::xx_alignvcenter)) :
       m_txt(txt),m_fnt(fnt),m_align(align) {
@@ -132,6 +134,38 @@ class oswinexp SpreadsheetDataItem {
 
 };
 
+class oswinexp SpreadsheetDataItemGrid {
+
+  protected:
+    int m_rows,m_cols;
+    SpreadsheetDataItem ***m_grid;
+    SpreadsheetDataItemGrid(const SpreadsheetDataItemGrid &) {
+    }
+    SpreadsheetDataItemGrid &operator=(const SpreadsheetDataItemGrid &) {
+      return *this;
+    }
+    bool operator==(const SpreadsheetDataItemGrid &) const {
+      return false;
+    }
+    bool operator<(const SpreadsheetDataItemGrid &) const {
+      return false;
+    }
+
+  public:
+    SpreadsheetDataItemGrid(int rows=0,int cols=0);
+    ~SpreadsheetDataItemGrid();
+    int rows() const {
+      return m_rows;
+    }
+    int cols() const {
+      return m_cols;
+    }
+    int resize(int,int,int destr=0);
+    SpreadsheetDataItem *getItem(int,int);
+    SpreadsheetDataItem *setItem(int,int,SpreadsheetDataItem *);
+    
+};
+
 class oswinexp SpreadsheetIndex {
 
   public:
@@ -178,6 +212,8 @@ class oswinexp SpreadsheetIndex {
 
 };
 
+extern int cmpSpreadsheetIndex(const void *,const void *);
+
 class oswinexp SpreadsheetData {
 
   public:
@@ -194,12 +230,6 @@ class oswinexp SpreadsheetData {
     virtual int setDimension(int,int,bool destr=true);
     virtual SpreadsheetDataItem *setData(int,int,SpreadsheetDataItem *,bool destr=true);
     virtual SpreadsheetDataItem *data(int,int);
-    virtual int row(int rr,aux::TPArr<SpreadsheetDataItem> *rL) {
-      return m_data.row(rr,rL);
-    }
-    virtual int col(int cc,aux::TPArr<SpreadsheetDataItem> *cL) {
-      return m_data.col(cc,cL);
-    }
     virtual int setIndexDescr(SpreadsheetIndex);
     virtual int indexDescr(SpreadsheetIndex *) const;
     virtual int drawCell(void *,osix::xxDrawable *,osix::xxGC *,int,int,int);
@@ -212,8 +242,8 @@ class oswinexp SpreadsheetData {
     SpreadsheetData &operator=(const SpreadsheetData &) {
       return *this;
     }
-    aux::TVList<SpreadsheetIndex> m_descr;
-    aux::TPArr2d<SpreadsheetDataItem> m_data;
+    mk_list m_descr;
+    SpreadsheetDataItemGrid m_data;
     double m_defHeight;
     double m_defWidth;
 

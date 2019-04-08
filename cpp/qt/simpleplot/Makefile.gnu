@@ -9,7 +9,7 @@ DEFINES       =
 HEADER        = chart2.h controls.h
 SOURCES       = chart2.cpp controls.cpp
 MOCS          = chart2.h controls.h
-LIBS          = -lQt5X11Extras -lQt5Gui -lQt5Core -lqtutil -lsimpleplot -lshapes -lnumeric -losix -lauxx -lmkbase -lz -lm
+LIBS          = -lQt5X11Extras -lQt5Gui -lQt5Core -lqtutil -lsimpleplot -lshapes -lnumeric -losix -ltools -lmkbase -lz -lm
 SOLN					= -shared
 
 ####### names and locations #######

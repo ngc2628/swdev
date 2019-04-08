@@ -9,7 +9,7 @@ DEFINES       =
 HEADER        = calculator.h
 SOURCES       = calculator.cpp
 MOCS          = calculator.h
-LIBS          = -lQt5X11Extras -lQt5Gui -lQt5Core -lqtutil -ltxtcalculator -lshapes -lnumeric -losix -lauxx -ltxtcalc -lmkbase -lz -lm
+LIBS          = -lQt5X11Extras -lQt5Gui -lQt5Core -lqtutil -ltxtcalculator -lshapes -lnumeric -losix -ltools -ltxtcalc -lmkbase -lz -lm
 SOLN					= -shared
 
 ####### names and locations #######

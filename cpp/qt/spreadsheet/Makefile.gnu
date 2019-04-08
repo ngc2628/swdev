@@ -9,7 +9,7 @@ DEFINES       =
 HEADER        = spreadsheet.h
 SOURCES       = spreadsheet.cpp
 MOCS          = spreadsheet.h
-LIBS          = -lQt5X11Extras -lQt5Gui -lQt5Core -lqtutil -lspreadsheet -lshapes -lnumeric -losix -lauxx -lmkbase -lz -lm
+LIBS          = -lQt5X11Extras -lQt5Gui -lQt5Core -lqtutil -lspreadsheet -lshapes -lnumeric -losix -ltools -lmkbase -lz -lm
 SOLN					= -shared
 
 ####### names and locations #######

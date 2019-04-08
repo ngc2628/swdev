@@ -8,7 +8,7 @@ TARGET        = lib$(PRJ).so
 DEFINES       =
 HEADER        = scale.h axis.h graph.h diagram.h
 SOURCES       = scale.cpp axis.cpp graph.cpp diagram.cpp
-LIBS          = -lshapes -losix -lnumeric -lauxx -lmkbase -lz -lm 
+LIBS          = -lshapes -losix -lnumeric -ltools -lmkbase -lz -lm 
 SOLN					= -shared
 
 ####### names and locations #######

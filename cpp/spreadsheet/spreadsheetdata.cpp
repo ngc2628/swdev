@@ -4,6 +4,31 @@
 
 namespace spreadsheet {
 
+int cmpCoords(const void *cc1,const void *cc2) {
+
+  const Coords *c1=(const Coords*)cc1;
+  const Coords *c2=(const Coords*)cc2;
+  if (c1->m_row<c2->m_row || (c1->m_row==c2->m_row && c1->m_col<c2->m_col))
+    return -1;
+  if (c2->m_row<c1->m_row || (c1->m_row==c2->m_row && c2->m_col<c1->m_col))
+    return 1;
+  return 0;
+
+}
+
+int cmpSpreadsheetIndex(const void *ssi1,const void *ssi2) {
+
+  const SpreadsheetIndex *si1=(const SpreadsheetIndex*)ssi1;
+  const SpreadsheetIndex *si2=(const SpreadsheetIndex*)ssi2;
+  
+  if ((si1->m_type&sectiontypeNoHeader)<(si2->m_type&sectiontypeNoHeader))
+    return -1;
+  if ((si2->m_type&sectiontypeNoHeader)<(si1->m_type&sectiontypeNoHeader))
+    return 1;
+  return (si1->m_idx<si2->m_idx ? -1 : (si2->m_idx<si1->m_idx ? 1 : 0));
+      
+}
+
 int SpreadsheetIndex::toString(mk_string str) {
 
   mk_stringset(str,"idx=");
@@ -83,27 +108,37 @@ int SpreadsheetDataItem::draw(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC
     }
   }
   osix::xxRect rect=gc.m_r;
+  mk_vertex lt={rect.left()+frext[0],rect.top()+frext[0],mk_dnan,1.};
+  mk_vertex br={rect.left()+frext[0],rect.bottom()-frext[0]+1.,mk_dnan,1.};
   if (doframe[0]>0) {
-    gc.m_r=osix::xxRect(num::Vector3(rect.left()+frext[0],rect.top()+frext[0]),
-                        num::Vector3(rect.left()+frext[0],rect.bottom()-frext[0]+1.));
+    gc.m_r=osix::xxRect(lt,br);
     gc.m_fg=m_style[2];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
   if (doframe[1]>0) {
-    gc.m_r=osix::xxRect(num::Vector3(rect.left()+(double)doframe[0]+frext[1],rect.top()+frext[1]),
-                        num::Vector3(rect.right()-(double)doframe[2]-frext[1]+1.,rect.top()+frext[1]));
+    lt[0]=rect.left()+(double)doframe[0]+frext[1];
+    lt[1]=rect.top()+frext[1];
+    br[0]=rect.right()-(double)doframe[2]-frext[1]+1.;
+    br[1]=rect.top()+frext[1];
+    gc.m_r=osix::xxRect(lt,br);
     gc.m_fg=m_style[3];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
   if (doframe[2]>0) {
-    gc.m_r=osix::xxRect(num::Vector3(rect.right()-frext[2]+1.,rect.top()+frext[2]),
-                        num::Vector3(rect.right()-frext[2]+1.,rect.bottom()-frext[2]+1.));
+    lt[0]=rect.right()-frext[2]+1.;
+    lt[1]=rect.top()+frext[2];
+    br[0]=rect.right()-frext[2]+1.;
+    br[1]=rect.bottom()-frext[2]+1.;
+    gc.m_r=osix::xxRect(lt,br);
     gc.m_fg=m_style[4];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
   if (doframe[3]>0) {
-    gc.m_r=osix::xxRect(num::Vector3(rect.left()+(double)doframe[0]+frext[3],rect.bottom()-frext[3]+1.),
-                        num::Vector3(rect.right()-(double)doframe[2]-frext[3]+1.,rect.bottom()-frext[3]+1.));
+    lt[0]=rect.left()+(double)doframe[0]+frext[3];
+    lt[1]=rect.bottom()-frext[3]+1.;
+    br[0]=rect.right()-(double)doframe[2]-frext[3]+1.;
+    br[1]=rect.bottom()-frext[3]+1.;
+    gc.m_r=osix::xxRect(lt,br);
     gc.m_fg=m_style[5];
     osix::xxdrawLine(disp,xxdrawable,&gc);
   }
@@ -119,9 +154,128 @@ int SpreadsheetDataItem::draw(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC
 }
 
 // **********
+SpreadsheetDataItemGrid::SpreadsheetDataItemGrid(int rows,int cols) :
+  m_rows(0),m_cols(0),m_grid(0) {
+
+  rows=MIN(mk_maxarrsz-1,MAX(rows,0));
+  cols=MIN(mk_maxarrsz-1,MAX(cols,0));
+  if (rows>0 && cols>0) {
+    
+    m_grid=new SpreadsheetDataItem**[(size_t)m_rows];
+    int ii=0;
+    for (ii=0;ii<m_rows;ii++) {
+      m_grid[ii]=new SpreadsheetDataItem*[(size_t)m_cols];
+      memset(&m_grid[ii][0],0,m_cols*sizeof(SpreadsheetDataItem*));
+    }
+  }
+
+}
+
+// **********
+SpreadsheetDataItemGrid::~SpreadsheetDataItemGrid() {
+
+  
+
+}
+
+// **********
+int SpreadsheetDataItemGrid::resize(int rr,int cc,int destr) {
+    
+  rr=MIN((int)mk_ipow2(mk_maxarrsz)-1,MAX(rr,0));
+  cc=MIN((int)mk_ipow2(mk_maxarrsz)-1,MAX(cc,0));
+  if ((rr==m_rows && cc==m_cols) || (rr*cc)>=mk_maxmem)
+    return m_rows*m_cols;
+  int ii=0,jj=0;
+  if (destr>0 && cc<m_cols && m_grid) {
+    for (ii=0;ii<m_rows;ii++) {
+      for (jj=cc;jj<m_cols;jj++) {
+        if (m_grid[ii][jj])
+          delete m_grid[ii][jj];
+      }
+    }
+  }
+  if (destr>0 && rr<m_rows && m_grid) {
+    for (ii=0;ii<m_cols;ii++) {
+      for (jj=rr;jj<m_rows;jj++) {
+        if (m_grid[jj][ii])
+          delete m_grid[jj][ii];
+      }
+    }
+  }
+  if (rr==0 || cc==0) {
+    if (m_grid) {
+      for (ii=0;ii<m_rows;ii++)
+        delete [] m_grid[ii];
+      delete [] m_grid;
+      m_grid=0;
+    }
+    m_rows=m_cols=0;
+    return 0;
+  }
+  int saverows=MIN(rr,m_rows),savecols=MIN(cc,m_cols);
+  SpreadsheetDataItem ***grid=0;
+  if (m_grid) {
+    if (saverows>0 && savecols>0)
+      grid=new SpreadsheetDataItem**[(size_t)saverows];
+    for (ii=0;ii<saverows;ii++) {
+      grid[ii]=new SpreadsheetDataItem*[(size_t)savecols];
+      for (jj=0;jj<savecols;jj++)
+        grid[ii][jj]=m_grid[ii][jj];
+    }
+    for (ii=0;ii<m_rows;ii++)
+      delete [] m_grid[ii];
+    delete [] m_grid;
+  }
+  m_rows=rr;
+  m_cols=cc;
+  m_grid=new SpreadsheetDataItem**[(size_t)m_rows];
+  for (ii=0;ii<m_rows;ii++) {
+    m_grid[ii]=new SpreadsheetDataItem*[(size_t)m_cols];
+    memset(&m_grid[ii][0],0,m_cols*sizeof(SpreadsheetDataItem*));
+  }
+  if (grid) {
+    for (ii=0;ii<saverows;ii++) {
+      for (jj=0;jj<savecols;jj++)
+        m_grid[ii][jj]=grid[ii][jj];
+      delete [] grid[ii];
+    }
+    delete [] grid;
+  }
+  return m_rows*m_cols;
+}
+
+// **********
+SpreadsheetDataItem *SpreadsheetDataItemGrid::getItem(int row,int col) {
+
+  if (row<0 || row>=m_rows || col<0 || col>=m_cols)
+    return 0;
+  return m_grid[row][col];
+
+};
+
+// **********
+SpreadsheetDataItem *SpreadsheetDataItemGrid::setItem(int row,int col,SpreadsheetDataItem *itm) {
+
+  if (row<0 || col<0)
+    return 0;
+  int rr=m_rows,cc=m_cols;
+  if (row>=m_rows)
+    rr=row+1;
+  if (col>=m_cols) 
+    cc=col+1;
+  resize(rr,cc);
+  SpreadsheetDataItem *curritm=m_grid[row][col];
+  m_grid[row][col]=itm;
+  return curritm;
+
+};
+
+// **********
 SpreadsheetData::SpreadsheetData(int rows,int cols) :
     m_bgStyle(defBgStyle),m_fgStyle(defFgStyle),m_defHeight(defHeight),m_defWidth(defWidth) {
 
+  mk_listalloc(&m_descr,sizeof(SpreadsheetIndex),0);
+  m_descr.cmp=cmpSpreadsheetIndex;
   setDimension(rows,cols);
 
 }
@@ -129,6 +283,7 @@ SpreadsheetData::SpreadsheetData(int rows,int cols) :
 // **********
 SpreadsheetData::~SpreadsheetData() {
 
+  mk_listfree(&m_descr);
   m_data.resize(0,0,true);
   
 }
@@ -138,7 +293,7 @@ SpreadsheetDataItem *SpreadsheetData::setData(int row,int col,SpreadsheetDataIte
 
   if (row<0 || col<0 || row>=m_data.rows() || col>=m_data.cols())
     return 0;
-  SpreadsheetDataItem *itm=m_data.set(row,col,nitm);
+  SpreadsheetDataItem *itm=m_data.setItem(row,col,nitm);
   if (destr && itm)
     delete itm;
   return (destr ? 0 : itm);
@@ -150,55 +305,63 @@ SpreadsheetDataItem *SpreadsheetData::data(int row,int col) {
 
   if (row<0 || col<0 || row>=m_data.rows() || col>=m_data.cols())
     return 0;
-  return m_data.at(row,col);
+  return m_data.getItem(row,col);
 
 }
 
 // **********
-int SpreadsheetData::setIndexDescr(SpreadsheetIndex section) {
+int SpreadsheetData::setIndexDescr(SpreadsheetIndex section_) {
 
-  SpreadsheetIndex *descr=m_descr.at(m_descr.find(section));
-  if (!descr)
+  SpreadsheetIndex section(section_),descr;
+  int ii=0,idxl=-1,res=mk_listfind(&m_descr,(void*)&section,&idxl,0);
+  if (res==0 || idxl<0)
     return 0;
-  descr->m_type=section.m_type;
+  mk_listat(&m_descr,idxl,(void*)&descr);
+  descr.m_type=section.m_type;
   if (!mk_isbusted(section.m_sz) && section.m_sz>.0)
-    descr->m_sz=section.m_sz;
-  descr->m_gridstyle=section.m_gridstyle;
-  if ((section.isStatic() && descr->isStatic()) ||
-      (!section.isStatic() && !descr->isStatic()))
+    descr.m_sz=section.m_sz;
+  descr.m_gridstyle=section.m_gridstyle;
+  if ((section.isStatic() && descr.isStatic()) ||
+      (!section.isStatic() && !descr.isStatic())) {
+    mk_listsetat(&m_descr,(void*)&descr,idxl,0);
     return 1;
-  int ii=0,cnt=((section.m_type&1)>0 ? m_data.rows() : m_data.cols());
+  }
+  int cnt=((section.m_type&sectiontypeRow)>0 ? m_data.rows() : m_data.cols());
   int firststatic=-1,laststatic=cnt,idx=section.m_idx;
-  SpreadsheetIndex *si=0;
+  SpreadsheetIndex si;
   for (ii=0;ii<cnt;ii++) {
     section.m_idx=ii;
-    si=m_descr.at(m_descr.find(section));
-    if (!si || !si->isStatic())
+    mk_listfind(&m_descr,(void*)&section,&idxl,0);
+    mk_listat(&m_descr,idxl,(void*)&si);
+    if (!si.isStatic())
       break;
     firststatic=ii;
   }
   for (ii=cnt-1;ii>=0;ii--) {
     section.m_idx=ii;
-    si=m_descr.at(m_descr.find(section));
-    if (!si || !si->isStatic())
+    mk_listfind(&m_descr,(void*)&section,&idxl,0);
+    mk_listat(&m_descr,idxl,(void*)&si);
+    if (!si.isStatic())
       break;
     laststatic=ii;
   }
+  res=1;
   if (firststatic==idx || firststatic==idx-1) {
     if (section.isStatic())
-      descr->m_type|=sectiontypeStatic;
+      descr.m_type|=sectiontypeStatic;
     else
-      descr->m_type&=sectiontypeNoStatic;
+      descr.m_type&=sectiontypeNoStatic;
   }
   else if (laststatic==idx || laststatic==idx+1) {
     if (section.isStatic())
-      descr->m_type|=(sectiontypeHeader|sectiontypeStatic);
+      descr.m_type|=(sectiontypeHeader|sectiontypeStatic);
     else
-      descr->m_type&=sectiontypeNoStatic;
+      descr.m_type&=sectiontypeNoStatic;
   }
   else
-    return 2;
-  return 1;
+    res=2;
+  mk_listsetat(&m_descr,(void*)&descr,idxl,0);
+  return res;
   
 }
 
@@ -207,15 +370,20 @@ int SpreadsheetData::indexDescr(SpreadsheetIndex *descr) const {
 
   if (!descr)
     return -1;
-  const SpreadsheetIndex *fnd=m_descr.at(m_descr.find(*descr));
-  if (!fnd) {
+  SpreadsheetIndex fnd(*descr);
+  int idxl=-1,res=mk_listfind(&m_descr,(void*)&fnd,&idxl,0);
+  if (res==0) {
     descr->m_type&=sectiontypeNoHeader;
     descr->m_sz=mk_dnan;
-    return -1;
+    res=-1;
   }
-  descr->m_type=fnd->m_type;
-  descr->m_sz=fnd->m_sz;
-  return descr->m_idx;
+  else {
+    mk_listat(&m_descr,idxl,(void*)&fnd);
+    descr->m_type=fnd.m_type;
+    descr->m_sz=fnd.m_sz;
+    res=descr->m_idx;
+  }
+  return res;
 
 }
 
@@ -238,65 +406,78 @@ int SpreadsheetData::setDimension(int rr,int cc,bool destr) {
   m_data.resize(rr,cc,destr);
   rr=m_data.rows();
   cc=m_data.cols();
-  int cntlaststaticr=0,cntlaststaticc=0;
-  SpreadsheetIndex fnd;
-  SpreadsheetIndex *descr=0;
+  int idxl=-1,cntlaststaticr=0,cntlaststaticc=0;
+  SpreadsheetIndex descr;
   for (ii=oldrows-1;ii>=0;ii--) {
-    fnd.set(sectiontypeRow,ii);
-    descr=m_descr.at(m_descr.find(fnd));
-    if (!descr || !descr->isStatic())
+    descr.set(sectiontypeRow,ii);
+    if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)==0)
+      break;
+    mk_listat(&m_descr,idxl,(void*)&descr);
+    if (!descr.isStatic())
       break;
     cntlaststaticr++;
-    descr->m_type&=sectiontypeNoStatic;
+    descr.m_type&=sectiontypeNoStatic;
+    mk_listsetat(&m_descr,(void*)&descr,idxl,0);
   }
   if (cntlaststaticr>rr)
     cntlaststaticr=rr;
   for (ii=0;ii<rr;ii++) {
-    fnd.set(sectiontypeRow,ii);
-    descr=m_descr.at(m_descr.find(fnd));
-    if (!descr || !descr->isStatic())
+    descr.set(sectiontypeRow,ii);
+    if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)==0)
+      break;
+    mk_listat(&m_descr,idxl,(void*)&descr);
+    if (!descr.isStatic())
       break;
     if (ii+cntlaststaticr>=rr)
       cntlaststaticr--;
   }
   for (ii=oldcols-1;ii>=0;ii--) {
-    fnd.set(sectiontypeCol,ii);
-    descr=m_descr.at(m_descr.find(fnd));
-    if (!descr || !descr->isStatic())
+    descr.set(sectiontypeCol,ii);
+    if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)==0)
+      break;
+    mk_listat(&m_descr,idxl,(void*)&descr);
+    if (!descr.isStatic())
       break;
     cntlaststaticc++;
-    descr->m_type&=sectiontypeNoStatic;
+    descr.m_type&=sectiontypeNoStatic;
+    mk_listsetat(&m_descr,(void*)&descr,idxl,0);
   }
   if (cntlaststaticc>cc)
     cntlaststaticc=cc;
   for (ii=0;ii<cc;ii++) {
-    fnd.set(sectiontypeCol,ii);
-    descr=m_descr.at(m_descr.find(fnd));
-    if (!descr || !descr->isStatic())
+    descr.set(sectiontypeCol,ii);
+    if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)==0)
+      break;
+    mk_listat(&m_descr,idxl,(void*)&descr);
+    if (!descr.isStatic())
       break;
     if (ii+cntlaststaticc>=cc)
       cntlaststaticc--;
   }
-  m_descr.resize(rr*cc);
+  mk_listrealloc(&m_descr,rr*cc);
   for (ii=oldrows;ii<rr;ii++) {
-    fnd.set(sectiontypeRow,ii,m_defHeight);
-    m_descr.inSort(fnd);
+    descr.set(sectiontypeRow,ii,m_defHeight);
+    mk_listinsort(&m_descr,(void*)&descr);
   }
   for (ii=oldcols;ii<cc;ii++) {
-    fnd.set(sectiontypeCol,ii,m_defWidth);
-    m_descr.inSort(fnd);
+    descr.set(sectiontypeCol,ii,m_defWidth);
+    mk_listinsort(&m_descr,(void*)&descr);
   }
   for (ii=0;ii<cntlaststaticr;ii++) {
-    fnd.set(sectiontypeRow,rr-ii-1);
-    descr=m_descr.at(m_descr.find(fnd));
-    if (descr)
-      descr->m_type|=(sectiontypeHeader|sectiontypeStatic);
+    descr.set(sectiontypeRow,rr-ii-1);
+    if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)>0) {
+      mk_listat(&m_descr,idxl,(void*)&descr);
+      descr.m_type|=(sectiontypeHeader|sectiontypeStatic);
+      mk_listsetat(&m_descr,(void*)&descr,idxl,0);
+    }
   }
   for (ii=0;ii<cntlaststaticc;ii++) {
-    fnd.set(sectiontypeCol,cc-ii-1);
-    descr=m_descr.at(m_descr.find(fnd));
-    if (descr)
-      descr->m_type|=(sectiontypeHeader|sectiontypeStatic);
+    descr.set(sectiontypeCol,cc-ii-1);
+    if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)>0) {
+      mk_listat(&m_descr,idxl,(void*)&descr);
+      descr.m_type|=(sectiontypeHeader|sectiontypeStatic);
+      mk_listsetat(&m_descr,(void*)&descr,idxl,0);
+    }
   }
   
   return (rr*cc);
@@ -310,18 +491,19 @@ int SpreadsheetData::drawCell(void *disp,osix::xxDrawable *xxdrawable,osix::xxGC
   if (row<0 || col<0 || row>=m_data.rows() || col>=m_data.cols())
     return -1;
 
-  SpreadsheetDataItem *itm=m_data.at(row,col);
-  SpreadsheetIndex fnd(sectiontypeRow,row);
-  SpreadsheetIndex *descr=m_descr.at(m_descr.find(fnd));
-  if (!descr || !descr->isHeader()) {
-    fnd.set(sectiontypeCol,col);
-    descr=m_descr.at(m_descr.find(fnd));
+  SpreadsheetDataItem *itm=m_data.getItem(row,col);
+  SpreadsheetIndex descr(sectiontypeRow,row);
+  int idxl=-1;
+  if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)==0) {
+    descr.set(sectiontypeCol,col);
+    mk_listfind(&m_descr,(void*)&descr,&idxl,0);
   }
+  mk_listat(&m_descr,idxl,(void*)&descr);
 //printf ("r=%d c=%d itm=%ld type=%d\n",row,col,(long)itm,descr ? descr->m_type : 0);
   osix::xxGC gc=*xxgc;
   if (itm)
     gc.m_fnt=itm->m_text.m_fnt;
-  if (descr && descr->isHeader()) {
+  if (descr.isHeader()) {
     if ((selected&2)>0)
       gc.m_fnt.m_style|=osix::xx_fntBold;
     osix::xxdrawCtrl(disp,xxdrawable,&gc,
@@ -347,10 +529,11 @@ int SpreadsheetData::drawGridLine(void *disp,osix::xxDrawable *xxdrawable,osix::
   int type,int section) {
 
   osix::xxStyle gridstyle=defGridStyle;
-  SpreadsheetIndex fnd(type,section);
-  SpreadsheetIndex *descr=m_descr.at(m_descr.find(fnd));
-  if (descr) {
-    gridstyle=descr->m_gridstyle;
+  SpreadsheetIndex descr(type,section);
+  int idxl=-1;
+  if (mk_listfind(&m_descr,(void*)&descr,&idxl,0)>0) {
+    mk_listat(&m_descr,idxl,(void*)&descr);
+    gridstyle=descr.m_gridstyle;
     if (gridstyle.m_width>1.) {
       if ((type&sectiontypeRow)>0)
         xxgc->m_r.setRight(xxgc->m_r.right()-gridstyle.m_width/2.-1.);
@@ -365,15 +548,18 @@ int SpreadsheetData::drawGridLine(void *disp,osix::xxDrawable *xxdrawable,osix::
 
 }
 
-int SpreadsheetData::toString(mk_string str,bool descr,bool) {
+int SpreadsheetData::toString(mk_string str,bool dodescr,bool) {
 
+  if (!dodescr)
+    return 0; //m_descr.count;
   mk_string idxstr;
   int ii=0;
-  if (descr) {
-    for (ii=0;ii<m_descr.count();ii++) {
-      m_descr.at(ii)->toString(idxstr);
-      mk_stringappend(str,&idxstr[0]);
-    }
+  SpreadsheetIndex descr;
+  for (ii=0;ii<m_descr.count;ii++) {
+    mk_listat(&m_descr,ii,(void*)&descr);
+    mk_stringset(idxstr,0);
+    descr.toString(idxstr);
+    mk_stringappend(str,&idxstr[0]);
   }
   return 0;
 

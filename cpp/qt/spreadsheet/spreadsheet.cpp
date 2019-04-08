@@ -247,7 +247,7 @@ int QtSpreadsheet::startEditCell(spreadsheet::Coords pos,int sym) {
   mk_stringset(edtypele,editorLineedit);
   mk_string editorCombobox;
   mk_stringset(editorCombobox,editorCombobox);
-  aux::Ucsstr ucssym;
+  mk::Ucsstr ucssym;
   ucssym.reserve(2);
   ucssym.append((unsigned short)sym);
   QFont fnt;
@@ -320,7 +320,7 @@ int QtSpreadsheet::stopEditCell(int res) {
     res=-1;
   m_editor.remove();
   if (res>=0) {
-    aux::Ucsstr txt;
+    mk::Ucsstr txt;
     qtutil::fromQString(&edtxt,&txt);
 	  spreadsheet::SpreadsheetDataItem *itm=m_data->data(pos.m_row,pos.m_col);
     if (itm) {
@@ -347,7 +347,7 @@ SpreadsheetView::SpreadsheetView(QtSpreadsheet *spreadsheet,const char *name) :
   setObjectName(name);
   //setStyle(new QWindowsStyle());
   setAttribute(Qt::WA_NoSystemBackground,true);
-  m_pointerPos.setXY(-1.,-1.);
+  m_pointerPos[0]=m_pointerPos[1]=-1;
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
   installEventFilter(this);//qApp->installEventFilter(this);
@@ -402,9 +402,10 @@ bool SpreadsheetView::eventFilter(QObject *obj,QEvent *ev) {
 bool SpreadsheetView::event(QEvent *qev) {
 
   QWidget::event(qev);
-  if (qev->type()==QEvent::MouseButtonPress || qev->type()==QEvent::MouseMove)
-    m_pointerPos.setXY((double)((QMouseEvent*)qev)->pos().x(),
-                       (double)((QMouseEvent*)qev)->pos().y());
+  if (qev->type()==QEvent::MouseButtonPress || qev->type()==QEvent::MouseMove) {
+    m_pointerPos[0]=(double)((QMouseEvent*)qev)->pos().x();
+    m_pointerPos[1]=(double)((QMouseEvent*)qev)->pos().y();
+  }
   int consumed=0;
   if (m_spreadsheet)
     consumed=m_spreadsheet->osEvent(m_spreadsheet->findDisplay(),(void*)qev);

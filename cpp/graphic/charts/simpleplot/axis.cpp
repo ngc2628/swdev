@@ -36,54 +36,49 @@ Axis::Axis(const char *type,unsigned int idd) :
 
   m_autobounds[0]=m_autobounds[1]=mk_dnan;
   m_fnt[0]=m_fnt[1]=osix::xxFnt();
-  	    
+  mk_listalloc(&m_graphs,sizeof(mk::TypeId*),63);
+  m_graphs.cmp=mk::cmpTypeIdRef;
+  
 }
 
 Axis::~Axis () {
     
   if (m_scale)
     delete m_scale;
-  m_graphs.clear();
+  mk_listfree(&m_graphs);
   
 }
 
-aux::TypeId Axis::assignGraph(Graph *graph) {
+int Axis::assignGraph(Graph *graph) {
 
-  if (m_graphs.find(graph)>=0 || m_graphs.inSort(graph)<0)
-    return TypeId();
-  return TypeId((const TypeId&)(*graph));
+  int idxl=-1,idxh=-1;
+  mk_listfind(&m_graphs,(void*)&graph,&idxl,&idxh);
+  if (idxl<0)
+    idxl=mk_listinsort(&m_graphs,(void*)&graph);
+
+  return idxl;
+
 }
 
-int Axis::unassignGraph(const aux::TypeId &grid) {
+int Axis::unassignGraph(mk::TypeId grid) {
 
-  int idx=m_graphs.find(&grid);
+  mk::TypeId look(grid);
+  int idx=mk_listfind(&m_graphs,(void*)&look,0,0);
   if (idx>=0) {
-    m_graphs.remove(idx);
-    findAutoBounds(num::typeX|num::typeY,0,0);
+    mk_listremove(&m_graphs,idx,(void*)&look);
+    findAutoBounds(3,0,0);
   }
-  return m_graphs.count();
+  return m_graphs.count;
   
 }
 
-int Axis::assignedGraphs(aux::TPList<Graph> *graphL) {
+int Axis::assignedGraphs(mk_list *graphL) {
 
-  int ii=0,cnt=m_graphs.count();
-  if (graphL) {
-    Graph *graph=0;
-    for (ii=0;ii<cnt;ii++) {
-      graph=dynamic_cast<Graph*>(m_graphs[ii]);
-      if (graph)
-        graphL->append(graph);
-    }
-  }
+  int ii=0,cnt=m_graphs.count;
+  if (graphL) 
+    mk_listcopy(graphL,&m_graphs);
   return cnt;
 
-}
-
-Graph *Axis::findGraph(const TypeId &grid) {
-
-  return dynamic_cast<Graph*>(m_graphs[m_graphs.find(&grid)]);
-    
 }
 
 void Axis::setScale(Scale *scale) {
@@ -99,8 +94,8 @@ int Axis::findAutoBounds(int btype,double *min,double *max) {
   double xmin=mk_dinf,xmax=mk_dsinf,xmintmp=xmin,xmaxtmp=xmax;
   int ii=0;
   Graph *graph=0;
-  for (ii=0;ii<m_graphs.count();ii++) {
-    graph=dynamic_cast<Graph*>(m_graphs[ii]);
+  for (ii=0;ii<m_graphs.count;ii++) {
+    mk_listat(&m_graphs,ii,(void*)&graph);
     if (graph) {
       graph->findBounds(btype,&xmintmp,&xmaxtmp);
       if (mk_dlt(xmintmp,xmin))
@@ -141,7 +136,7 @@ int Axis::checkAutoBounds(double min,double max) {
 
 }
 
-int Axis::calcTics(double maxlen,double space,aux::TVList<Tic> *ticL) {
+int Axis::calcTics(double maxlen,double space,mk_list *ticL) {
 
   if (!m_scale || !ticL || space<=.0) {
     if (m_scale)
@@ -152,9 +147,12 @@ int Axis::calcTics(double maxlen,double space,aux::TVList<Tic> *ticL) {
                      (m_scale->rangeOption()&typeBoundAutoMax)>0 ? m_autobounds[1] : mk_dnan);
   int ii=0,maxtics=(int)(maxlen/space/2.),ntics=m_scale->calcTics(maxtics,ticL);
   double sumlen=.0;
+  Tic tic;
+  m_scale->tics(ticL);
   while (ntics>3) {
     for (ii=0;ii<ntics;ii++) {
-      sumlen+=ticLen4Size(ticL->at(ii))+space;
+      mk_listat(ticL,ii,(void *)&tic);
+      sumlen+=ticLen4Size(&tic)+space;
       if (sumlen>maxlen)
         break;
     }
@@ -164,27 +162,26 @@ int Axis::calcTics(double maxlen,double space,aux::TVList<Tic> *ticL) {
     sumlen=0.;
     ntics=m_scale->calcTics(maxtics,ticL);
   }
-  
   return ntics;
 
 }
 
 // ***
 
-aux::TypeId Xaxis::assignGraph(Graph *graph) {
+int Xaxis::assignGraph(Graph *graph) {
 
-  TypeId assid=Axis::assignGraph(graph);
-  if (!assid.busted()) {
+  int res=Axis::assignGraph(graph);
+  if (res>=0) {
     graph->m_axis[0]=this;
-    findAutoBounds(num::typeX,0,0);
+    findAutoBounds(1,0,0);
   }
-  return assid;
+  return res;
   
 }
 
 double Xaxis::ticLen4Size(const Tic *tic) {
 
-  aux::Ucsstr ticstr;
+  mk::Ucsstr ticstr;
   tic->ucsText(&ticstr);
   return (m_fnt[tic->m_size].m_metric.width()*ticstr.length());
 
@@ -192,11 +189,17 @@ double Xaxis::ticLen4Size(const Tic *tic) {
 
 double Xaxis::needExcess(osix::xxRectSize size) {
 
-  aux::TVList<Tic> ticL;
+  mk_list ticL;
+  mk_listalloc(&ticL,sizeof(Tic),0);
   int ntics=calcTics(size.width(),m_fnt[0].m_metric.width(),&ticL);
   if (ntics==0)
     return .0;
-  double w0=ticLen4Size(ticL.at(0)),w1=ticLen4Size(ticL.at(ntics-1));
+  Tic tic;
+  mk_listat(&ticL,0,(void*)&tic);
+  double w0=ticLen4Size(&tic);
+  mk_listat(&ticL,ntics-1,(void*)&tic);
+  double w1=ticLen4Size(&tic);
+  mk_listfree(&ticL);
   return MAX(w0,w1);
 
 }
@@ -211,38 +214,37 @@ double Xaxis::needSize(osix::xxRectSize) {
 int Xaxis::resize(osix::xxRectSize size) {
 
   m_size.setWidth(size.width());
-  aux::TVList<Tic> ticL;
-  return calcTics(m_size.width(),m_fnt[0].m_metric.width(),&ticL);
+  mk_list ticL;
+  mk_listalloc(&ticL,sizeof(Tic),0);
+  int res=calcTics(m_size.width(),m_fnt[0].m_metric.width(),&ticL);
+  mk_listfree(&ticL);
+  return res;
     
 }
 
-int Xaxis::sc2sz(num::Vector3 *vv) const {
+int Xaxis::sc2sz(mk_vertex vv) const {
 
-  if (!vv)
-    return -1;
   mk_vertexnan(p1);
   mk_vertexnan(p2);
   p1[1]=.0;
   p2[1]=(double)m_size.width();
   if (m_scale)
     m_scale->effRange(&p1[0],&p2[0]);
-  vv->setX(mk_lineq(p1,p2,vv->x()));
-  return (mk_isnan(vv->x())==0 ? 0 : -1);
+  vv[0]=mk_lineq(p1,p2,vv[0]);
+  return (mk_isnan(vv[0])==0 ? 0 : -1);
 
 }
 
-int Xaxis::sz2sc(num::Vector3 *vv) const {
+int Xaxis::sz2sc(mk_vertex vv) const {
 
-  if (!vv)
-    return -1;
   mk_vertexnan(p1);
   mk_vertexnan(p2);
   p1[0]=.0;
   p2[0]=(double)m_size.width();
   if (m_scale)
     m_scale->effRange(&p1[1],&p2[1]);
-  vv->setX(mk_lineq(p1,p2,vv->x()));
-  return (mk_isnan(vv->x())==0 ? 0 : -1);
+  vv[0]=mk_lineq(p1,p2,vv[0]);
+  return (mk_isnan(vv[0])==0 ? 0 : -1);
 
 }
 
@@ -254,14 +256,14 @@ int Xaxis::setPos(int pos) {
 
 // ***
 
-aux::TypeId Yaxis::assignGraph(Graph *graph) {
+int Yaxis::assignGraph(Graph *graph) {
 
-  aux::TypeId assid=Axis::assignGraph(graph);
-  if (!assid.busted()) {
+  int res=Axis::assignGraph(graph);
+  if (res>=0) {
     graph->m_axis[1]=this;
-    findAutoBounds(num::typeY,0,0);
+    findAutoBounds(2,0,0);
   }
-  return assid;
+  return res;
   
 }
 
@@ -279,21 +281,28 @@ double Yaxis::needExcess(osix::xxRectSize) {
 
 double Yaxis::needSize(osix::xxRectSize size) {
 
-  aux::TVList<Tic> ticL;
   double ww=1.5*m_fnt[1].m_metric.height(),wtmp=0.;
+  mk_list ticL;
+  mk_listalloc(&ticL,sizeof(Tic),0);
   int ii=0,ntics=calcTics(size.height(),m_fnt[0].m_metric.height(),&ticL);
-  if (ntics<=0)
+  if (ntics<=0) {
+    mk_listfree(&ticL);
     return ww;
+  }
   mk_string str;
+  Tic tic;
   for (ii=0;ii<ntics;ii++) { 
-    mk_d2a(ticL.at(ii)->m_val,str,m_scale->interval().m_a);
-    wtmp=m_fnt[ticL.at(ii)->m_size].m_metric.width()*mk_stringlength(str)+m_fnt[1].m_metric.height()/2.;
+    mk_listat(&ticL,ii,(void*)&tic);
+    mk_d2a(tic.m_val,str,m_scale->interval().m_a);
+    mk_listsetat(&ticL,(void*)&tic,ii,0);
+    wtmp=m_fnt[tic.m_size].m_metric.width()*mk_stringlength(str)+m_fnt[1].m_metric.height()/2.;
     if (wtmp>ww)
       ww=wtmp;
     mk_stringset(str,0);
   }
   ww=mk_round2(ww);
-  m_size.setWidth(ww);  
+  m_size.setWidth(ww); 
+  mk_listfree(&ticL); 
   return ww;
 
 }
@@ -301,38 +310,37 @@ double Yaxis::needSize(osix::xxRectSize size) {
 int Yaxis::resize(osix::xxRectSize size) {
 
   m_size.setHeight(size.height());
-  aux::TVList<Tic> ticL;
-  return calcTics(m_size.height(),m_fnt[0].m_metric.height(),&ticL);
+  mk_list ticL;
+  mk_listalloc(&ticL,sizeof(Tic),0);
+  int res=calcTics(m_size.height(),m_fnt[0].m_metric.height(),&ticL);
+  mk_listfree(&ticL);
+  return res;
     
 }
 
-int Yaxis::sc2sz(num::Vector3 *vv) const {
+int Yaxis::sc2sz(mk_vertex vv) const {
 
-  if (!vv)
-    return -1;
   mk_vertexnan(p1);
   mk_vertexnan(p2);
   p1[1]=.0;
   p2[1]=(double)m_size.height();
   if (m_scale)
     m_scale->effRange(&p1[0],&p2[0]);
-  vv->setY(mk_lineq(p1,p2,vv->y()));
-  return (mk_isnan(vv->y())==0 ? 0 : -1);
+  vv[1]=mk_lineq(p1,p2,vv[1]);
+  return (mk_isnan(vv[1])==0 ? 0 : -1);
 
 }
 
-int Yaxis::sz2sc(num::Vector3 *vv) const {
+int Yaxis::sz2sc(mk_vertex vv) const {
 
-  if (!vv)
-    return -1;
   mk_vertexnan(p1);
   mk_vertexnan(p2);
   p1[0]=.0;
-  p2[0]=(double)m_size.height();
+  p2[0]=m_size.height();
   if (m_scale)
     m_scale->effRange(&p1[1],&p2[1]);
-  vv->setY(mk_lineq(p1,p2,vv->y()));
-  return (mk_isnan(vv->y())==0 ? 0 : -1);
+  vv[1]=mk_lineq(p1,p2,vv[1]);
+  return (mk_isnan(vv[1])==0 ? 0 : -1);
 
 }
 

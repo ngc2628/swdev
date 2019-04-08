@@ -9,7 +9,7 @@ DEFINES       =
 HEADER        = appframe.h
 SOURCES       = appframe.cpp main.cpp
 MOCS          = appframe.h
-LIBS          = -lqtsimpleplot -lqtutil -lQt5X11Extras -lQt5Widgets -lQt5Gui -lQt5Core -lsimpleplot -lshapes -lnumeric -losix -lauxx -lmkbase -lz -lm 
+LIBS          = -lqtsimpleplot -lqtutil -lQt5X11Extras -lQt5Widgets -lQt5Gui -lQt5Core -lsimpleplot -lshapes -lnumeric -losix -ltools -lmkbase -lz -lm 
 SOLN					= 
 
 ####### names and locations #######

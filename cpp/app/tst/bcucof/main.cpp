@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <auxx/auxx.h>
 #include <osix/xxstyle.h>
 #include <numeric/matrix.h>
 
@@ -60,7 +59,7 @@ int main(int argc,char **argv) {
       wt[ii][jj]=ccwp[ii][jj];
   }
 
-  num::SquareMatrix mm(16,wt);
+  /*num::SquareMatrix mm(16,wt);
   num::Matrix mmm(16,16,wt);
 
   for (ii=0;ii<16;ii++) {
@@ -85,7 +84,7 @@ int main(int argc,char **argv) {
 
   mm.mult(&mmm);
 
-  printf ("%d isidentity [%d]\n",__LINE__,mm.isIdentity(1.e-14));
+  printf ("%d isidentity [%d]\n",__LINE__,mm.isIdentity(1.e-14));*/
 
   return 0;
 

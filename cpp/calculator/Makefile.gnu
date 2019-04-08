@@ -7,9 +7,9 @@ DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
 SOLN					= -shared
 DEFINES       = 
-HEADER        = calculator.h
+HEADER        = calculator.h 
 SOURCES       = calculator.cpp 
-LIBS          = -lnumeric -losix -lauxx -lmkbase -lz -lm 
+LIBS          = -lnumeric -losix -ltools -lmkbase -lz -lm 
 
 ####### names and locations #######
 

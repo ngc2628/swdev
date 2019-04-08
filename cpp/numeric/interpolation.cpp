@@ -1,7 +1,8 @@
 
 #include <mkbase/mkconv.h>
 #include <mkbase/mkla.h>
-#include <auxx/auxx.h>
+#include <mkbase/mkmath.h>
+#include <tools/misc.h>
 #include <numeric/matrix.h>
 #include <numeric/interpolation.h>
 #include <stdio.h>
@@ -71,11 +72,16 @@ int interpolation2string(mk_ulreal option,mk_string res) {
 Interpolation::Interpolation(mk_ulreal options) : 
   m_options(options),m_ready(0) {
 
+  mk_listalloc(&m_ctrlL,sizeof(mk_vertex),0);
+  mk_listalloc(&m_coeffL,sizeof(mk_vertex),0);
+
 }
 
 Interpolation::~Interpolation() {
 
   clearArr();
+  mk_listfree(&m_coeffL);
+  mk_listfree(&m_ctrlL);
 
 }
 
@@ -99,16 +105,17 @@ int Interpolation::clearCtrl() {
 
 }
 
-int Interpolation::setCtrl(VertexList *ctrlL) {
+int Interpolation::setCtrl(struct mk_list *ctrlL) {
 
   clearCtrl();
-  return setArr(ctrlL);
+  int res=setArr(ctrlL);
+  return res;
 
 }
 
 int Interpolation::nctrl() const {
 
-  return m_ctrlL.count();
+  return m_ctrlL.count;
 
 }
 
@@ -118,25 +125,25 @@ int Interpolation::setup() {
 
 }
 
-int Interpolation::interpol(int,VertexList *,double,double) {
+int Interpolation::interpol(int,struct mk_list *,double,double) {
 
   return 0;
 
 }
 
-int Interpolation::interp(Vertex *) const {
+int Interpolation::interp(mk_vertex) {
 
   return 0;
 
 }
 
-int Interpolation::extrap(Vertex *) const {
+int Interpolation::extrap(mk_vertex) {
 
   return 0;
 
 }
 
-int Interpolation::coeff(double,VertexList *) {
+int Interpolation::coeff(double,struct mk_list *) {
   
   return 0;
 
@@ -151,23 +158,26 @@ mk_ulreal Interpolation::setOptions(mk_ulreal options) {
 
 void Interpolation::clearArr() {
 
-  m_ctrlL.clear();
+  mk_listclear(&m_ctrlL,0);
   m_ready=0;
 
 }
 
-int Interpolation::setArr(VertexList *ctrlL) {
+int Interpolation::setArr(struct mk_list *ctrlL) {
 
   clearArr();
-  int ii=0,cnt=(ctrlL ? ctrlL->count() : 0);
-  m_ctrlL.resize(cnt);
-  for (ii=0;ii<cnt;ii++)
-    m_ctrlL.append(ctrlL->get(ii));
+  int ii=0,cnt=(ctrlL ? ctrlL->count : 0);  
+  mk_listrealloc(&m_ctrlL,cnt);
+  mk_vertex vertex;
+  for (ii=0;ii<cnt;ii++) {
+    mk_listat(ctrlL,ii,(void*)&vertex);
+    mk_listsetat(&m_ctrlL,(void*)&vertex,ii,1);
+  }
   return 0;
 
 }
 
-InterpolationConst::InterpolationConst(VertexList *ctrlL) : 
+InterpolationConst::InterpolationConst(struct mk_list *ctrlL) : 
   Interpolation(interpolation_const) {
 
   setArr(ctrlL);
@@ -178,65 +188,83 @@ InterpolationConst::~InterpolationConst() {
 
 }
 
-int InterpolationConst::interpol(int nint,VertexList *vint,double,double) {
+int InterpolationConst::interpol(int nint,struct mk_list *vint,double,double) {
 
-  int ii=0,jj=0,kk=0,fidx=1,nctrl=m_ctrlL.count(),
+  int ii=0,jj=0,kk=0,fidx=1,nctrl=m_ctrlL.count,
     nintmin=2*nctrl-1,fillcnt=(nint-nintmin)/(nctrl-1);
   if (nint<=0 || nint<nctrl || nctrl==0 || !vint)
     return 1;
-  vint->clear();
-  vint->resize(nint);
+  mk_vertexnan(vv1);
+  mk_vertexnan(vv2);
+  mk_vertexnan(vidx);
+  mk_listclear(vint,0);
+  mk_listrealloc(vint,nint);
   if (nint<nintmin) {
-    for (ii=0;ii<nctrl;ii++)
-      vint->append(m_ctrlL[ii]);
+    for (ii=0;ii<nctrl;ii++) {
+      mk_listat(&m_ctrlL,ii,(void*)&vv1);
+      mk_listappend(vint,(void*)&vv1);
+    }
     return 0;
   }
-  Vertex vv,vidx;
+  
   double xl=.0,xh=.0;
-  vint->append(m_ctrlL[0]);
+  mk_listat(&m_ctrlL,0,(void*)&vv1);
+  mk_listappend(vint,(void*)&vv1);
   if ((m_options&interpolation_bwd)>0)
     fidx=0;
   for (ii=1;ii<nctrl;ii++) {
-    xl=m_ctrlL[ii-1].x();
-    xh=m_ctrlL[ii].x();
+    mk_listat(&m_ctrlL,ii-1,(void*)&vv1);
+    mk_listat(&m_ctrlL,ii,(void*)&vv2);
+    xl=vv1[0];
+    xh=vv2[0];
     // next -> last
-    vidx=m_ctrlL[ii-fidx];
-    vv.setXYZ(xl,vidx.y(),vidx.z());
-    vint->append(vv);
+    mk_listat(&m_ctrlL,ii-fidx,(void*)&vidx);
+    vv1[0]=xl;
+    vv1[1]=vidx[1];
+    vv1[2]=vidx[2];
+    mk_listappend(vint,(void*)&vv1);
     for (jj=0;jj<fillcnt;jj++) {
-      vv.setXYZ(xl+(double)(jj+1)*(xh-xl)/(double)fillcnt,vidx.y(),vidx.z());
-      vint->append(vv);
+      vv1[0]=xl+(double)(jj+1)*(xh-xl)/(double)fillcnt;
+      vv1[1]=vidx[1];
+      vv1[2]=vidx[2];
+      mk_listappend(vint,(void*)&vv1);
     }
-    vv.setXYZ(xh,vidx.y(),vidx.z());
-    vint->append(vv);
+    vv1[0]=xh;
+    vv1[1]=vidx[1];
+    vv1[2]=vidx[2];
+    mk_listappend(vint,(void*)&vv1);
   }
   return 0;
 
 }
 
-int InterpolationConst::interp(Vertex *vv) const {
+int InterpolationConst::interp(mk_vertex vv) {
 
-  int ii=0,nctrl=m_ctrlL.count();
-  if (!vv || nctrl==0) {
-    if (vv)
-      vv->setY(mk_dnan);
+  int ii=0,nctrl=m_ctrlL.count;
+  if (nctrl==0) {
+    vv[1]=mk_dnan;
     return 1;
   }
+  mk_vertexnan(vvidx);
   for (ii=1;ii<nctrl;ii++) {
-    if (m_ctrlL[ii].x()>vv->x()) {
+    mk_listat(&m_ctrlL,ii,(void*)&vvidx);
+    if (vvidx[0]>vv[0]) {
       if ((m_options&interpolation_bwd)>0)
-        vv->setY(m_ctrlL[ii].y());
-      else
-        vv->setY(m_ctrlL[ii-1].y());
+        vv[1]=vvidx[1];
+      else {
+        mk_listat(&m_ctrlL,ii-1,(void*)&vvidx);
+        vv[1]=vvidx[1];
+      }
       return 0;
     }
   }
-  vv->setY(m_ctrlL[nctrl-1].y());
+  mk_listat(&m_ctrlL,nctrl-1,(void*)&vvidx);
+  vv[1]=vvidx[1];
   return 1;
 
 }
 
-InterpolationLinear::InterpolationLinear(VertexList *ctrlL) : 
+InterpolationLinear::InterpolationLinear(struct mk_list *ctrlL) : 
   Interpolation(interpolation_linear) {
 
   setArr(ctrlL);
@@ -247,55 +275,64 @@ InterpolationLinear::~InterpolationLinear() {
 
 }
 
-int InterpolationLinear::interpol(int nint,VertexList *vint,double,double) {
+int InterpolationLinear::interpol(int nint,struct mk_list *vint,double,double) {
 
-  int ii=0,jj=0,nctrl=m_ctrlL.count();
+  int ii=0,jj=0,nctrl=m_ctrlL.count;
   if (nint<=0 || nctrl==0 || nint<nctrl || !vint)
     return 1;
-  vint->clear();
-  vint->resize(nint);
-  Vertex pl,ph,vv(m_ctrlL[0]);
-  Vertex *vidx=0;
+  mk_listclear(vint,0);
+  mk_listrealloc(vint,nint);
+  mk_vertexnan(pl);
+  mk_vertexnan(ph);
+  mk_vertexnan(vv);
+  mk_listat(&m_ctrlL,0,(void*)&pl);
+  mk_vertexcopy(vv,pl);
   if (nctrl==1) {
     for (ii=0;ii<nint;ii++) 
-      vint->append(vv);
+      mk_listappend(vint,(void*)&vv);
     return 0;
   }
   int chidx=(nint-nctrl)/(nctrl-1);
   double tmp=.0;
-  vint->append(vv);
+  mk_listappend(vint,(void*)&vv);
   for (ii=1;ii<nctrl;ii++) {
-    if (vint->count()>=nint)
+    if (vint->count>=nint)
       break;
-    pl=m_ctrlL[ii-1];
-    ph=m_ctrlL[ii];
+    mk_listat(&m_ctrlL,ii-1,(void*)&pl);
+    mk_listat(&m_ctrlL,ii,(void*)&ph);
     for (jj=0;jj<chidx;jj++) {
-      tmp=pl.x()+(double)(jj+1)*(ph.x()-pl.x())/(double)(chidx+1);
-      vv.setXYZ(tmp,mk_lineq(pl.data(),ph.data(),tmp),m_ctrlL[ii*nctrl/nint].z());
-      vint->append(vv);
+      tmp=pl[0]+(double)(jj+1)*(ph[0]-pl[0])/(double)(chidx+1);
+      mk_listat(&m_ctrlL,ii*nctrl/nint,(void*)&vv);
+      vv[0]=tmp;
+      vv[1]=mk_lineq(pl,ph,tmp);
+      mk_listappend(vint,(void*)&vv);
     }
-    vv.setXYZ(ph.x(),ph.y(),m_ctrlL[ii].z());
-    vint->append(vv);
+    mk_listat(&m_ctrlL,ii,(void*)&vv);
+    vv[0]=ph[0];
+    vv[1]=ph[1];
+    mk_listappend(vint,(void*)&vv);
   }
-  vv=m_ctrlL[nctrl-1];
-  for (ii=vint->count();ii<nint;ii++)
-    vint->append(vv);
+  mk_listat(&m_ctrlL,nctrl-1,(void*)&vv);
+  for (ii=vint->count;ii<nint;ii++)
+    mk_listappend(vint,(void*)&vv);
   return 0;
 
 }
 
-int InterpolationLinear::interp(Vertex *vv) const {
+int InterpolationLinear::interp(mk_vertex vv) {
 
-  int ii=0,nctrl=m_ctrlL.count();
-  if (!vv || nctrl<=0) {
-    if (vv)
-      vv->setY(mk_dnan);
+  int ii=0,nctrl=m_ctrlL.count;
+  if (nctrl<=0) {
+    vv[0]=mk_dnan;
     return 1;
   }
+  mk_vertexnan(pl);
+  mk_vertexnan(ph);
   for (ii=1;ii<nctrl;ii++) {
-    if (m_ctrlL[ii].x()>vv->x()) {
-      vv->setY((vv->x()-m_ctrlL[ii-1].x())*(m_ctrlL[ii].y()-m_ctrlL[ii-1].y())/
-               (m_ctrlL[ii].x()-m_ctrlL[ii-1].x()));
+    mk_listat(&m_ctrlL,ii,(void*)&ph);
+    if (ph[0]>vv[0]) {
+    mk_listat(&m_ctrlL,ii-1,(void*)&pl);  
+      vv[1]=((vv[0]-pl[0])*(ph[1]-pl[1])/(ph[0]-pl[0]));      
       return 0;
     }
   }
@@ -319,7 +356,8 @@ CubicSpline::~CubicSpline() {
 
 int CubicSpline::setup() {
 
-  m_ctrlL.sort(0);
+  m_ctrlL.cmp=mk_vertexcmpx;
+  mk_listsort(&m_ctrlL);
   return makeSpline(0);
 
 }
@@ -336,7 +374,7 @@ int CubicSpline::invalidate() {
 
 int CubicSpline::makeSpline(double *der) {
 
-  int res=1,nctrl=m_ctrlL.count();
+  int res=1,nctrl=m_ctrlL.count;
   if ((m_options&interpolation_solve1st)>0)
     res=makeSpline1st();
   else if ((m_options&interpolation_solve2nd)>0)
@@ -353,7 +391,7 @@ int CubicSpline::makeSpline(double *der) {
 
 int CubicSpline::setSpline(double *der) {
 
-  int nctrl=m_ctrlL.count();
+  int nctrl=m_ctrlL.count;
   if (!der || nctrl==0)
     return 1;
   if (m_der)
@@ -364,181 +402,205 @@ int CubicSpline::setSpline(double *der) {
 
 }
 
-int CubicSpline::interpol(int nint,VertexList *vint,double from,double to) {
+int CubicSpline::interpol(int nint,struct mk_list *vint,double from,double to) {
 
   if (!vint || nint<=0)
     return 1;
-  int ii=0,jj=0,nctrl=m_ctrlL.count();
-  vint->clear();
-  vint->resize(nint);
+  int ii=0,jj=0,nctrl=m_ctrlL.count;
+  mk_listclear(vint,0);
+  mk_listrealloc(vint,nint);
   if (!m_der)
     return 1;
-  Vertex vv;
+  mk_vertexnan(vv1);
+  mk_vertexnan(vv2);
   if (nint==nctrl) {
     for (ii=0;ii<nint;ii++) {
-      vv=m_ctrlL[ii];
-      vint->append(vv);
+      mk_listat(&m_ctrlL,ii,(void*)&vv1);
+      mk_listappend(vint,(void*)&vv1);
     }
     return 0;
   }
-  if (mk_isnan(from))
-    from=m_ctrlL[0].x();
-  if (mk_isnan(to))
-    to=m_ctrlL[nctrl-1].x();
+  if (mk_isnan(from)) {
+    mk_listat(&m_ctrlL,0,(void*)&vv1);
+    from=vv1[0];
+  }
+  if (mk_isnan(to)) {
+    mk_listat(&m_ctrlL,nctrl-1,(void*)&vv1);
+    to=vv1[0];
+  }
   int startidx=0,endidx=nctrl-1;
   for (ii=0;ii<nctrl;ii++) {
-    if (from>=m_ctrlL[ii].x())
+    mk_listat(&m_ctrlL,ii,(void*)&vv1);
+    if (mk_isbusted(from)==0 && from>=vv1[0])
       startidx=ii;
-    if (to<=m_ctrlL[ii].x())
+    if (mk_isbusted(to)==0 && to<=vv1[0])
       endidx=ii;
   }
   int nnint=nint-(endidx-startidx+1)+2;
-  double interval=(m_ctrlL[endidx].x()-m_ctrlL[startidx].x())/(double)(nnint-1);
-  double xx=m_ctrlL[startidx].x();
-  vv.setX(xx);
-  vint->append(vv);
+  mk_listat(&m_ctrlL,startidx,(void*)&vv1);
+  mk_listat(&m_ctrlL,endidx,(void*)&vv2);
+  double interval=(vv2[0]-vv1[0])/(double)(nnint-1);
+  double xx=vv1[0];
+  mk_listappend(vint,(void*)&vv1);
   for (ii=1;ii<nnint-1;ii++) {
     xx+=interval;
-    vv.setX(xx);
-    vint->append(vv);
+    vv1[0]=xx;
+    mk_listappend(vint,(void*)&vv1);
   }
   for (ii=startidx+1;ii<=endidx;ii++) {
-    vv.setX(m_ctrlL[ii].x());
-    vint->append(vv);
+    mk_listat(&m_ctrlL,ii,(void*)&vv2);
+    vv1[0]=vv2[0];
+    mk_listappend(vint,(void*)&vv1);
   }
+  vint->cmp=mk_vertexcmpx;
+  mk_listsort(vint);
 
-  vint->sort(0);
-
-  Vertex vidx;
   for (ii=0;ii<nint;ii++) {
-    vidx=vint->get(ii);
-    vidx.setZ(m_ctrlL[ii*(endidx-startidx+1)/nint].z());
-    if (interp(&vidx)!=0)
-      vidx.setY(.0);
-    vint->set(ii,vidx,0);
+    mk_listat(vint,ii,(void*)&vv1);
+    mk_listat(&m_ctrlL,ii*(endidx-startidx+1)/nint,(void*)&vv2);
+    vv1[2]=vv2[2];
+    if (interp(vv1)!=0)
+      vv1[1]=.0;
+    mk_listsetat(vint,(void*)&vv1,ii,0);
   }
   return 0;
 
 }
 
-int CubicSpline::interp(Vertex *vv) const {
+int CubicSpline::interp(mk_vertex vv) {
 
-  if (!vv || !m_der)
+  if (!m_der)
     return 1;
-  int nctrl=m_ctrlL.count(),idxh=-1,idxl=nctrl;
-  if (m_ctrlL.findInterval(*vv,&idxl,&idxh)==1 || idxh<=idxl)
+  int nctrl=m_ctrlL.count,idxh=-1,idxl=nctrl;
+  mk_vertex vvv;
+  mk_vertexcopy(vvv,vv);
+  int ss=mk_binsearchinterval((void*)&vvv,sizeof(mk_vertex),nctrl,m_ctrlL.arr,
+        mk_vertexcmpx,&idxl,&idxh,0);
+  if (ss==1 || idxh<=idxl)
     return 1;
-  double res=.0,aa=.0,bb=.0,
-    hx=m_ctrlL[idxh].x()-m_ctrlL[idxl].x(),hy=m_ctrlL[idxh].y()-m_ctrlL[idxl].y();
+  double res=.0,aa=.0,bb=.0,hx=mk_dnan,hy=mk_dnan;
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  mk_listat(&m_ctrlL,idxl,(void*)&vvl);
+  mk_listat(&m_ctrlL,idxh,(void*)&vvh);
+  hx=vvh[0]-vvl[0];
+  hy=vvh[1]-vvl[1];
   if(hx==.0) {
     return 1;
   }
   if ((m_options&interpolation_solve1st)>0) {
-    double eval=(vv->x()-m_ctrlL[idxl].x());
-    aa=m_ctrlL[idxl].y();
+    double eval=(vv[0]-vvl[0]);
+    aa=vvl[1];
     bb=m_der[idxl];
     double dd=(m_der[idxh]+m_der[idxl]-2.*hy/hx)/(hx*hx);
     double cc=(hy/hx-m_der[idxl])/hx-hx*dd;
     res=aa+bb*eval+cc*eval*eval+dd*eval*eval*eval;
   }
   else if ((m_options&interpolation_solve2nd)>0) {
-    aa=(m_ctrlL[idxh].x()-vv->x())/hx;
-    bb=(vv->x()-m_ctrlL[idxl].x())/hx;
-    res=aa*m_ctrlL[idxl].y()+
-        bb*m_ctrlL[idxh].y()+
+    aa=(vvh[0]-vv[0])/hx;
+    bb=(vv[0]-vvl[0])/hx;
+    res=aa*vvl[1]+
+        bb*vvh[1]+
         (aa*aa*aa-aa)*hx*hx*m_der[idxl]/6.0+
         (bb*bb*bb-bb)*hx*hx*m_der[idxh]/6.0;
   }
-  vv->setY(res);
+  vv[1]=res;
   return 0;
 
 }
 
-int CubicSpline::extrap(Vertex *vv) const {
+int CubicSpline::extrap(mk_vertex vv) {
 
   if (!vv || !m_der)
     return 1;
 
-  int nctrl=m_ctrlL.count();
-
-  if (vv->x()>=m_ctrlL[0].x() && vv->x()<=m_ctrlL[nctrl-1].x())
+  int nctrl=m_ctrlL.count;
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  mk_listat(&m_ctrlL,0,(void*)&vvl);
+  mk_listat(&m_ctrlL,nctrl-1,(void*)&vvh);
+  if (vv[0]>=vvl[0] && vv[0]<=vvh[0])
     return interp(vv);
-
-  int idxl=(vv->x()<m_ctrlL[0].x() ? 0 : nctrl-2),
-      idxh=(vv->x()<m_ctrlL[0].x() ? 1 : nctrl-1);
-
-  double hx=m_ctrlL[idxh].x()-m_ctrlL[idxl].x(),hy=m_ctrlL[idxh].y()-m_ctrlL[idxl].y();
+  int idxl=(vv[0]<vvl[0] ? 0 : nctrl-2),
+      idxh=(vv[0]<vvl[0] ? 1 : nctrl-1);
+  mk_listat(&m_ctrlL,idxl,(void*)&vvl);
+  mk_listat(&m_ctrlL,idxh,(void*)&vvh);
+  double hx=vvh[0]-vvl[0],hy=vvh[1]-vvl[1];
   if (hx==.0) {
     return 1;
   }
-
   double c0=.0,c1=.0,c2=.0,c3=.0;
-
   if ((m_options&interpolation_solve1st)>0) {
-    c0=m_ctrlL[idxl].y();
+    c0=vvl[1];
     c1=m_der[idxl];
     c3=(m_der[idxh]+m_der[idxl]-2.*hy/hx)/(hx*hx);
     c2=(hy/hx-m_der[idxl])/hx-hx*c3;
   }
   else if ((m_options&interpolation_solve2nd)>0) {
     double dx=-hx,dx6=6.*dx;
-    c0=(6.*m_ctrlL[idxl].x()*m_ctrlL[idxh].y()+
-         m_ctrlL[idxh].x()*(-6.*m_ctrlL[idxl].y()+m_ctrlL[idxl].x()*
-         (-m_ctrlL[idxh].x()*(2.*m_der[idxl]+m_der[idxh])+m_ctrlL[idxl].x()*
+    c0=(6.*vvl[0]*vvh[1]+
+         vvh[0]*(-6.*vvl[1]+vvl[0]*
+         (-vvh[0]*(2.*m_der[idxl]+m_der[idxh])+vvl[0]*
          (m_der[idxl]+2.*m_der[idxh]))))/dx6;
-    c1=(6.*(m_ctrlL[idxl].y()-m_ctrlL[idxh].y())+
-          2.*m_ctrlL[idxl].x()*m_ctrlL[idxh].x()*(m_der[idxl]-m_der[idxh])+
-          m_ctrlL[idxh].x()*m_ctrlL[idxh].x()*(2.*m_der[idxl]+m_der[idxh])-
-          m_ctrlL[idxl].x()*m_ctrlL[idxl].x()*(m_der[idxl]+2*m_der[idxh]))/dx6;
-    c2=(m_ctrlL[idxl].x()*m_der[idxh]-m_ctrlL[idxh].x()*m_der[idxl])/(2.*dx);
+    c1=(6.*(vvl[1]-vvh[1])+
+          2.*vvl[0]*vvh[0]*(m_der[idxl]-m_der[idxh])+
+          vvh[0]*vvh[0]*(2.*m_der[idxl]+m_der[idxh])-
+          vvl[0]*vvl[0]*(m_der[idxl]+2*m_der[idxh]))/dx6;
+    c2=(vvl[0]*m_der[idxh]-vvh[0]*m_der[idxl])/(2.*dx);
     c3=(m_der[idxl]-m_der[idxh])/dx6;
   }
 
-  double res=(c0+vv->x()*(c1+vv->x()*(c2+vv->x()*c3)));
-  vv->setY(res);
+  double res=(c0+vv[0]*(c1+vv[0]*(c2+vv[0]*c3)));
+  vv[1]=res;
   return 0;
 
 }
 
-int CubicSpline::coeff(double xx,VertexList *coeffL) {
+int CubicSpline::coeff(double xx,struct mk_list *coeffL) {
 
   if (mk_isbusted(xx)!=0 || !coeffL || !m_der)
     return 1;
-  int nctrl=m_ctrlL.count(),idxh=-1,idxl=nctrl;
-  Vertex vv(xx),vvidx;
-  if (m_ctrlL.findInterval(vv,&idxl,&idxh)==1 || idxh<=idxl)
+  int nctrl=m_ctrlL.count,idxh=-1,idxl=nctrl;
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  mk_vertexnan(vvidx);
+  vvl[0]=xx;
+  if (mk_binsearchinterval((void*)&vvl,sizeof(mk_vertex),nctrl,&(m_ctrlL.arr),
+      mk_vertexcmpx,&idxl,&idxh,0)==1 || idxh<=idxl)
     return 1;
-  double hx=m_ctrlL[idxh].x()-m_ctrlL[idxl].x(),hy=m_ctrlL[idxh].y()-m_ctrlL[idxl].y(),tmp=.0;
+  mk_listat(&m_ctrlL,idxl,(void*)&vvl);
+  mk_listat(&m_ctrlL,idxh,(void*)&vvh);
+  double hx=vvh[0]-vvl[0],hy=vvh[1]-vvl[1],tmp=.0;
   if (hx==.0)
     return 1;
-  coeffL->clear();
+  mk_listclear(coeffL,0);
   if ((m_options&interpolation_solve1st)>0) {
-    vvidx.setX(m_ctrlL[idxl].y());
-    coeffL->append(vvidx);
-    vvidx.setX(m_der[idxl]);
-    coeffL->append(vvidx);
+    vvidx[1]=vvl[1];
+    mk_listappend(coeffL,(void*)&vvidx);
+    vvidx[1]=m_der[idxl];
+    mk_listappend(coeffL,(void*)&vvidx);
     tmp=(m_der[idxh]+m_der[idxl]-2.*hy/hx)/(hx*hx);
-    vvidx.setX((hy/hx-m_der[idxl])/hx-hx*tmp);
-    coeffL->append(vvidx);
-    vvidx.setX(tmp);
-    coeffL->append(vvidx);
+    vvidx[1]=(hy/hx-m_der[idxl])/hx-hx*tmp;
+    mk_listappend(coeffL,(void*)&vvidx);
+    vvidx[1]=tmp;
+    mk_listappend(coeffL,(void*)&vvidx);
     return 0;
   }
   else if ((m_options&interpolation_solve2nd)>0) {
     double dx=-hx,dx6=6.*dx;
-    vvidx.setX((6.*m_ctrlL[idxl].x()*m_ctrlL[idxh].y()+m_ctrlL[idxh].x()*
-      (-6.*m_ctrlL[idxl].y()+m_ctrlL[idxl].x()*(-m_ctrlL[idxh].x()*(2.*m_der[idxl]+m_der[idxh])+
-      m_ctrlL[idxl].x()*(m_der[idxl]+2.*m_der[idxh]))))/dx6);
-    coeffL->append(vvidx);
-    vvidx.setX((6.*(m_ctrlL[idxl].y()-m_ctrlL[idxh].y())+
-               2.*m_ctrlL[idxl].x()*m_ctrlL[idxh].x()*(m_der[idxl]-m_der[idxh])+
-               m_ctrlL[idxh].x()*m_ctrlL[idxh].x()*(2.*m_der[idxl]+m_der[idxh])-
-               m_ctrlL[idxl].x()*m_ctrlL[idxl].x()*(m_der[idxl]+2*m_der[idxh]))/dx6);
-    coeffL->append(vvidx);
-    vvidx.setX((m_ctrlL[idxl].x()*m_der[idxh]-m_ctrlL[idxh].x()*m_der[idxl])/(2.*dx));
-    coeffL->append(vvidx);
-    vvidx.setX((m_der[idxl]-m_der[idxh])/dx6);
-    coeffL->append(vvidx);
+    vvidx[1]=(6.*vvl[0]*vvh[1]+vvh[0]*
+      (-6.*vvl[1]+vvl[0]*(-vvh[0]*(2.*m_der[idxl]+m_der[idxh])+
+      vvl[0]*(m_der[idxl]+2.*m_der[idxh]))))/dx6;
+    mk_listappend(coeffL,(void *)&vvidx);
+    vvidx[1]=(6.*(vvl[1]-vvh[1])+
+               2.*vvl[0]*vvh[0]*(m_der[idxl]-m_der[idxh])+
+               vvh[0]*vvh[0]*(2.*m_der[idxl]+m_der[idxh])-
+               vvl[0]*vvl[0]*(m_der[idxl]+2*m_der[idxh]))/dx6;
+    mk_listappend(coeffL,(void*)&vvidx);
+    vvidx[1]=(vvl[0]*m_der[idxh]-vvh[0]*m_der[idxl])/(2.*dx);
+    mk_listappend(coeffL,(void*)&vvidx);
+    vvidx[1]=(m_der[idxl]-m_der[idxh])/dx6;
+    mk_listappend(coeffL,(void*)&vvidx);
     return 0;
   }
   return 1;
@@ -548,16 +610,19 @@ int CubicSpline::coeff(double xx,VertexList *coeffL) {
 int CubicSpline::makeSpline1st() {
 
   invalidate();
-  int ii=0,nctrl=m_ctrlL.count(),num=nctrl,pennum=num-1;
+  int ii=0,nctrl=m_ctrlL.count,num=nctrl,pennum=num-1;
   if (nctrl<=1)
     return 1;
-
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
   double *hx=new double[(size_t)pennum];
   double *hy=new double[(size_t)pennum];
   double *ss=new double[(size_t)pennum];
   for (ii=0;ii<pennum;ii++) {
-    hx[ii]=m_ctrlL[ii+1].x()-m_ctrlL[ii].x();
-    hy[ii]=m_ctrlL[ii+1].y()-m_ctrlL[ii].y();
+    mk_listat(&m_ctrlL,ii,(void*)&vvl);
+    mk_listat(&m_ctrlL,ii+1,(void*)&vvh);
+    hx[ii]=vvh[0]-vvl[0];
+    hy[ii]=vvh[1]-vvl[1];
     if (hx[ii]==.0) {
       delete [] hx;
       delete [] hy;
@@ -568,7 +633,6 @@ int CubicSpline::makeSpline1st() {
   }
 
   SquareMatrix mat(num);
-  double **mm=mat.data();
   double *rr=new double[(size_t)num];
   rr[0]=rr[pennum]=.0;
   for (ii=1;ii<pennum;ii++)
@@ -578,31 +642,31 @@ int CubicSpline::makeSpline1st() {
     rr[0]=ss[0]*hx[1]*(2.*hx[1]+3.*hx[0])+ss[1]*hx[0]*hx[0];
     rr[pennum]=-ss[num-3]*hx[num-2]*hx[num-2]-ss[num-2]*hx[num-3]*(3.*hx[num-2]+2.*hx[num-3]);
     double tmp=hx[0]+hx[1];
-    mm[0][0]=hx[1]*tmp;
-    mm[0][1]=tmp*tmp;
+    mat.setValue(0,0,hx[1]*tmp);
+    mat.setValue(0,1,tmp*tmp);
     tmp=hx[num-2]+hx[num-3];
-    mm[pennum][pennum-1]=-tmp*tmp;
-    mm[pennum][pennum]=-hx[num-3]*tmp;
+    mat.setValue(pennum,pennum-1,-tmp*tmp);
+    mat.setValue(pennum,pennum,-hx[num-3]*tmp);
   }
   else {
     if ((m_options&interpolation_der1st)>0) { // try der1st
       rr[0]=(nctrl>2 ? .0 : ss[0]);
       rr[pennum]=(nctrl>2 ? .0 : ss[0]);
-      mm[0][0]=1.;
-      mm[pennum][pennum]=1.;
+      mat.setValue(0,0,1.);
+      mat.setValue(pennum,pennum,1.);
     }
     else { // natural spline
       rr[0]=.0;
       rr[pennum]=.0;
-      mm[0][0]=1.;
-      mm[pennum][pennum]=1.;
+      mat.setValue(0,0,1.);
+      mat.setValue(pennum,pennum,1.);
     }
   }
 
   for (ii=1;ii<pennum;ii++) {
-    mm[ii][ii-1]=hx[ii];
-    mm[ii][ii]=2.*(hx[ii-1]+hx[ii]);
-    mm[ii][ii+1]=hx[ii-1];
+    mat.setValue(ii,ii-1,hx[ii]);
+    mat.setValue(ii,ii,2.*(hx[ii-1]+hx[ii]));
+    mat.setValue(ii,ii+1,hx[ii-1]);
   }
 
   m_der=new double[(size_t)num];
@@ -630,7 +694,7 @@ int CubicSpline::makeSpline1st() {
       }
       else if (ii==pennum) {
         if (deri*ss[ii-1]>.0)
-          corr=deri* MIN(fabsderi,fabs(3.*ss[ii-1]))/fabsderi;
+          corr=deri*MIN(fabsderi,fabs(3.*ss[ii-1]))/fabsderi;
       }
       else {
         pm=(ss[ii-1]*hx[ii]+ss[ii]*hx[ii-1])/(hx[ii-1]+hx[ii]);
@@ -667,17 +731,20 @@ int CubicSpline::makeSpline1st() {
 int CubicSpline::makeSpline2nd() {
 
   invalidate();
-  int ii=0,nctrl=m_ctrlL.count(),num=nctrl,pennum=num-1;
+  int ii=0,nctrl=m_ctrlL.count,num=nctrl,pennum=num-1;
   if (nctrl<=1)
     return 1;
-
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
   double *hx=new double[(size_t)num];
   double *hy=new double[(size_t)num];
   hx[0]=.0;
   hy[0]=.0;
   for (ii=1;ii<num;ii++) {
-    hx[ii]=m_ctrlL[ii].x()-m_ctrlL[ii-1].x();
-    hy[ii]=m_ctrlL[ii].y()-m_ctrlL[ii-1].y();
+    mk_listat(&m_ctrlL,ii-1,(void*)&vvl);
+    mk_listat(&m_ctrlL,ii,(void*)&vvh);
+    hx[ii]=vvh[0]-vvl[0];
+    hy[ii]=vvh[1]-vvl[1];
     if (mk_deq(hx[ii],0.0)) {
       delete [] hx;
       delete [] hy;
@@ -685,37 +752,36 @@ int CubicSpline::makeSpline2nd() {
     }
   }
   SquareMatrix mat(num);
-  double **mm=mat.data();
   double *rr=new double[(size_t)num];
   rr[0]=rr[pennum]=0.0;
   for (ii=1;ii<pennum;ii++)
     rr[ii]=hy[ii+1]/hx[ii+1]-hy[ii]/hx[ii];
 
   if ((m_options&interpolation_notaknot)>0 && num>3) {
-    mm[0][0]=hx[2];
-    mm[0][1]=-hx[1]-hx[2];
-    mm[0][2]=hx[1];
-    mm[pennum][pennum-2]=hx[pennum]; 
-    mm[pennum][pennum-1]=-hx[pennum]-hx[pennum-1]; 
-    mm[pennum][pennum]=hx[pennum-1];
+    mat.setValue(0,0,hx[2]);
+    mat.setValue(0,1,-hx[1]-hx[2]);
+    mat.setValue(0,2,hx[1]);
+    mat.setValue(pennum,pennum-2,hx[pennum]);
+    mat.setValue(pennum,pennum-1,-hx[pennum]-hx[pennum-1]);
+    mat.setValue(pennum,pennum,hx[pennum-1]);
   }
   else if ((m_options&interpolation_periodic)>0) { // not implemented -> natural spline
-    mm[0][0]=1.;
-    mm[pennum][pennum]=1.;
+    mat.setValue(0,0,1.);
+    mat.setValue(pennum,pennum,1.);
   }
   else if ((m_options&interpolation_nat)>0) { // natural spline
-    mm[0][0]=1.;
-    mm[pennum][pennum]=1.;
+    mat.setValue(0,0,1.);
+    mat.setValue(pennum,pennum,1.);
   }
   else { // not implemented -> natural spline
-    mm[0][0]=1.;
-    mm[pennum][pennum]=1.;
+    mat.setValue(0,0,1.);
+    mat.setValue(pennum,pennum,1.);
   }
 
   for (ii=1;ii<pennum;ii++) {
-    mm[ii][ii-1]=hx[ii]/6.0;
-    mm[ii][ii]=(hx[ii+1]+hx[ii])/3.0;
-    mm[ii][ii+1]=hx[ii+1]/6.0;
+    mat.setValue(ii,ii-1,hx[ii]/6.0);   
+    mat.setValue(ii,ii,(hx[ii+1]+hx[ii])/3.0);
+    mat.setValue(ii,ii+1,hx[ii+1]/6.0);
   }
   m_der=new double[(size_t)num];
   for (ii=0;ii<num;ii++)
@@ -732,7 +798,7 @@ int CubicSpline::makeSpline2nd() {
 
 }
 
-CubicSplineP::CubicSplineP(VertexList *ctrlL) :
+CubicSplineP::CubicSplineP(struct mk_list *ctrlL) :
   Interpolation(interpolation_cubicspline),m_xspline(0),m_yspline(0) {
 
   setArr(ctrlL);
@@ -775,35 +841,39 @@ int CubicSplineP::setup() {
 int CubicSplineP::makeSpline(double *der1,double *der2) {
 
   invalidate();
-  int ii=0,nctrl=m_ctrlL.count(),num=nctrl;
+  int ii=0,nctrl=m_ctrlL.count,num=nctrl;
   if (nctrl<=1)
     return 1;
-  Vertex vv(.0);
-  Vertex vvc,vvs;
-  double seg=mk_dnan;
-  VertexList spline(nctrl);
-  spline.append(vv);
+  mk_vertexnan(vv);
+  mk_vertexnan(vvc);
+  mk_vertexnan(vvs);
+  vv[0]=.0;
+  struct mk_list ctrlL;
+  mk_listalloc(&ctrlL,sizeof(mk_vertex),nctrl);
+  mk_listappend(&ctrlL,(void*)&vv);
   for (ii=1;ii<num;ii++) {
-    vvs=spline[ii-1];
-    vvc=m_ctrlL[ii];
-    seg=vvs.x()+sqrt(vvc.x()*vvc.x()+vvc.y()*vvc.y());
-    vv.setX(seg);
-    spline.append(vv);
+    mk_listat(&ctrlL,ii-1,(void*)&vvs);
+    mk_listat(&m_ctrlL,ii,(void*)&vvc);
+    vv[0]=vvs[0]+sqrt(vvc[0]*vvc[0]+vvc[1]*vvc[1]);
+    mk_listappend(&ctrlL,(void*)&vv);
   }
   mk_ulreal optL=(interpolation_solve2nd|interpolation_nat);
   m_xspline=new CubicSpline(optL);
   m_yspline=new CubicSpline(optL);
   for (ii=0;ii<nctrl;ii++) {
-    vvs=spline[ii];
-    vvs.setY(m_ctrlL[ii].x());
+    mk_listat(&ctrlL,ii,(void*)&vvs);
+    mk_listat(&m_ctrlL,ii,(void*)&vvc);
+    vvs[1]=vvc[0];
+    mk_listsetat(&ctrlL,(void*)&vvs,ii,0);
   }
-  int spl1=m_xspline->setCtrl(&spline);
+  int spl1=m_xspline->setCtrl(&ctrlL);
   for (ii=0;ii<nctrl;ii++) {
-    vvs=spline[ii];
-    vvs.setY(m_ctrlL[ii].x());
-    spline.set(ii,vv,0);
+    mk_listat(&ctrlL,ii,(void*)&vvs);
+    mk_listat(&m_ctrlL,ii,(void*)&vvc);
+    vvs[1]=vvc[1];
+    mk_listsetat(&ctrlL,(void*)&vvs,ii,0);
   }
-  int spl2=m_yspline->setCtrl(&spline);
+  int spl2=m_yspline->setCtrl(&ctrlL);
   spl1=m_xspline->makeSpline(der1);
   spl2=m_yspline->makeSpline(der2);
   if (spl1!=0 || spl2!=0) {
@@ -819,44 +889,52 @@ int CubicSplineP::makeSpline(double *der1,double *der2) {
 
 int CubicSplineP::setSpline(double *der1,double *der2) {
 
-  if (!der1 || !der2 || m_ctrlL.count()==0 || !m_xspline || !m_yspline)
+  if (!der1 || !der2 || m_ctrlL.count==0 || !m_xspline || !m_yspline)
     return 1;
   return (m_xspline->setSpline(der1)==0 && m_yspline->setSpline(der2)==0 ? 0 : 1);
 
 }
 
-int CubicSplineP::interpol(int nint,VertexList *vint,double,double) {
+int CubicSplineP::interpol(int nint,struct mk_list *vint,double,double) {
 
   if (!vint)
     return 1;
-  vint->clear();
-  vint->resize(nint);
-  int ii=0,nctrl=m_ctrlL.count();
+  mk_listclear(vint,0);
+  mk_listrealloc(vint,nint);
+  mk_vertexnan(vv1);
+  mk_vertexnan(vv2);
+  int ii=0,nctrl=m_ctrlL.count;
   if (nint<=nctrl || !m_xspline || !m_yspline) {
-    for (ii=0;ii<nint;ii++) 
-      vint->append(m_ctrlL[ii]);
+    for (ii=0;ii<nint;ii++) {
+      mk_listat(&m_ctrlL,ii,(void*)&vv1);
+      mk_listappend(vint,(void*)&vv1);
+    }
     return 1;
   }
-  Vertex vv,vvint;
-  VertexList tmp(nint);
+  struct mk_list tmp;
+  mk_listalloc(&tmp,sizeof(mk_vertex),nint);
   m_xspline->interpol(nint,&tmp);
   for (ii=0;ii<nint;ii++) {
-    vv.setX(tmp[ii].y());
-    vint->append(vv);
+    mk_listat(&tmp,ii,(void*)&vv1);
+    vv1[0]=vv1[1];
+    mk_listappend(vint,(void*)&vv1);
   }
-  tmp.clear();
+  mk_listclear(&tmp,0);
   m_yspline->interpol(nint,&tmp);
   for (ii=0;ii<nint;ii++) {
-    vvint=vint->get(ii);
-    vvint.setY(tmp[ii].y());
-    vvint.setZ(m_ctrlL[ii*nctrl/nint].z()); 
-    vint->set(ii,vvint,0);
+    mk_listat(&tmp,ii,(void*)&vv1);
+    mk_listat(vint,ii,(void*)&vv2);
+    vv2[1]=vv1[1];
+    mk_listat(&m_ctrlL,ii*nctrl/nint,(void*)&vv1);
+    vv2[2]=vv1[2];
+    mk_listsetat(vint,(void*)&vv2,ii,0);
   }
+  mk_listfree(&tmp);
   return 0;
 
 }
 
-int CubicSplineP::interp(Vertex *) const {
+int CubicSplineP::interp(mk_vertex) {
 
   return 0;
 
@@ -869,7 +947,7 @@ Polynomial::Polynomial(mk_ulreal options) :
 
 Polynomial::~Polynomial() {
 
-  int ii=0,nctrl=m_ctrlL.count();
+  int ii=0,nctrl=m_ctrlL.count;
   if (m_c) {
     for (ii=0;ii<nctrl;ii++)
       delete [] m_c[ii];
@@ -887,7 +965,7 @@ Polynomial::~Polynomial() {
 
 int Polynomial::invalidate() {
 
-  int ii=0,nctrl=m_ctrlL.count();
+  int ii=0,nctrl=m_ctrlL.count;
   if (m_c) {
     for (ii=0;ii<nctrl;ii++)
       delete [] m_c[ii];
@@ -904,7 +982,7 @@ int Polynomial::invalidate() {
 
 }
 
-int Polynomial::setCtrl(VertexList *ctrlL) {
+int Polynomial::setCtrl(struct mk_list *ctrlL) {
 
   if (Interpolation::setCtrl(ctrlL)!=0)
     return 1;
@@ -916,30 +994,36 @@ int Polynomial::setCtrl(VertexList *ctrlL) {
 
 int Polynomial::fitRegr(int regrdeg) {
 
-  m_coeffL.clear();
-  int ii=0,jj=0,kk=0,nctrl=m_ctrlL.count();
+  mk_listclear(&m_coeffL,0);
+  int ii=0,jj=0,kk=0,nctrl=m_ctrlL.count;
   if (nctrl==0 || regrdeg<=0 || regrdeg>=nctrl)
     return 1;
+  double tmp=mk_dnan;
   double **xxpow=new double*[nctrl];
+  mk_vertexnan(vv);
   for (ii=0;ii<nctrl;ii++) {
     xxpow[ii]=new double[2*(regrdeg+1)];
 	  xxpow[ii][0]=1.;
+    mk_listat(&m_ctrlL,ii,(void*)&vv);
 	  for (jj=1;jj<2*(regrdeg+1);jj++)
-	    xxpow[ii][jj]=xxpow[ii][jj-1]*m_ctrlL[ii].x();
+	    xxpow[ii][jj]=xxpow[ii][jj-1]*vv[0];
 	}
   double *rs=new double[regrdeg+1];
 	for (ii=0;ii<=regrdeg;ii++) {
-	  for (jj=0;jj<nctrl;jj++)
-		  rs[ii]+=xxpow[jj][ii]*m_ctrlL[jj].y();
+	  for (jj=0;jj<nctrl;jj++) {
+      mk_listat(&m_ctrlL,jj,(void*)&vv);
+		  rs[ii]+=xxpow[jj][ii]*vv[1];
+    }
 	}
-  num::SquareMatrix mm(regrdeg+1);
-  double **rr=mm.data();
+  SquareMatrix mm(regrdeg+1);
 	for (ii=0;ii<=regrdeg;ii++) {
     for (jj=0;jj<=regrdeg;jj++) {
       if (ii==jj)
-        rr[ii][jj]=.0;
-	    for (kk=0;kk<nctrl;kk++)
-	      rr[ii][jj]+=xxpow[kk][ii+jj];
+        mm.setValue(ii,jj,.0);
+	    for (kk=0;kk<nctrl;kk++) {
+        tmp=mm.getValue(ii,jj)+xxpow[kk][ii+jj];
+        mm.setValue(ii,jj,tmp);
+      }
 	  }
 	}
   //aux::Asciistr str;
@@ -957,49 +1041,54 @@ int Polynomial::fitRegr(int regrdeg) {
     delete [] coeffL;
     return 0;
   }
-  m_coeffL.resize(regrdeg+2);
-  Vertex coeff;
+  mk_listrealloc(&m_coeffL,regrdeg+2);
+  mk_vertexnan(coeff);
   for (ii=0;ii<=regrdeg;ii++) {
-    coeff.setY(coeffL[ii]);
-    m_coeffL.append(coeff);
+    coeff[1]=coeffL[ii];
+    mk_listappend(&m_coeffL,(void*)&coeff);
   }
   delete [] coeffL;
-  coeff.setY(.0);
-  m_coeffL.append(coeff);
-  double ymean=.0,dym=.0,dyf=.0,tmp=.0;
-  for (ii=0;ii<nctrl;ii++)
-    ymean+=m_ctrlL[ii].y();
+  coeff[1]=.0;
+  mk_listappend(&m_coeffL,(void*)&coeff);
+  double ymean=.0,dym=.0,dyf=.0;
+  for (ii=0;ii<nctrl;ii++) {
+    mk_listat(&m_ctrlL,ii,(void*)&vv);
+    ymean+=vv[1];
+  }
   ymean/=(double)nctrl;
   for (ii=0;ii<nctrl;ii++) {
-    tmp=m_ctrlL[ii].y()-ymean;
+    mk_listat(&m_ctrlL,ii,(void*)&vv);
+    mk_vertexcopy(coeff,vv);
+    tmp=vv[1]-ymean;
     dym+=(tmp*tmp);
-    coeff=m_ctrlL[ii];
-    if (interp(&coeff)!=0)
-      coeff.setY(.0);
-    tmp=m_ctrlL[ii].y()-coeff.y();
+    if (interp(coeff)!=0)
+      coeff[1]=.0;
+    tmp=vv[1]-coeff[1];
     dyf+=(tmp*tmp);
   }
-  coeff.setY(sqrt((dym-dyf)/dym));
-  m_coeffL.set(m_coeffL.count()-1,coeff,0);  
-  return (m_coeffL.count()-1);
+  coeff[1]=sqrt((dym-dyf)/dym);
+  mk_listsetat(&m_coeffL,(void*)&coeff,m_coeffL.count-1,0);
+  return (m_coeffL.count-1);
 
 }
 
 int Polynomial::prepTable() {
 
   invalidate();
-  int ii=0,nctrl=m_ctrlL.count(),jj=nctrl,kk=0;
+  int ii=0,nctrl=m_ctrlL.count,jj=nctrl,kk=0;
   if (nctrl==0)
     return 1;
   if ((m_options&interpolation_eq)>0 || 
-       ((m_options&interpolation_regr)>0 && m_coeffL.count()>0))
+       ((m_options&interpolation_regr)>0 && m_coeffL.count>0))
     return 1;
   m_c=new double*[(size_t)nctrl];
   m_d=new double*[(size_t)nctrl];
+  mk_vertexnan(vv);
   for (ii=0;ii<nctrl;ii++) {
     m_c[ii]=new double[(size_t)jj];
     m_d[ii]=new double[(size_t)jj];
-    m_c[0][ii]=m_d[0][ii]=m_ctrlL[ii].y();
+    mk_listat(&m_ctrlL,ii,(void*)&vv);
+    m_c[0][ii]=m_d[0][ii]=vv[1];
     if (ii>0) {
       for (kk=0;kk<jj;kk++)
         m_c[ii][kk]=m_d[ii][kk]=0.0;
@@ -1010,90 +1099,109 @@ int Polynomial::prepTable() {
 
 }
 
-int Polynomial::interpol(int nint,VertexList *vint,double start,double end) {
+int Polynomial::interpol(int nint,struct mk_list *vint,double start,double end) {
 
-  int ii=0,idx=0,nctrl=m_ctrlL.count();
+  int ii=0,idx=0,nctrl=m_ctrlL.count;
   if (!vint || nint<=0 || nctrl==0)
     return 1;
-  vint->clear();
+  mk_listclear(vint,0);
   if (nint<nctrl)
     return 1;
-  vint->resize(nint);
-  Vertex vv,vidx;
-  if (mk_isnan(start))
-    start=((m_options&interpolation_eq)>0 ? .0 : m_ctrlL[0].x());
-  if (mk_isnan(end))
-    end=((m_options&interpolation_eq)>0 ? 1. : m_ctrlL[nctrl-1].x());
+  mk_listrealloc(vint,nint);
+  mk_vertexnan(vv);
+  mk_vertexnan(vidx);
+  if (mk_isnan(start)) {
+    mk_listat(&m_ctrlL,0,(void*)&vv);
+    start=((m_options&interpolation_eq)>0 ? .0 : vv[0]);
+  }
+  if (mk_isnan(end)) {
+    mk_listat(&m_ctrlL,nctrl-1,(void*)&vv);
+    end=((m_options&interpolation_eq)>0 ? 1. : vv[0]);
+  }
   double interval=(end-start)/(double)(nint-1);
-  if (m_coeffL.count()>0 && 
+  if (m_coeffL.count>0 && 
        ((m_options&interpolation_eq)>0 || (m_options&interpolation_regr)>0)) {
     for (ii=0;ii<nint;ii++) {
-      vidx.setX(start);
-      if (interp(&vidx)!=0)
-        vidx.setY(.0);
-      vv.setXYZ(start,vidx.y(),m_ctrlL[ii*nctrl/nint].z());
-      vint->append(vv);
+      vidx[0]=start;
+      if (interp(vidx)!=0)
+        vidx[1]=.0;
+      vv[0]=start;
+      vv[1]=vidx[1];
+      mk_listat(&m_ctrlL,ii*nctrl/nint,(void*)&vidx);
+      vv[2]=vidx[2];  
+      mk_listappend(vint,(void*)&vv);    
       start+=interval;
     }
     return 0;
   }
   prepTable();
   for (ii=0;ii<nctrl;ii++) {
-    if (start>=m_ctrlL[ii].x())
+    mk_listat(&m_ctrlL,ii,(void*)&vv);
+    if (start>=vv[0])
       idx=ii;
   }
-  vint->append(m_ctrlL[0]);
+  mk_listat(&m_ctrlL,idx,(void*)&vv);
+  mk_listsetat(vint,(void*)&vv,idx,0);
+  idx++;
   for (ii=1;ii<nint;ii++) {
-    vidx=m_ctrlL[idx];
     start+=interval;
-    if (start>=vidx.x()) {
-      vv.setXYZ(vidx.x(),vidx.y(),m_ctrlL[ii*nctrl/nint].z());
+    mk_listat(&m_ctrlL,idx,(void*)&vidx);
+    if (start>=vidx[0]) {
+      mk_listat(&m_ctrlL,idx,(void*)&vv);
+      vv[0]=vidx[0];
+      vv[1]=vidx[1];
       idx++;
       if (idx>=nctrl)
         idx=nctrl-1;
     }
     else {
-      vidx.setX(start);
-      if (interp(&vidx)!=0)
-        vidx.setY(.0);
-      vv.setXYZ(start,vidx.y(),m_ctrlL[ii*nctrl/nint].z());
+      mk_listat(&m_ctrlL,ii,(void*)&vv);
+      vv[0]=start;
+      vv[1]=interp(vv);
     }
-    vint->append(vv);
+    mk_listat(&m_ctrlL,ii*nctrl/nint,(void*)&vidx);
+    vv[2]=vidx[2];
+    mk_listappend(vint,(void*)&vv);
   }
   return 0;
 
 }
 
-int Polynomial::interp(Vertex *vv) const {
+int Polynomial::interp(mk_vertex vv) {
 
-  if (!vv)
-    return 1;
-  int ii=0,jj=0,idx=0,nctrl=m_ctrlL.count();
+  int ii=0,jj=0,idx=0,nctrl=m_ctrlL.count;
   double res=.0,tmp1=1.,tmp2=mk_dnan,tmp3=mk_dnan,tmp4=mk_dnan,tmp5=mk_dnan,tmp6=mk_dnan;
-  if (m_coeffL.count()>0 && 
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  if (m_coeffL.count>0 && 
        ((m_options&interpolation_eq)>0 || (m_options&interpolation_regr)>0)) {
-    int ncoeff=m_coeffL.count();
+    int ncoeff=m_coeffL.count;
     if ((m_options&interpolation_regr)>0)
       ncoeff--;
     for (ii=0;ii<ncoeff;ii++) {
-      res+=m_coeffL[ii].x()*tmp1;
-      tmp1*=vv->x();
+      mk_listat(&m_coeffL,ii,(void*)&vvl);
+      res+=vvl[1]*tmp1;
+      tmp1*=vv[0];
     }
-    vv->setY(res);
+    vv[1]=res;
     return 0;
   }
   if (nctrl==0 || !m_c || !m_d)
     return mk_dnan;
-  tmp5=fabs(m_ctrlL[0].x()-vv->x());
+  mk_listat(&m_ctrlL,0,(void*)&vvl);
+  tmp5=fabs(vvl[0]-vv[0]);
   for (ii=1;ii<nctrl;ii++) {
-    tmp6=fabs(m_ctrlL[ii].x()-vv->x());
+    mk_listat(&m_ctrlL,ii,(void*)&vvl);
+    tmp6=fabs(vvl[0]-vv[0]);
     if (tmp6<tmp5) {
       tmp5=tmp6;
       idx=ii;
     }
     for (jj=0;jj<(nctrl-ii);jj++) {
-      tmp1=m_ctrlL[jj].x()-vv->x();
-      tmp2=m_ctrlL[jj+ii].x()-vv->x();
+      mk_listat(&m_ctrlL,jj,(void*)&vvl);
+      mk_listat(&m_ctrlL,jj+ii,(void*)&vvh);
+      tmp1=vvl[0]-vv[0];
+      tmp2=vvh[0]-vv[0];
       tmp4=tmp1-tmp2;
       if (mk_deq(tmp4,.0))
         tmp3=.0;
@@ -1124,58 +1232,59 @@ int Polynomial::interp(Vertex *vv) const {
     //idm=(m_nctrl-i)/2;
     //down=(idx>idm ? false : true);
   }
-  vv->setY(res);
+  vv[1]=res;
   return 0;
 
 }
 
-int Polynomial::coeff(double,VertexList *cc) {
+int Polynomial::coeff(double,struct mk_list *cc) {
 
   if (!cc)
     return -1;
-  cc->clear();
-  int ii=0,jj=0,kk=0,ll=0,idx=0,nctrl=m_ctrlL.count(),ncoeff=m_coeffL.count();
+  mk_listclear(cc,0);
+  mk_vertexnan(vv);
+  int ii=0,jj=0,kk=0,ll=0,idx=0,nctrl=m_ctrlL.count,ncoeff=m_coeffL.count;
   if (ncoeff>0 && ((m_options&interpolation_eq)>0 || (m_options&interpolation_regr)>0)) {
-    cc->resize(ncoeff);
-    for (ii=0;ii<ncoeff;ii++)
-      cc->append(m_coeffL[ii]);
+    mk_listrealloc(cc,ncoeff);
+    for (ii=0;ii<ncoeff;ii++) {
+      mk_listat(&m_coeffL,ii,(void*)&vv);
+      mk_listappend(cc,(void*)&vv);
+    }
     return ncoeff;
   }
-  cc->resize(nctrl);
+  mk_listrealloc(&m_coeffL,nctrl);
   Polynomial pp(interpolation_ctrl);
   pp.setCtrl(&m_ctrlL);
   pp.prepTable();
   double min=mk_dnan,ctmp=.0;
-  Vertex coeff,ctrl;
+  mk_vertexnan(coeff);
   for (ii=0;ii<nctrl;ii++) {
-    coeff.setX(.0);
-    if (pp.interp(&coeff)!=0)
-      coeff.setY(.0);
-    m_coeffL.append(coeff);
+    coeff[0]=.0;
+    if (pp.interp(coeff)!=0)
+      coeff[1]=.0;
+    mk_listappend(&m_coeffL,(void*)&coeff);
     min=mk_dnan;
     kk=0;
     for (jj=0;jj<nctrl-ii;jj++) {
-      if (mk_isnan(min) || fabs(pp.m_ctrlL[jj].x())<min) {
-        min=fabs(pp.m_ctrlL[jj].x());
+      mk_listat(&(pp.m_ctrlL),jj,(void*)&vv);
+      if (mk_isnan(min) || fabs(vv[0])<min) {
+        min=fabs(vv[0]);
         kk=jj;
       }
       // y=f(x)=a0+a1+x+a2*x*x+a3*x*x*x+a4*x*x*x*x .....
       // -> (y-a0)/x=a1+a2*x+a3*x*x+a4*x*x*x ...
-      ctrl=m_ctrlL[jj];
-      ctrl.setY((ctrl.y()-ctmp)/ctrl.x());
-      pp.m_ctrlL.set(jj,ctrl,0);
+      vv[1]=((vv[1]-ctmp)/vv[0]);
+      mk_listsetat(&(pp.m_ctrlL),(void*)&vv,jj,0);
     }
     for (jj=kk+1;jj<nctrl-ii;jj++) {
-      ctrl=m_ctrlL[jj-1];      
-      ctrl.setXY(pp.m_ctrlL[jj].x(),pp.m_ctrlL[jj].y());
-      pp.m_ctrlL.set(jj-1,ctrl,0);
+      mk_listat(&(pp.m_ctrlL),jj,(void*)&vv);
+      mk_listsetat(&(pp.m_ctrlL),(void*)&vv,jj-1,0);
     }
-    pp.m_ctrlL.remove(pp.m_ctrlL.count()-1);
-    //for (j=0;j<pp.nctrl;j++) printf ("j=%d x=%f y=%f c=%f\n",j,pp.m_x[j],pp.m_y[j],c[i]);
-    //pp.clearTable();
-    jj=pp.m_ctrlL.count();
-    for (kk=0;kk<pp.m_ctrlL.count();kk++) {
-      pp.m_c[0][kk]=pp.m_d[0][kk]=pp.m_ctrlL[kk].y();
+    mk_listremove(&(pp.m_ctrlL),pp.m_ctrlL.count-1,0);
+    jj=pp.m_ctrlL.count;
+    for (kk=0;kk<pp.m_ctrlL.count;kk++) {
+      mk_listat(&(pp.m_ctrlL),kk,(void*)&vv);
+      pp.m_c[0][kk]=pp.m_d[0][kk]=vv[1];
       if (kk>0) {
         for (ll=0;ll<jj;ll++)
           pp.m_c[kk][ll]=pp.m_d[kk][ll]=.0;
@@ -1183,10 +1292,12 @@ int Polynomial::coeff(double,VertexList *cc) {
       jj--;
     }
   }
-  cc->resize(m_coeffL.count());
-  for (ii=0;ii<m_coeffL.count();ii++)
-    cc->append(m_coeffL[ii]);
-  return m_coeffL.count();
+  mk_listrealloc(cc,m_coeffL.count);
+  for (ii=0;ii<m_coeffL.count;ii++) {
+    mk_listat(&m_coeffL,ii,(void*)&vv);
+    mk_listappend(cc,(void*)&vv);
+  }
+  return m_coeffL.count;
 
 }
 
@@ -1194,9 +1305,13 @@ int Polynomial::rootsBrute(double *roots,double min,double max,int *effdeg) {
 
   if ((m_options&interpolation_eq)>0)
     return 0;
-  int ii=0,jj=0,kk=0,nctrl=m_ctrlL.count(),degree=nctrl-1;
+  int ii=0,jj=0,kk=0,nctrl=m_ctrlL.count,degree=nctrl-1;
+  mk_vertexnan(vv0);
+  mk_vertexnan(vv1);
+  mk_vertexnan(vv2);
   for (ii=nctrl-1;ii>-1;ii--)  {
-    if (m_ctrlL[ii].x()==.0) {
+    mk_listat(&m_ctrlL,ii,(void*)&vv0);
+    if (vv0[0]==.0) {
       degree=ii;
       break;
     }
@@ -1205,25 +1320,31 @@ int Polynomial::rootsBrute(double *roots,double min,double max,int *effdeg) {
     *effdeg=degree;
 
   if (degree==0) {
-    if (m_ctrlL[0].x()==.0) {
+    mk_listat(&m_ctrlL,0,(void*)&vv0);
+    if (vv0[0]==.0) {
       roots[0]=.0;
       return 1;
     }
     return 0;
   }
   if (degree==1) {
-    roots[0]=-m_ctrlL[0].x()/m_ctrlL[1].x();
+    mk_listat(&m_ctrlL,0,(void*)&vv0);
+    mk_listat(&m_ctrlL,1,(void*)&vv1);
+    roots[0]=-vv0[0]/vv1[0];
     return degree;
   }
   if (degree==2) {
-    double pp2=-m_ctrlL[1].x()/(2.*m_ctrlL[2].x()),pqres=pp2*pp2-m_ctrlL[0].x()/m_ctrlL[2].x();
+    mk_listat(&m_ctrlL,0,(void*)&vv0);
+    mk_listat(&m_ctrlL,1,(void*)&vv1);
+    mk_listat(&m_ctrlL,2,(void*)&vv2);
+    double pp2=-vv1[0]/(2.*vv2[0]),pqres=pp2*pp2-vv0[0]/vv2[0];
     if (pqres<0)
       return 0;
     double rpqres=sqrt(pqres);
     roots[0]=pp2+rpqres;
     roots[1]=pp2-rpqres;
     if (roots[1]<roots[0])
-      aux::swap(&roots[0],&roots[1]);
+      mk::swap(&roots[0],&roots[1]);
     return degree;
   }
 
@@ -1235,7 +1356,8 @@ int Polynomial::rootsBrute(double *roots,double min,double max,int *effdeg) {
     tmp=1.;
     eval=min+(double)ii*intv;
     for (jj=0;jj<=degree;jj++) {
-      res+=m_ctrlL[jj].x()*tmp;
+      mk_listat(&m_ctrlL,jj,(void*)&vv0);
+      res+=vv0[0]*tmp;
       tmp*=eval;
     }
     if (res==.0 || (res>.0 && lastres<.0) || (lastres>.0 && res<.0)) {
@@ -1265,12 +1387,12 @@ int Polynomial::rootsBrute(double *roots,double min,double max,int *effdeg) {
       roots[kk++]=minheval;
   }
   if (kk>1)
-    aux::heapsortv(kk,roots);
+    mk::heapsortv(kk,roots);
   return kk;
 
 }
 
-Bezier::Bezier(VertexList *ctrlL) : 
+Bezier::Bezier(struct mk_list *ctrlL) : 
   Interpolation(interpolation_bezier) {
 
   setArr(ctrlL);
@@ -1281,19 +1403,20 @@ Bezier::~Bezier() {
 
 }
 
-int Bezier::interpol(int nint,VertexList *vint,double,double) {
+int Bezier::interpol(int nint,struct mk_list *vint,double,double) {
 
-  int ii=0,jj=0,nctrl=m_ctrlL.count(),penctrl=nctrl-1,penint=nint-1;
+  int ii=0,jj=0,nctrl=m_ctrlL.count,penctrl=nctrl-1,penint=nint-1;
   if (nctrl<=0 || nint<=1 || !vint)
     return 1;
   double t1=.0,t2=1.,bino=1.;
   double *fac1=new double[(size_t)nctrl];
   double *fac2=new double[(size_t)nctrl];
-  Vertex vv;
+  mk_vertexnan(vv);
+  mk_vertexnan(vctrl);
   for (jj=0;jj<nctrl;jj++)
     fac1[jj]=fac2[jj]=1.0;
   for (ii=0;ii<nint;ii++) {
-    vv.setXY(.0,.0);
+    vv[0]=vv[1]=.0;
     t1=(double)ii/(double)penint;
     t2=1.-t1;
     // poly-degree=nctrl , accumulate bernstein polys
@@ -1303,13 +1426,15 @@ int Bezier::interpol(int nint,VertexList *vint,double,double) {
     }
     for (jj=0;jj<nctrl;jj++) {
       bino=mk_binomialcoeff(penctrl,jj);
-      vv.setX(vv.x()+m_ctrlL[jj].x()*bino*fac1[jj]*fac2[jj]);
-      vv.setY(vv.y()+m_ctrlL[jj].y()*bino*fac1[jj]*fac2[jj]);
+      mk_listat(&m_ctrlL,jj,(void*)&vctrl);
+      vv[0]=(vv[0]+vctrl[0]*bino*fac1[jj]*fac2[jj]);
+      vv[1]=(vv[1]+vctrl[1]*bino*fac1[jj]*fac2[jj]);
     }
     for (jj=0;jj<nctrl;jj++)
       fac1[jj]=fac2[jj]=1.;
-    vv.setZ(m_ctrlL[ii*nctrl/nint].z());
-    vint->append(vv);
+    mk_listat(&m_ctrlL,ii*nctrl/nint,(void*)&vctrl);
+    vv[2]=vctrl[2];
+    mk_listappend(vint,(void*)&vv);
   }
   delete [] fac1;
   delete [] fac2;
@@ -1434,14 +1559,14 @@ int Bicubic::setup() {
 
 }
 
-int Bicubic::interp(Vertex *) const {
+int Bicubic::interp(mk_vertex) {
 
 
   return 0;
 
 }
 
-int Bicubic::interpol(int nint,VertexList *vint,double,double) {
+int Bicubic::interpol(int nint,struct mk_list *vint,double,double) {
 
   if (!vint)
     return 1;

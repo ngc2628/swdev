@@ -6,9 +6,9 @@ PRJ           = numeric
 DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
 DEFINES       =
-HEADER        = interpolation.h matrix.h vertex.h
-SOURCES       = interpolation.cpp matrix.cpp vertex.cpp
-LIBS          = -lauxx -lmkbase -lz -lm
+HEADER        = interpolation.h matrix.h 
+SOURCES       = interpolation.cpp matrix.cpp 
+LIBS          = -ltools -lmkbase -lz -lm
 SOLN					= -shared
 
 ####### names and locations #######

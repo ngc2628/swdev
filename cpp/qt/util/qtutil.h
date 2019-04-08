@@ -2,9 +2,10 @@
 #ifndef _QTUTIL_
 #define _QTUTIL_
 
-#include <auxx/auxx.h>
+#include <mkbase/exportdefs.h>
+#include <mkbase/mkutil.h>
 
-namespace aux {
+namespace mk {
 class Ucsstr;
 }
 
@@ -39,7 +40,7 @@ extern oswinexp const char *qasciistr(const QString *);
 
 extern oswinexp int fromQString(const QString *,mk_string);
 
-extern oswinexp int fromQString(const QString *,aux::Ucsstr *);
+extern oswinexp int fromQString(const QString *,mk::Ucsstr *);
 
 extern oswinexp int fromQLineF(const QLineF *,osix::xxLine *);
 
@@ -51,13 +52,13 @@ extern oswinexp int fromQBrush(const QBrush *,osix::xxStyle *);
 
 extern oswinexp int fromQFont(const QFont *,osix::xxFnt *);
 
-extern oswinexp int fromQClipboard(aux::Ucsstr *);
+extern oswinexp int fromQClipboard(mk::Ucsstr *);
 
 extern oswinexp int fromQAlign(int);
 
 extern oswinexp int toQString(mk_string,QString *);
 
-extern oswinexp int toQString(const aux::Ucsstr *,QString *);
+extern oswinexp int toQString(const mk::Ucsstr *,QString *);
 
 extern oswinexp int toQLineF(const osix::xxLine *,QLineF *);
 
@@ -69,7 +70,7 @@ extern oswinexp int toQBrush(const osix::xxStyle *,QBrush *);
 
 extern oswinexp int toQFont(const osix::xxFnt *,QFont *);
 
-extern oswinexp int toQClipboard(aux::Ucsstr *);
+extern oswinexp int toQClipboard(mk::Ucsstr *);
 
 extern oswinexp int toQAlign(int);
 

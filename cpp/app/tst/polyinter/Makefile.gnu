@@ -8,7 +8,7 @@ TARGET        = $(PRJ)
 DEFINES       =
 HEADER        = 
 SOURCES       = main.cpp
-LIBS          = -lnumeric -losix -lauxx -lmkbase -lz -lm 
+LIBS          = -lnumeric -losix -ltools -lmkbase -lz -lm 
 SOLN					= 
 
 ####### names and locations #######

@@ -14,7 +14,6 @@
 #include <QtGui/QResizeEvent>
 #include <stdio.h>
 #include <stdlib.h>
-#include <auxx/auxx.h>
 #include <osix/xxshape.h>
 #include <graphic/charts/simpleplot/diagram.h>
 #include <qt/util/qtutil.h>

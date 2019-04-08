@@ -42,7 +42,7 @@ int xxdrawLine(void *disp,xxDrawable *dev,xxGC *gc) {
 
 }
 
-int xxdrawLines(void *disp,xxDrawable *dev,xxGC *gc,num::Vector3 *pL,int pcnt,int opt) {
+int xxdrawLines(void *disp,xxDrawable *dev,xxGC *gc,mk_vertex *pL,int pcnt,int opt) {
 
   if (xxdrawLinesExt)
     return xxdrawLinesExt(disp,dev,gc,pL,pcnt,opt);
@@ -69,7 +69,7 @@ int xxfillRect(void *disp,xxDrawable *dev,xxGC *gc) {
 
 }
 
-int xxfillPolygon(void *disp,xxDrawable *dev,xxGC *gc,num::Vector3 *pL,int pcnt,int opt) {
+int xxfillPolygon(void *disp,xxDrawable *dev,xxGC *gc,mk_vertex *pL,int pcnt,int opt) {
 
   if (xxfillPolygonExt)
     return xxfillPolygonExt(disp,dev,gc,pL,pcnt,opt);
@@ -78,7 +78,7 @@ int xxfillPolygon(void *disp,xxDrawable *dev,xxGC *gc,num::Vector3 *pL,int pcnt,
 
 }
 
-int xxdrawText(void *disp,xxDrawable *dev,xxGC *gc,aux::Ucsstr *str,int opt) {
+int xxdrawText(void *disp,xxDrawable *dev,xxGC *gc,mk::Ucsstr *str,int opt) {
 
   if (xxdrawTextExt)
     return xxdrawTextExt(disp,dev,gc,str,opt);
@@ -87,7 +87,7 @@ int xxdrawText(void *disp,xxDrawable *dev,xxGC *gc,aux::Ucsstr *str,int opt) {
 
 }
 
-int xxdrawCtrl(void *disp,xxDrawable *dev,xxGC *gc,int type,aux::Ucsstr *str,int opt) {
+int xxdrawCtrl(void *disp,xxDrawable *dev,xxGC *gc,int type,mk::Ucsstr *str,int opt) {
 
   if (xxdrawCtrlExt)
     return xxdrawCtrlExt(disp,dev,gc,type,str,opt);

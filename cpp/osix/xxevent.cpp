@@ -6,6 +6,31 @@ namespace osix {
 
 xxtranslateEventF xxtranslateEventExt=0;
 
+xxEvent::xxEvent() : m_type(0),m_mods(0),m_consumer(0),m_xxk(0),m_buttons(0),m_xxsym(0) {
+     
+  mk_vertexset(m_pos,mk_dnan);
+  mk_vertexset(m_globalpos,mk_dnan);
+  mk_vertexset(m_lastpos,mk_dnan);
+  mk_vertexset(m_downpos,mk_dnan);
+  mk_stringset(m_info,0);
+  
+}
+
+xxEvent::xxEvent(const xxEvent &ass) :
+  m_type(ass.m_type),m_mods(ass.m_mods),m_consumer(ass.m_consumer),
+  m_xxk(ass.m_xxk),m_buttons(ass.m_buttons),m_xxsym(ass.m_xxsym) {
+
+  if (&ass!=this) {
+    mk_vertexcopy(m_pos,ass.m_pos);
+    mk_vertexcopy(m_globalpos,ass.m_globalpos);
+    mk_vertexcopy(m_lastpos,ass.m_lastpos);
+    mk_vertexcopy(m_downpos,ass.m_downpos);
+    m_r=ass.m_r;
+    mk_stringset(m_info,&ass.m_info[0]);
+  }
+    
+}
+
 xxEvent &xxEvent::operator=(const xxEvent &ass) {
       
   m_type=ass.m_type;
@@ -15,10 +40,10 @@ xxEvent &xxEvent::operator=(const xxEvent &ass) {
   m_buttons=ass.m_buttons;
   m_xxsym=ass.m_xxsym;
   if (&ass!=this) {
-    m_pos=ass.m_pos;
-    m_globalpos=ass.m_globalpos;
-    m_lastpos=ass.m_lastpos;
-    m_downpos=ass.m_downpos;
+    mk_vertexcopy(m_pos,ass.m_pos);
+    mk_vertexcopy(m_globalpos,ass.m_globalpos);
+    mk_vertexcopy(m_lastpos,ass.m_lastpos);
+    mk_vertexcopy(m_downpos,ass.m_downpos);
     m_r=ass.m_r;
     mk_stringset(m_info,&ass.m_info[0]);
   }
@@ -42,7 +67,10 @@ void xxEvent::clear() {
       
   m_type=m_mods=m_consumer=m_xxk=m_buttons=0;
 	m_xxsym=0;
-  m_pos=m_globalpos=m_lastpos=m_downpos=num::Vector3(mk_dnan,mk_dnan,mk_dnan);
+  mk_vertexset(m_pos,mk_dnan);
+  mk_vertexset(m_globalpos,mk_dnan);
+  mk_vertexset(m_lastpos,mk_dnan);
+  mk_vertexset(m_downpos,mk_dnan);
   m_r=xxRect();
   mk_stringsetlength(m_info,0);
     

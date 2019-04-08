@@ -9,7 +9,7 @@ DEFINES       =
 HEADER        = qtutil.h qtpaint.h qtwidgets.h
 SOURCES       = qtutil.cpp qtmouse.cpp qtkey.cpp qtpaint.cpp qtwidgets.cpp
 MOCS          = qtwidgets.h
-LIBS          = -lQt5Widgets -lQt5Gui -lQt5Core -lnumeric -losix -lauxx -lmkbase -lz -lm
+LIBS          = -lQt5Widgets -lQt5Gui -lQt5Core -lnumeric -losix -ltools -lmkbase -lz -lm
 SOLN					= -shared
 
 ####### names and locations #######

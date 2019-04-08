@@ -2,8 +2,8 @@
 #ifndef _xxtxt_h_
 #define _xxtxt_h_
 
-#include <auxx/auxx.h>
 #include <osix/xxshape.h>
+#include <tools/char.h>
 
 namespace osix {
 
@@ -36,15 +36,15 @@ class oswinexp xxFnt {
     
 };
 
-typedef int (*xxtoClipboardF)(aux::Ucsstr *);
+typedef int (*xxtoClipboardF)(mk::Ucsstr *);
 extern xxtoClipboardF oswinexp xxtoClipboardExt;
-extern int oswinexp xxtoClipboard(aux::Ucsstr *);
+extern int oswinexp xxtoClipboard(mk::Ucsstr *);
 
-typedef int (*xxfromClipboardF)(aux::Ucsstr *);
+typedef int (*xxfromClipboardF)(mk::Ucsstr *);
 extern xxfromClipboardF oswinexp xxfromClipboardExt;
-extern int oswinexp xxfromClipboard(aux::Ucsstr *);
+extern int oswinexp xxfromClipboard(mk::Ucsstr *);
 
-} // namespace 
+} // namespace
 
 #endif
 

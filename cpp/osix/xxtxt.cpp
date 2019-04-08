@@ -21,7 +21,6 @@ xxFnt::xxFnt(const char *fam,float size,int style,xxRectSize metric) :
 xxFnt::xxFnt(const xxFnt &ass) : 
   m_size(ass.m_size),m_style(ass.m_style),m_metric(ass.m_metric) {
 
-  mk_stringset(m_fam,0);
   if (this!=&ass)
     mk_stringset(m_fam,ass.m_fam);
   if (mk_stringlength(m_fam)==0)
@@ -34,7 +33,6 @@ xxFnt &xxFnt::operator=(const xxFnt &ass) {
   m_size=ass.m_size;
   m_style=ass.m_style;
   m_metric=ass.m_metric;
-  mk_stringset(m_fam,0);
   if (this!=&ass)
     mk_stringset(m_fam,ass.m_fam);
   if (mk_stringlength(m_fam)==0)
@@ -59,23 +57,26 @@ bool xxFnt::operator<(const xxFnt &cmp) const {
 
 int xxFnt::toString(mk_string str) const {
   
-  mk_stringappend(str,"Fnt : fam=");
-  mk_stringappend(str,&m_fam[0]);
-  mk_stringappend(str," ; size=");
+  mk_stringappend(str,"Fnt : fam [");
+  mk_stringappend(str,m_fam);
+  mk_stringappend(str,"] ; size [");
   mk_string numstr;
+  mk_stringset(numstr,0);
   mk_d2a((double)m_size,numstr);
   mk_stringappend(str,numstr);
-  mk_stringappend(str," ; style=");
+  mk_stringappend(str,"] ; style [");
   mk_i2a(m_style,numstr);
   mk_stringappend(str,numstr);
-  mk_stringappend(str," ; ");
+  mk_stringappend(str,"] ; [");
+  mk_stringset(numstr,0);
   m_metric.toString(numstr);
   mk_stringappend(str,numstr);
+  mk_stringappend(str,"]");
   return 0;
   
 }
 
-int xxtoClipboard(aux::Ucsstr *str) {
+int xxtoClipboard(mk::Ucsstr *str) {
 
   if (xxtoClipboardExt)
     return xxtoClipboardExt(str);
@@ -83,7 +84,7 @@ int xxtoClipboard(aux::Ucsstr *str) {
 
 }
 
-int xxfromClipboard(aux::Ucsstr *str) {
+int xxfromClipboard(mk::Ucsstr *str) {
 
   if (xxfromClipboardExt)
     return xxfromClipboardExt(str);

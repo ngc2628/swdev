@@ -8,7 +8,7 @@ TARGET        = lib$(PRJ).so
 DEFINES       =
 HEADER        = xxevent.h xxkey.h xxmouse.h xxstyle.h xxshape.h xxtxt.h xxpaint.h
 SOURCES       = xxevent.cpp xxstyle.cpp xxshape.cpp xxtxt.cpp xxpaint.cpp
-LIBS          = -lauxx -lmkbase -lz -lm 
+LIBS          = -ltools -lmkbase -lz -lm 
 SOLN					= -shared
 
 ####### names and locations #######

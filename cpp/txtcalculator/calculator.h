@@ -6,11 +6,12 @@
 #define _CALCULATOR_H_
 //..end "Ifdef"
 
-#include <auxx/auxx.h>
-#include <txtcalc/txtcalc.h>
+#include <stdio.h>
+#include <tools/misc.h>
+#include <tools/tlist.h>
 #include <osix/xxevent.h>
 #include <osix/xxpaint.h>
-#include <stdio.h>
+#include <txtcalc/txtcalc.h>
 
 namespace calculator {
 
@@ -183,7 +184,7 @@ class oswinexp Entry {
     }
     int invert() {
       if (m_invstr.len()>0) {
-        aux::swap(&m_str,&m_invstr);
+        mk::swap(&m_str,&m_invstr);
         return 0;
       }
       return -1;
@@ -210,10 +211,10 @@ class oswinexp Calculator {
     osix::xxEvent m_xxlastinputev;
     unsigned int m_numfmt,m_trigfmt,m_opfmt;
     Asciistr m_input,m_info,m_output,m_showinfo;
-    aux::TVStack<Asciistr> m_store;
-    aux::TVList<Entry> m_ops;
-    aux::TVStack<aux::TVList<Entry> > m_paren;
-    aux::TVList<Entry> m_actions;
+    mk::TVStack<Asciistr> m_store;
+    mk::TVList<Entry> m_ops;
+    mk::TVStack<mk::TVList<Entry> > m_paren;
+    mk::TVList<Entry> m_actions;
 
     Calculator(const Calculator &) {
     }

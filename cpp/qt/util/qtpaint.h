@@ -12,17 +12,17 @@ extern oswinexp int xxpostdrawQt(void *,osix::xxDrawable *,osix::xxGC *);
 
 extern oswinexp int xxdrawLineQt(void *,osix::xxDrawable *,osix::xxGC *);
 
-extern oswinexp int xxdrawLinesQt(void *,osix::xxDrawable *,osix::xxGC *,num::Vector3 *,int,int);
+extern oswinexp int xxdrawLinesQt(void *,osix::xxDrawable *,osix::xxGC *,mk_vertex *,int,int);
 
 extern oswinexp int xxdrawRectQt(void *,osix::xxDrawable *,osix::xxGC *);
 
 extern oswinexp int xxfillRectQt(void *,osix::xxDrawable *,osix::xxGC *);
 
-extern oswinexp int xxfillPolygonQt(void *,osix::xxDrawable *,osix::xxGC *,num::Vector3 *,int,int);
+extern oswinexp int xxfillPolygonQt(void *,osix::xxDrawable *,osix::xxGC *,mk_vertex *,int,int);
 
-extern oswinexp int xxdrawTextQt(void *,osix::xxDrawable *,osix::xxGC *,aux::Ucsstr *,int);
+extern oswinexp int xxdrawTextQt(void *,osix::xxDrawable *,osix::xxGC *,mk::Ucsstr *,int);
 
-extern oswinexp int xxdrawCtrlQt(void *,osix::xxDrawable *,osix::xxGC *,int,aux::Ucsstr *,int);
+extern oswinexp int xxdrawCtrlQt(void *,osix::xxDrawable *,osix::xxGC *,int,mk::Ucsstr *,int);
 
 extern oswinexp int xxresizeDrawableQt(void *,osix::xxDrawable *,osix::xxGC *);
 

@@ -41,21 +41,11 @@ class oswinexp xxEvent {
   public:
     int m_type,m_mods,m_consumer,m_xxk,m_buttons;
     unsigned short m_xxsym;
-    num::Vector3 m_pos,m_globalpos,m_lastpos,m_downpos;
+    mk_vertex m_pos,m_globalpos,m_lastpos,m_downpos;
     xxRect m_r;
     mk_string m_info;
-    xxEvent() : 
-      m_type(0),m_mods(0),m_consumer(0),m_xxk(0),m_buttons(0),m_xxsym(0) {
-      mk_stringset(m_info,0);
-    }
-    xxEvent(const xxEvent &ass) :
-      m_type(ass.m_type),m_mods(ass.m_mods),m_consumer(ass.m_consumer),
-      m_xxk(ass.m_xxk),m_buttons(ass.m_buttons),m_xxsym(ass.m_xxsym),
-      m_pos(ass.m_pos),m_globalpos(ass.m_globalpos),m_lastpos(ass.m_lastpos),
-      m_downpos(ass.m_downpos),m_r(ass.m_r) {
-      if (&ass!=this)
-        mk_stringset(m_info,&ass.m_info[0]);
-    }
+    xxEvent();
+    xxEvent(const xxEvent &);
     ~xxEvent() {
     }
     xxEvent &operator=(const xxEvent &);

@@ -5,129 +5,208 @@
 
 namespace simpleplot {
 
+DiagramSelection::DiagramSelection(mk::TypeId sel,int idx) :
+  m_sel(sel),m_idx(idx) {
+
+  mk_vertexset(m_val,mk_dnan);
+    
+}
+
+    
+DiagramSelection::DiagramSelection(const DiagramSelection &ass) : 
+  m_sel(ass.m_sel),m_idx(ass.m_idx) {
+
+  mk_vertexcopy(m_val,ass.m_val);
+    
+}
+    
+DiagramSelection &DiagramSelection::operator=(const DiagramSelection &ass) { 
+      
+  m_sel=ass.m_sel;
+  m_idx=ass.m_idx;
+  mk_vertexcopy(m_val,ass.m_val);
+  return *this;
+  
+}
+    
+void DiagramSelection::clear(mk::TypeId sel,int idx) {
+
+  m_sel=sel;
+  m_idx=idx;
+  mk_vertexset(m_val,mk_dnan);
+
+}
+
+int cmpSel(const void *s1,const void *s2) {
+
+  if ((((const DiagramSelection *)s2)<((const DiagramSelection *)s1))>0)
+    return 1;
+  else if ((((const DiagramSelection *)s1)<((const DiagramSelection *)s2))>0)
+    return -1;
+  return 0;
+
+}
+
 Diagram::Diagram(const char *type,unsigned int idd) : 
-  aux::TypeId(type,idd),m_mouseMode(0) {
+  mk::TypeId(type,idd),m_mouseMode(0) {
+
+  mk_listalloc(&m_selected,sizeof(DiagramSelection),65);
+  m_selected.cmp=cmpSel;
+  mk_listalloc(&m_entityL,sizeof(mk::TypeId *),128);
+  m_entityL.cmp=mk::cmpTypeIdRef;
     	  
 }
 
 Diagram::~Diagram() {
 
+  mk_listfree(&m_selected);
+  mk::TypeId *tid=0;
+  while (m_entityL.count>0) {
+    mk_listremove(&m_entityL,m_entityL.count-1,(void *)&tid);
+    delete tid;
+  }
+  mk_listfree(&m_entityL);
+
 }
 
-Graph *Diagram::graph(const aux::TypeId &grid) {
+Graph *Diagram::graph(mk::TypeId grid_) {
 
-  return dynamic_cast<Graph*>(m_corps[m_corps.find(&grid)]);
+  mk::TypeId grid(grid_);
+  mk::TypeId *res=0;
+  int idxl=-1;
+  m_entityL.cmp=mk::cmpTypeIdRefi;
+  mk_listfind(&m_entityL,(void*)&grid,&idxl,0);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  if (idxl>=0)
+    mk_listat(&m_entityL,idxl,(void*)&res);
+  return (Graph*)res;
     
 }
 
-Axis *Diagram::axis(const aux::TypeId &axid) {
+Axis *Diagram::axis(mk::TypeId axid_) {
 
-  return dynamic_cast<Axis*>(m_corps[m_corps.find(&axid)]);
+  mk::TypeId axid(axid_);
+  mk::TypeId *res=0;
+  int idxl=-1;
+  m_entityL.cmp=mk::cmpTypeIdRefi;
+  mk_listfind(&m_entityL,(void*)&axid,&idxl,0);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  if (idxl>=0)
+    mk_listat(&m_entityL,idxl,(void*)&res);
+  return (Axis*)res;
 
 }
 
-aux::TypeId Diagram::setGraph(Graph *graph) {
+mk::TypeId Diagram::setGraph(Graph *graph) {
 
-  if (!graph || m_corps.find((const aux::TypeId*)graph)>=0)
-    return aux::TypeId();
-  m_corps.inSort(graph);
-  return *((aux::TypeId*)graph);
+  mk::TypeId res;
+  int idxl=-1;
+  mk_listfind(&m_entityL,(void*)&graph,&idxl,0);
+  if (!graph || idxl>=0)
+    return res;
+  idxl=mk_listinsort(&m_entityL,(void*)&graph);  
+  if (idxl>=0)
+    res=*((mk::TypeId*)graph);
+  return res;
   
 }
 
-aux::TypeId Diagram::setAxis(Axis *axis) {
+mk::TypeId Diagram::setAxis(Axis *axis) {
 
-  if (!axis || m_corps.find((const aux::TypeId*)axis)>=0)
-    return aux::TypeId();
-  m_corps.inSort(axis);
-  return *((aux::TypeId*)axis);
-  
+  mk::TypeId res;
+  int idxl=-1;
+  mk_listfind(&m_entityL,(void*)&axis,&idxl,0);
+  if (!axis || idxl>=0)
+    return res;
+  idxl=mk_listinsort(&m_entityL,(void*)&axis);  
+  if (idxl>=0)
+    res=*((mk::TypeId*)axis);
+  return res;
+
 }
 
-Graph *Diagram::removeGraph(const aux::TypeId &grid) {
+Graph *Diagram::removeGraph(mk::TypeId grid_) {
 
-  return dynamic_cast<Graph*>(m_corps.remove(m_corps.find(&grid)));
+  mk::TypeId grid(grid_);
+  mk::TypeId *res=0;
+  int idxl=-1;
+  m_entityL.cmp=mk::cmpTypeIdRefi;
+  mk_listfind(&m_entityL,(void*)&grid,&idxl,0);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  if (idxl>=0)
+    mk_listremove(&m_entityL,idxl,(void*)&res);
+  return (Graph*)res;
     
 }
 
-Axis *Diagram::removeAxis(const aux::TypeId &axid) {
+Axis *Diagram::removeAxis(mk::TypeId axid_) {
 
-  return dynamic_cast<Axis*>(m_corps.remove(m_corps.find(&axid)));
+  mk::TypeId axid(axid_);
+  mk::TypeId *res=0;
+  int idxl=-1;
+  m_entityL.cmp=mk::cmpTypeIdRefi;
+  mk_listfind(&m_entityL,(void*)&axid,&idxl,0);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  if (idxl>=0)
+    mk_listremove(&m_entityL,idxl,(void*)&res);
+  return (Axis*)res;
+
+}
+
+int Diagram::entities(mk_list *entityL,const char *type_) {
+
+  int ii=0,idxl=-1,idxh=-1,cnt=m_entityL.count;
+  if (!entityL)
+    return cnt;
+  mk::TypeId type(type_);
+  mk_listrealloc(entityL,cnt);
+  if (type_ && strlen(type_)>0) {
+    m_entityL.cmp=mk::cmpTypeIdRefiType;
+    mk_listfind(&m_entityL,(void*)&type,&idxl,&idxh);
+    m_entityL.cmp=mk::cmpTypeIdRef;
+  }
+  else {
+    idxl=0;
+    idxh=cnt-1;
+  }  
+  mk::TypeId *tid=0;
+  mk_string str;
+  for (ii=MAX(0,idxl);ii<=idxh;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    tid->toString(str);
+    type.fromString(str);
+    mk_listappend(entityL,(void*)&type);
+  }
+  entityL->cmp=mk::cmpTypeId;
+  mk_listsort(entityL);
+  return entityL->count;
 
 }
 
 int Diagram::clear(bool destr) {
 
-  int ii=0,cnt=m_corps.count();
-  aux::TypeId *tt=0;
-  for (ii=cnt-1;ii>-1;ii--) {
-    tt=m_corps.remove(ii);
+  int cnt=m_entityL.count;
+  mk::TypeId *tid=0;
+  while (m_entityL.count>0) {
+    mk_listremove(&m_entityL,m_entityL.count-1,(void *)&tid);
     if (destr)
-      delete tt;
+      delete tid;
   }
-
   return cnt;
 
 }
 
-int Diagram::typegraphs(const char *grtype,aux::TPList<Graph> *graphL) {
+int Diagram::selected(mk_list *selL) const {
 
-  aux::TypeId look(grtype);
-  if (look.busted())
-    return 0;
-  m_corps.cmp=aux::cmpType;
-  aux::TVArr<int> idxL;
-  int ii=0,nn=m_corps.findAll(&look,&idxL);
-  m_corps.cmp=0;
-  if (!graphL)
-    return nn;
-  graphL->clear();
-  if (graphL->size()<nn)
-    graphL->resize(nn);
-  Graph *graph;
-  for (ii=0;ii<nn;ii++) {
-    graph=dynamic_cast<Graph*>(m_corps[idxL[ii]]);
-    if (graph)
-      graphL->inSort(graph);
-  }
-  return nn;
-    
-}
-
-int Diagram::typeaxes(const char *axtype,aux::TPList<Axis> *axisL) {
-
-  aux::TypeId look(axtype);
-  if (look.busted())
-    return 0;
-  m_corps.cmp=aux::cmpType;
-  aux::TVArr<int> idxL;
-  int ii=0,n=m_corps.findAll(&look,&idxL);
-  m_corps.cmp=0;   
-  if (!axisL)
-    return n;
-  axisL->clear();
-  if (axisL->size()<n)
-    axisL->resize(n);
-  Axis *ax=0;
-  for (ii=0;ii<n;ii++) {
-    ax=dynamic_cast<Axis*>(m_corps[idxL[ii]]);
-    if (ax)
-      axisL->inSort(ax);
-  }
-  return n;
-
-}
-
-int Diagram::selected(aux::TVList<DiagramSelection> *selL) const {
-
-  int ii=0,cnt=m_selected.count();
+  int ii=0,cnt=m_selected.count;
   if (!selL)
     return cnt;
-  selL->clear();
-  if (selL->size()<cnt)
-    selL->resize(cnt);
-  for (ii=0;ii<cnt;ii++)
-    selL->inSort(m_selected[ii]);
+  DiagramSelection sel;
+  mk_listclear(selL,0);
+  for (ii=0;ii<cnt;ii++) {
+    mk_listat(&m_selected,ii,(void *)&sel);
+    mk_listinsort(selL,(void *)&sel);
+  }
   return cnt;
 
 }
@@ -138,9 +217,9 @@ int Diagram::setSelection(DiagramSelection sel,int) {
 
 }
 
-aux::TypeId Diagram::selectGraph(num::Vector3,int,int) {
+mk::TypeId Diagram::selectGraph(mk_vertex,int,int) {
 
-  return aux::TypeId();
+  return mk::TypeId();
     
 }
 
@@ -224,15 +303,15 @@ int Diagram::inputEvent(osix::xxEvent *xxev) {
 
   int res=0;
   if (osix::xxTypeMouse(xxev)>0) {
-    xxev->m_lastpos=m_xxlastinputev.m_pos;
+    mk_vertexcopy(xxev->m_lastpos,m_xxlastinputev.m_pos);
     if (xxev->m_type==osix::xx_mousePressed)
       res|=mousePressed(xxev);
     else if (xxev->m_type==osix::xx_mouseMove) {
-      xxev->m_downpos=m_xxlastinputev.m_downpos;
+      mk_vertexcopy(xxev->m_downpos,m_xxlastinputev.m_downpos);
       res|=mouseMoved(xxev);   
     }
     else if (xxev->m_type==osix::xx_mouseReleased) {
-      xxev->m_downpos=m_xxlastinputev.m_downpos;
+      mk_vertexcopy(xxev->m_downpos,m_xxlastinputev.m_downpos);
       if ((m_xxlastinputev.m_consumer&osix::xx_consumed)>0)
         xxev->m_consumer|=osix::xx_consumed;  
       if ((m_xxlastinputev.m_consumer&osix::xx_processed)>0)
@@ -250,48 +329,44 @@ int Diagram::inputEvent(osix::xxEvent *xxev) {
  
 DiagramXY::DiagramXY(int sz) : Diagram("diagramxy") {
 
-  m_corps.resize(sz);
+  if (m_entityL.reserved<sz)
+    mk_listrealloc(&m_entityL,sz);  
   	  
 } 
 
 int DiagramXY::setSelection(DiagramSelection sel,int add) {
 
   int idx=-1;
-  if (add==0)
-    m_selected.clear();
+  if ((add&1)==0)
+    mk_listclear(&m_selected,0);
   else
-    idx=m_selected.find(sel);
+    mk_listfind(&m_selected,(void *)&sel,&idx,0);
   if (idx<0 && !sel.m_sel.busted())
-    idx=m_selected.inSort(sel);
+    idx=mk_listinsort(&m_selected,(void *)&sel);
   return idx;
 
 }
 
-aux::TypeId DiagramXY::selectGraph(num::Vector3 pp,int set,int add) {
+mk::TypeId DiagramXY::selectGraph(mk_vertex pp,int set,int add) {
 
   DiagramSelection sel;
-  if (pp.busted(num::typeXY)) {
-    if (set>0)
-      setSelection(sel,add);
-    return aux::TypeId();
-  }
-  aux::TypeId gr("graphxy");
-  aux::TVArr<int> gridxL;
-  m_corps.cmp=aux::cmpType;
-  int ii=0,idx=-1,ngr=m_corps.findAll(&gr,&gridxL);
-  m_corps.cmp=0;
+  mk::TypeId grxy("graphxy");
+  m_entityL.cmp=mk::cmpTypeIdRefiType;
+  int ii=0,idx=-1,idxl=-1,idxh=-1;
+  mk_listfind(&m_entityL,(void*)&grxy,&idxl,&idxh);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  mk::TypeId *tid=0;
   Graph *graph=0;
-  for (ii=0;ii<ngr;ii++) {
-    graph=dynamic_cast<Graph*>(m_corps[gridxL[ii]]);
+  for (ii=MAX(0,idxl);ii<=idxh;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    graph=(Graph*)tid;
     idx=(graph ? graph->match(pp) : -1);
     if (idx>=0) {
-      sel.clear(*((aux::TypeId*)graph),idx,graph->value(idx));
+      sel.clear(*((mk::TypeId*)graph),idx);
+      graph->value(idx,sel.m_val);
       break;
     }
   }
-
-//sel.m_sel.toString(&strerr1);
-//printf ("%d selectGraph : %s idx=%d val=%f,%f\n",__LINE__,(const char*)strerr1,sel.m_idx,sel.m_val.x(),sel.m_val.y());
   if (set>0)
     setSelection(sel,add);
   return sel.m_sel;
@@ -307,20 +382,34 @@ int DiagramXY::resetRect() {
   baserect.setRight(baserect.right()-excess.width()/2.);
   baserect.setTop(baserect.top()+excess.height()/2.);
   baserect.setBottom(baserect.bottom()-excess.height()/2.);
-  aux::TPList<Axis> xaxL,yaxL;
-  int ii=0,nxax=typeaxes("xaxis",&xaxL),nyax=typeaxes("yaxis",&yaxL);
+  
+  int ii=0,idxl=-1,idxh=-1;
+  Xaxis *xax=0;
+  Yaxis *yax=0;
+  mk::TypeId *tid=0;
+  mk::TypeId xaxt(typeXaxis),yaxt(typeYaxis);
+  m_entityL.cmp=mk::cmpTypeIdRefiType;
+  mk_listfind(&m_entityL,(void*)&xaxt,&idxl,&idxh);
+  m_entityL.cmp=mk::cmpTypeIdRef;
   double xl=baserect.left(),yt=baserect.top(),xr=baserect.right(),yb=baserect.bottom();
-  for (ii=0;ii<nxax;ii++) {
-    if (xaxL[ii]->pos()==typeTop)
-      yt+=xaxL[ii]->size().height();
-    else if (xaxL[ii]->pos()==typeBottom)
-      yb-=xaxL[ii]->size().height();
+  for (ii=MAX(0,idxl);ii<=idxh;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    xax=(Xaxis*)tid;
+    if (xax->pos()==typeTop)
+      yt+=xax->size().height();
+    else if (xax->pos()==typeBottom)
+      yb-=xax->size().height();
   }
-  for (ii=0;ii<nyax;ii++) {
-    if (yaxL[ii]->pos()==typeLeft)
-      xl+=yaxL[ii]->size().width();
-    else if (yaxL[ii]->pos()==typeRight)
-      xr-=yaxL[ii]->size().width();
+  m_entityL.cmp=mk::cmpTypeIdRefiType;
+  mk_listfind(&m_entityL,(void*)&yaxt,&idxl,&idxh);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  for (ii=MAX(0,idxl);ii<=idxh;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    yax=(Yaxis*)tid;
+    if (yax->pos()==typeLeft)
+      xl+=yax->size().width();
+    else if (yax->pos()==typeRight)
+      xr-=yax->size().width();
   }
   osix::xxGC gc;
   gc.m_bg=m_bg;
@@ -333,12 +422,19 @@ int DiagramXY::resetRect() {
 
 int DiagramXY::rescaleGraph() {
 
-  aux::TPList<Graph> grL;
-  int ii=0,ngr=typegraphs("graphxy",&grL);
-  for (ii=0;ii<ngr;ii++) {
-    grL.at(ii)->rescale();
+  mk::TypeId grt(typeGraphXY);
+  mk::TypeId *tid=0;
+  GraphXY *grxy=0;
+  int ii=0,idxl=-1,idxh=-1;
+  m_entityL.cmp=mk::cmpTypeIdRefiType;
+  mk_listfind(&m_entityL,(void*)&grt,&idxl,&idxh);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  for (ii=MAX(0,idxl);ii<=idxh;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    grxy=(GraphXY*)tid;
+    grxy->rescale();
   }
-  return (ngr>0 ? redoDrawGraph : 0);
+  return (idxh>idxl ? redoDrawGraph : 0);
 
 }
 
@@ -375,9 +471,16 @@ int DiagramXY::drawAxes() {
     osix::xxfillRect(disp,&m_pixscr,&gc);
   }
 
-  aux::TPList<Axis> xaxL,yaxL;
-  int ii=0,jj=0,nxax=typeaxes("xaxis",&xaxL),nyax=typeaxes("yaxis",&yaxL);
-  if (nxax==0 && nyax==0) {
+  int ii=0,jj=0,idxlx=-1,idxhx=-1,idxly=-1,idxhy=-1;
+  Xaxis *xax=0;
+  Yaxis *yax=0;
+  mk::TypeId *tid=0;
+  mk::TypeId xaxt(typeXaxis),yaxt(typeYaxis);
+  m_entityL.cmp=mk::cmpTypeIdRefiType;
+  mk_listfind(&m_entityL,(void*)&xaxt,&idxlx,&idxhx);
+  mk_listfind(&m_entityL,(void*)&yaxt,&idxly,&idxhy);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  if (idxlx<0 && idxly<0) {
     osix::xxpostdraw(disp,&m_pixscr,&gc);
     return 0;
   }
@@ -385,109 +488,115 @@ int DiagramXY::drawAxes() {
   double basex0=m_pixplot.m_r.left(),basex1=m_pixplot.m_r.right(),
          basey0=m_pixplot.m_r.bottom(),basey1=m_pixplot.m_r.top(),baseyy0=basey0,baseyy1=basey1,
          wmetric=.0,hmetric=.0;
-  Axis *ax=0;
   Scale *sc=0;
-  Tic *tic=0;
-  aux::Ucsstr ticstr;
-  aux::TVList<Tic> ticL;
+  Tic tic;
+  mk::Ucsstr ticstr;
+  mk_list ticL;
+  mk_listalloc(&ticL,sizeof(Tic),0);
   int ntics=0,ticsz=0;
-  num::Vector3 v0,v1;
+  mk_vertexnan(v0);
+  mk_vertexnan(v1);
   double basepos=.0,marklen=.0;
-  for (ii=0;ii<nxax;ii++) {
-    ax=xaxL[ii];
-    gc.m_fg=ax->m_style;
-    if (ax->pos()==typeTop) {
+  for (ii=MAX(0,idxlx);ii<=idxhx;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    xax=(Xaxis*)tid;
+    gc.m_fg=xax->m_style;
+    if (xax->pos()==typeTop) {
       basepos=baseyy1-1;
-      baseyy1-=ax->size().height();
+      baseyy1-=xax->size().height();
     }
     else {
       basepos=baseyy0;
-      baseyy0+=ax->size().height();
+      baseyy0+=xax->size().height();
     }
     gc.m_r.set(basex0,basepos,basex1,basepos);
     osix::xxdrawLine(disp,&m_pixscr,&gc);
-    sc=ax->scale();
+    sc=xax->scale();
     if (!sc)
       continue;
     ntics=sc->tics(&ticL);
     for (jj=0;jj<ntics;jj++) {
-      tic=ticL.at(jj);
-      ticsz=tic->m_size;
-      wmetric=ax->m_fnt[ticsz].m_metric.width();
-      hmetric=ax->m_fnt[ticsz].m_metric.height();
+      mk_listat(&ticL,jj,(void *)&tic);
+      ticsz=tic.m_size;
+      wmetric=xax->m_fnt[ticsz].m_metric.width();
+      hmetric=xax->m_fnt[ticsz].m_metric.height();
       marklen=hmetric/3.;
       if (marklen<3.)
         marklen=3.;
-      v0.setXY(tic->m_val,basepos);
-      ax->sc2sz(&v0);
-      v0.setX(v0[0]+basex0);
-      v1=v0;
-      v1.setY(v1[1]+(ax->pos()==typeTop ? -marklen : marklen));
+      v0[0]=tic.m_val;
+      v0[1]=basepos;
+      xax->sc2sz(v0);
+      v0[0]=(v0[0]+basex0);
+      mk_vertexcopy(v1,v0);
+      v1[1]=(v1[1]+(xax->pos()==typeTop ? -marklen : marklen));
       gc.m_r.set(v0,v1);
       osix::xxdrawLine(disp,&m_pixscr,&gc);
-      if (tic->m_drawable==0)
+      if (tic.m_drawable==0)
         continue;
-      tic->ucsText(&ticstr);
-      v0.setX(v0[0]-(double)ticstr.length()*wmetric/2.);
-      v0.setY(v0[1]+(ax->pos()==typeTop ? -marklen-hmetric : marklen+hmetric));
-      v1.setX(v1[0]+(double)ticstr.length()*wmetric/2.);
+      tic.ucsText(&ticstr);
+      v0[0]=(v0[0]-(double)ticstr.length()*wmetric/2.);
+      v0[1]=(v0[1]+(xax->pos()==typeTop ? -marklen-hmetric : marklen+hmetric));
+      v1[0]=(v1[0]+(double)ticstr.length()*wmetric/2.);
       gc.m_r.set(v0,v1);
-      gc.m_fnt=ax->m_fnt[ticsz];
+      gc.m_fnt=xax->m_fnt[ticsz];
       osix::xxdrawText(disp,&m_pixscr,&gc,&ticstr,0);
     }
   }
 
-  for (ii=0;ii<nyax;ii++) {
-    ax=yaxL[ii];
-    if (ax->pos()==typeRight) {
+  for (ii=MAX(0,idxly);ii<=idxhy;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    yax=(Yaxis*)tid;
+    if (yax->pos()==typeRight) {
       basepos=basex1;
-      basex1+=ax->size().width();
+      basex1+=yax->size().width();
     }
     else {
       basepos=basex0;
-      basex0-=ax->size().width();
+      basex0-=yax->size().width();
     }
     gc.m_r.set(basepos,basey0,basepos,basey1);
     osix::xxdrawLine(disp,&m_pixscr,&gc);
-    sc=ax->scale();
+    sc=yax->scale();
     if (!sc)
       continue;
     ntics=sc->tics(&ticL);
     for (jj=0;jj<ntics;jj++) {
-      tic=ticL.at(jj);
-      ticsz=tic->m_size;
-      wmetric=ax->m_fnt[ticsz].m_metric.width();
-      hmetric=ax->m_fnt[ticsz].m_metric.height();
+      mk_listat(&ticL,jj,(void *)&tic);
+      ticsz=tic.m_size;
+      wmetric=yax->m_fnt[ticsz].m_metric.width();
+      hmetric=yax->m_fnt[ticsz].m_metric.height();
       marklen=hmetric/3.;
       if (marklen<3.)
         marklen=3.;
-      v0.setXY(basepos,tic->m_val);
-      ax->sc2sz(&v0);
-      v0.setY(basey0-v0[1]);
-      v1=v0;
-      v1.setX(v1[0]+(ax->pos()==typeRight ? marklen : -marklen));
+      v0[0]=basepos;
+      v0[1]=tic.m_val;
+      yax->sc2sz(v0);
+      v0[1]=(basey0-v0[1]);
+      mk_vertexcopy(v1,v0);
+      v1[0]=(v1[0]+(yax->pos()==typeRight ? marklen : -marklen));
       gc.m_r.set(v0,v1);
       osix::xxdrawLine(disp,&m_pixscr,&gc);
-      if (tic->m_drawable==0)
+      if (tic.m_drawable==0)
         continue;
-      tic->ucsText(&ticstr);
-      if (ax->pos()==typeRight) {
-        v0.setX(v1[0]+marklen/2.);
-        v1.setY(v0[1]-hmetric/2.);
-        v0.setY(v0[1]+hmetric/2.);
-        v1.setX(v0[0]+(double)ticstr.length()*wmetric);  
+      tic.ucsText(&ticstr);
+      if (yax->pos()==typeRight) {
+        v0[0]=(v1[0]+marklen/2.);
+        v1[1]=(v0[1]-hmetric/2.);
+        v0[1]=(v0[1]+hmetric/2.);
+        v1[0]=(v0[0]+(double)ticstr.length()*wmetric);  
       }
       else {
-        v0.setXY(v1[0]-marklen/2.-(double)ticstr.length()*wmetric,v0[1]+hmetric/2.);
-        v1.setXY(v1[0],v1[1]-hmetric/2.);
+        v0[0]=(v1[0]-marklen/2.-(double)ticstr.length()*wmetric);
+        v0[1]=(v0[1]+hmetric/2.);
+        v1[1]=(v1[1]-hmetric/2.);
       }
       gc.m_r.set(v0,v1);
-      gc.m_fnt=ax->m_fnt[ticsz];
+      gc.m_fnt=yax->m_fnt[ticsz];
       osix::xxdrawText(disp,&m_pixscr,&gc,&ticstr,0);
     }
   }
-
   osix::xxpostdraw(disp,&m_pixscr,&gc);
+  mk_listfree(&ticL);
   return redoScr;
 
 }
@@ -505,53 +614,65 @@ int DiagramXY::drawGraphs() {
   osix::xxpredraw(disp,&m_pixplot,&gc);
   osix::xxfillRect(disp,&m_pixplot,&gc);
   
-  aux::TPList<Graph> grL;
-  int ii=0,jj=0,kk=0,cntp=0,cantpaint=0,ngr=typegraphs("graphxy",&grL);
-  if (ngr==0) {
+  int ii=0,jj=0,kk=0,cntp=0,cantpaint=0,idxl=-1,idxh=-1;
+  mk::TypeId grt(typeGraphXY);
+  m_entityL.cmp=mk::cmpTypeIdRefiType;
+  mk_listfind(&m_entityL,(void*)&grt,&idxl,&idxh);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  if (idxl<0) {
     osix::xxpostdraw(disp,&m_pixplot,&gc);
     osix::xxcopyArea(disp,&m_pixscr,&m_pixplot,&gc,rdest,rsrc); 
     return 0;
   }
-
   mk_string str;
-  Graph *graph=0;
-  aux::TVList<num::VertexList> *iL=0;
-  num::VertexList *vL=0;
-  num::VertexList mL;
+  mk_stringset(str,0);
+  mk::TypeId *tid=0;
+  GraphXY *graph=0;
+  mk_list *iL=0;
+  mk_list *vL=0;
+  mk_list mL;
+  mk_listalloc(&mL,sizeof(mk_vertex),0);
   shapes::Shape2 *mshape=0;
-  num::Vector3 pL[maxdatacnt];
-  memset(&pL[0],0,maxdatacnt*sizeof(num::Vector3));
-  for (ii=0;ii<ngr;ii++) {
-    graph=grL[ii];
+  mk_vertex pL[maxdatacnt];
+  mk_vertexnan(vv);
+  memset(&pL[0],0,maxdatacnt*sizeof(mk_vertex));
+  for (ii=MAX(0,idxl);ii<=idxh;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    graph=(GraphXY*)tid;
     gc.m_fg=graph->m_linestyle;
     iL=&(graph->m_scDataI);
-    for (jj=0;jj<iL->count();jj++) {
-      vL=iL->at(jj);
-      cntp=vL->count();
+    for (jj=0;jj<iL->count;jj++) {
+      mk_listat(iL,jj,(void*)&vL);
+      cntp=vL->count;
       cantpaint=(cntp==0 ? 1 : 0);
       for (kk=0;kk<cntp;kk++) {
-        if (vL->get(kk).busted(3)>0) {
+        mk_listat(vL,kk,(void*)&vv);
+        if (mk_isbusted(vv[0])>0 || mk_isbusted(vv[1])>0) {
           cantpaint=1;
           break;
         }
-        pL[kk].setXY(vL->get(kk).x(),rsrc.size().height()-vL->get(kk).y()-1.);
+        pL[kk][0]=vv[0];
+        pL[kk][1]=(rsrc.size().height()-vv[1]-1.);
       }
       if (cantpaint==0) {
         osix::xxdrawLines(disp,&m_pixplot,&gc,pL,kk,0);
       }  
     }
-    for (jj=0;jj<=graph->m_scMark.last();jj++) {
-      mshape=graph->m_scMark.at(jj); 
-      if (!mshape || (mshape->m_styleF.m_style==0 && 
-          (mshape->m_styleO.m_width==.0 || mshape->m_styleO.m_style==0))) 
+    for (jj=0;jj<graph->m_scMark.count;jj++) {
+      mk_listat(&graph->m_scMark,jj,(void*)&mshape);
+      if (mshape->getStyleF().m_style==0 && 
+          (mshape->getStyleO().m_width==.0 || mshape->getStyleO().m_style==0)) 
         continue;
       mshape->eval(&mL); 
-      cntp=mL.count();
+      cntp=mL.count;
       if (cntp>0) {
-        for (kk=0;kk<cntp;kk++)
-          pL[kk].setXY(mL.get(kk).x(),rsrc.size().height()-mL.get(kk).y()-1.);
-        gc.m_fg=mshape->m_styleO;
-        gc.m_bg=mshape->m_styleF;
+        for (kk=0;kk<cntp;kk++) {
+          mk_listat(&mL,kk,(void*)&vv);
+          pL[kk][0]=vv[0];
+          pL[kk][1]=rsrc.size().height()-vv[1]-1.;
+        }
+        gc.m_fg=mshape->getStyleO();
+        gc.m_bg=mshape->getStyleF();
         osix::xxfillPolygon(disp,&m_pixplot,&gc,pL,cntp,0);
       }
     }
@@ -559,6 +680,7 @@ int DiagramXY::drawGraphs() {
   
   osix::xxpostdraw(disp,&m_pixplot,&gc);
   osix::xxcopyArea(disp,&m_pixscr,&m_pixplot,&gc,rdest,rsrc); 
+  mk_listfree(&mL);
   return redoScr;
 
 }
@@ -576,32 +698,34 @@ int DiagramXY::redrawGraphs(void *disp) {
 
 osix::xxRectSize DiagramXY::setup(osix::xxRectSize sz,osix::xxRectSize *excess) {
 
-  if (m_corps.count()==0)
+  if (m_entityL.count==0)
     return sz;
-  aux::TypeId xax(typeXaxis),yax(typeYaxis),gr(typeGraphXY);
-  aux::TVArr<int> xidxL,yidxL,gridxL;
-  m_corps.cmp=aux::cmpType;
-  int ii=0,nx=m_corps.findAll(&xax,&xidxL),
-          ny=m_corps.findAll(&yax,&yidxL),
-          ngr=m_corps.findAll(&gr,&gridxL);
-  m_corps.cmp=0;
-  Axis *ax=0;
-  Graph *graph=0;
+  mk::TypeId xaxt(typeXaxis),yaxt(typeYaxis),grt(typeGraphXY);
+  int ii=0,idxlx=-1,idxhx=-1,idxly=-1,idxhy=-1,idxlg=-1,idxhg=-1;
+  m_entityL.cmp=mk::cmpTypeIdRefiType;
+  mk_listfind(&m_entityL,(void*)&xaxt,&idxlx,&idxhx);
+  mk_listfind(&m_entityL,(void*)&yaxt,&idxly,&idxhy);
+  mk_listfind(&m_entityL,(void*)&grt,&idxlg,&idxhg);
+  m_entityL.cmp=mk::cmpTypeIdRef;
+  Xaxis *xax=0;
+  Yaxis *yax=0;
+  GraphXY *graph=0;
+  mk::TypeId *tid=0;
   double hexcess=.0,wexcess=.0,tmp=.0;
-  for (ii=0;ii<nx;ii++) {  
-    ax=dynamic_cast<Axis*>(m_corps[xidxL[ii]]); 
-    if (ax)
-      tmp=ax->needExcess(sz);
+  for (ii=idxlx;ii<=idxhx;ii++) {  
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    xax=(Xaxis*)tid; 
+    tmp=xax->needExcess(sz);
     if (tmp>wexcess)
       wexcess=tmp;
   }
   wexcess=mk_round2(wexcess);
   wexcess+=(double)((int)wexcess%2);
   sz.setWidth(sz.width()-wexcess);
-  for (ii=0;ii<ny;ii++) {
-    ax=dynamic_cast<Axis*>(m_corps[yidxL[ii]]); 
-    if (ax)
-      tmp=ax->needExcess(sz);
+  for (ii=idxly;ii<=idxhy;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    yax=(Yaxis*)tid; 
+    tmp=yax->needExcess(sz);
     if (tmp>hexcess)
       hexcess=tmp;
   }
@@ -610,32 +734,32 @@ osix::xxRectSize DiagramXY::setup(osix::xxRectSize sz,osix::xxRectSize *excess) 
   if (excess)
     *excess=osix::xxRectSize(wexcess,hexcess);
   sz.setHeight(sz.height()-hexcess);
-  for (ii=0;ii<nx;ii++) {  
-    ax=dynamic_cast<Axis*>(m_corps[xidxL[ii]]); 
-    if (ax)
-      sz.setHeight(sz.height()-ax->needSize(sz));
+
+  for (ii=idxlx;ii<=idxhx;ii++) {  
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    xax=(Xaxis*)tid;
+    sz.setHeight(sz.height()-xax->needSize(sz));
   }
-  for (ii=0;ii<ny;ii++) {
-    ax=dynamic_cast<Axis*>(m_corps[yidxL[ii]]); 
-    if (ax)
-      sz.setWidth(sz.width()-ax->needSize(sz));
+  for (ii=idxly;ii<=idxhy;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    yax=(Yaxis*)tid; 
+    sz.setWidth(sz.width()-yax->needSize(sz));
   }
-  for (ii=0;ii<nx;ii++) {  
-    ax=dynamic_cast<Axis*>(m_corps[xidxL[ii]]); 
-    if (ax)
-      ax->resize(sz);
+  for (ii=idxlx;ii<=idxhx;ii++) {  
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    xax=(Xaxis*)tid;
+    xax->resize(sz);
   }
-  for (ii=0;ii<ny;ii++) {
-    ax=dynamic_cast<Axis*>(m_corps[yidxL[ii]]); 
-    if (ax)
-      ax->resize(sz);
+  for (ii=idxly;ii<=idxhy;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    yax=(Yaxis*)tid; 
+    yax->resize(sz);
   }
-  for (ii=0;ii<ngr;ii++) {
-    graph=dynamic_cast<Graph*>(m_corps[gridxL[ii]]);
-    if (graph)
-      graph->rescale();
+  for (ii=idxlg;ii<=idxhg;ii++) {
+    mk_listat(&m_entityL,ii,(void*)&tid);
+    graph=(GraphXY*)tid; 
+    graph->rescale();
   }
-    
   return sz;
   
 }
@@ -644,15 +768,16 @@ int DiagramXY::mousePressed (osix::xxEvent *xxev) {
 
   if (m_mouseMode==0)
     return 0;
-  bool inplotarea=(m_pixplot.m_r.left()+1.<xxev->m_pos.x() && 
-                   xxev->m_pos.x()<m_pixplot.m_r.right()-1. &&
-                   m_pixplot.m_r.top()+1.<xxev->m_pos.y() && 
-                   xxev->m_pos.y()<m_pixplot.m_r.bottom()-1.);
+  bool inplotarea=(m_pixplot.m_r.left()+1.<xxev->m_pos[0] && 
+                   xxev->m_pos[0]<m_pixplot.m_r.right()-1. &&
+                   m_pixplot.m_r.top()+1.<xxev->m_pos[1] && 
+                   xxev->m_pos[1]<m_pixplot.m_r.bottom()-1.);
   if (inplotarea) {
     if ((m_mouseMode&mouseModify)>0 && (xxev->m_buttons&osix::xxm_leftButton)>0) {
       if (xxev->m_mods==0) {
-        aux::TypeId sel=selectGraph(num::Vector3(xxev->m_pos.x()-m_pixplot.m_r.left(),
-                                    m_pixplot.m_r.bottom()-xxev->m_pos.y()));
+        mk_vertex vv={xxev->m_pos[0]-m_pixplot.m_r.left(),
+                      m_pixplot.m_r.bottom()-xxev->m_pos[1],mk_dnan,1.};
+        mk::TypeId sel=selectGraph(vv);
       }
     }
     xxev->m_consumer|=osix::xx_processed;
@@ -669,30 +794,31 @@ int DiagramXY::mouseMoved (osix::xxEvent *xxev) {
 
   if (m_mouseMode==0)
     return 0;
-  bool inplotarea=(m_pixplot.m_r.left()+1.<xxev->m_pos.x() && 
-                   xxev->m_pos.x()<m_pixplot.m_r.right()-1. &&
-                   m_pixplot.m_r.top()+1.<xxev->m_pos.y() && 
-                   xxev->m_pos.y()<m_pixplot.m_r.bottom()-1.);
+  bool inplotarea=(m_pixplot.m_r.left()+1.<xxev->m_pos[0] && 
+                   xxev->m_pos[0]<m_pixplot.m_r.right()-1. &&
+                   m_pixplot.m_r.top()+1.<xxev->m_pos[1] && 
+                   xxev->m_pos[1]<m_pixplot.m_r.bottom()-1.);
   //void *disp=findDisplay();
   int redrawflag=0;
   osix::xxGC xxgc;
   osix::xxRect rdest(m_pixplot.m_r),rsrc(.0,.0,rdest.size());
+  DiagramSelection sel;
   if (inplotarea) {
     xxev->m_consumer|=osix::xx_processed;
     if (xxev->m_mods==0) {
       redrawflag|=drawCrosshair(xxev);
       redrawflag|=drawZoomRect(xxev);
       if ((m_mouseMode&mouseModify)>0 && (xxev->m_buttons&osix::xxm_leftButton)>0) {
-        int selcnt=m_selected.count();
+        int selcnt=m_selected.count;
         if (selcnt==0)
           return 0;
-        Graph *gg=graph(m_selected.at(0)->m_sel);
+        mk_listat(&m_selected,0,(void *)&sel);
+        Graph *gg=graph(sel.m_sel);
         if (gg) {
-          num::Vector3 vv(xxev->m_pos.x()-m_pixplot.m_r.left(),
-                          m_pixplot.m_r.bottom()-xxev->m_pos.y());
-          gg->sz2sc(&vv);
-//printf ("v=%f,%f\n",vv.x(),vv.y());
-          gg->setValue(m_selected.at(0)->m_idx,&vv);
+          mk_vertex vv={xxev->m_pos[0]-m_pixplot.m_r.left(),
+                        m_pixplot.m_r.bottom()-xxev->m_pos[1],mk_dnan,1.};
+          gg->sz2sc(vv);
+          gg->setValue(sel.m_idx,vv);
           gg->rescale();
           redrawflag|=redoDrawGraph;
         }
@@ -714,28 +840,33 @@ int DiagramXY::mouseReleased (osix::xxEvent *xxev) {
 
   if (m_mouseMode==0)
     return 0;
-  bool inplotarea=(m_pixplot.m_r.left()+1.<xxev->m_pos.x() && 
-                   xxev->m_pos.x()<m_pixplot.m_r.right()-1. &&
-                   m_pixplot.m_r.top()+1.<xxev->m_pos.y() && 
-                   xxev->m_pos.y()<m_pixplot.m_r.bottom()-1.);
-  int redrawflag=0,ii=0,jj=0,nxax=0,nyax=0,idx=-1,selcnt=m_selected.count(),
-      boundsopt=(typeBoundStaticMin|typeBoundStaticMax);
+  bool inplotarea=(m_pixplot.m_r.left()+1.<xxev->m_pos[0] && 
+                   xxev->m_pos[0]<m_pixplot.m_r.right()-1. &&
+                   m_pixplot.m_r.top()+1.<xxev->m_pos[1] && 
+                   xxev->m_pos[1]<m_pixplot.m_r.bottom()-1.);
+  int redrawflag=0,ii=0,jj=0,idx=-1,idxlx=-1,idxhx=-1,idxly=-1,idxhy=-1,
+    selcnt=m_selected.count,boundsopt=(typeBoundStaticMin|typeBoundStaticMax);
+  mk::TypeId xaxt(typeXaxis),yaxt(typeYaxis);
+  Xaxis *xax=0;
+  Yaxis *yax=0;
+  mk::TypeId *tid=0;
   if (inplotarea) {
     xxev->m_consumer|=osix::xx_processed;
-    aux::TPList<Axis> xaxL,yaxL;
-    Axis *ax=0;
-    num::Vector3 vv(xxev->m_pos.x()-m_pixplot.m_r.left(),
-                    m_pixplot.m_r.bottom()-xxev->m_pos.y()),
-                 vdown(xxev->m_downpos.x()-m_pixplot.m_r.left(),
-                       m_pixplot.m_r.bottom()-xxev->m_downpos.y()),
-                 vvv=vv,vvdown=vdown;
-//aux::Aciistr numstr;
-    Graph *gg=(selcnt>0 ? graph(m_selected.at(0)->m_sel) : 0);
+    mk_vertex vv={xxev->m_pos[0]-m_pixplot.m_r.left(),
+                  m_pixplot.m_r.bottom()-xxev->m_pos[1],mk_dnan,1.};
+    mk_vertex vdown={xxev->m_downpos[0]-m_pixplot.m_r.left(),
+                     m_pixplot.m_r.bottom()-xxev->m_downpos[1],mk_dnan,1.};
+    mk_vertexnan(vvv);
+    mk_vertexcopy(vvv,vv);
+    mk_vertexnan(vvdown);
+    mk_vertexcopy(vvdown,vdown);
+    DiagramSelection sel;
+    mk_listat(&m_selected,0,(void *)&sel);
+    Graph *gg=(selcnt>0 ? graph(sel.m_sel) : 0);
     if ((m_mouseMode&mouseModify)>0 && (xxev->m_buttons&osix::xxm_leftButton)>0) {
       if ((xxev->m_mods&osix::xx_modAlt)>0) {
         if (!gg)
           gg=graph(selectGraph(vvv,false));
-//printf ("mode=%d state=%d mods=%d cnt=%d g=%d\n",m_mouseMode,state,(int)mods,m_selected.count(),(long)g);
         if (!gg) {
           if ((xxev->m_mods&osix::xx_modShift)==0) {
 
@@ -753,9 +884,8 @@ int DiagramXY::mouseReleased (osix::xxEvent *xxev) {
             }
           }
           else {
-            gg->sz2sc(&vvv);
-//printf ("v=%f,%f\n",vv.x(),vv.y());
-            idx=gg->setValue(-1,&vvv);
+            gg->sz2sc(vvv);
+            idx=gg->setValue(-1,vvv);
             if (idx>=0) {
               gg->rescale();
               redrawflag|=redoDrawGraph;
@@ -770,41 +900,45 @@ int DiagramXY::mouseReleased (osix::xxEvent *xxev) {
     else if((m_mouseMode&mouseZoom)>0) {
       if ((xxev->m_buttons&osix::xxm_leftButton)>0 &&
           (xxev->m_buttons&(~osix::xxm_leftButton))==0) {
-        nxax=typeaxes("xaxis",&xaxL);
-        nyax=typeaxes("yaxis",&yaxL);
-        for (ii=0;ii<nxax;ii++) {
-          ax=xaxL[ii];
-          if (!ax->scale())
+        m_entityL.cmp=mk::cmpTypeIdRefiType;
+        mk_listfind(&m_entityL,(void*)&xaxt,&idxlx,&idxhx);
+        mk_listfind(&m_entityL,(void*)&yaxt,&idxly,&idxhy);
+        m_entityL.cmp=mk::cmpTypeIdRef;
+        for (ii=MAX(idxlx,0);ii<=idxhx;ii++) {
+          mk_listat(&m_entityL,ii,(void*)&tid);
+          xax=(Xaxis*)tid;
+          if (!xax->scale())
             continue;
           if ((xxev->m_mods&osix::xx_modShift)>0) {
-            ax->scale()->unstackRange(1);
+            xax->scale()->unstackRange(1);
             jj++; 
           } 
           else if (xxev->m_mods==0) { 
-            if (vdown.busted(3)==0) {
-              vvv=vv;
-              vvdown=vdown;
-              ax->sz2sc(&vvv);
-              ax->sz2sc(&vvdown);
-              ax->scale()->stackRange(vvdown[0],vvv[0],boundsopt);
+            if (mk_isbusted(vdown[0])==0 && mk_isbusted(vdown[1])==0) {
+              mk_vertexcopy(vvv,vv);
+              mk_vertexcopy(vvdown,vdown);
+              xax->sz2sc(vvv);
+              xax->sz2sc(vvdown);
+              xax->scale()->stackRange(vvdown[0],vvv[0],boundsopt);
               jj++; 
             }
           }
         }  
-        for (ii=0;ii<nyax;ii++) {
-          ax=yaxL[ii];
-          if (!ax->scale())
+        for (ii=MAX(idxly,0);ii<=idxhy;ii++) {
+          mk_listat(&m_entityL,ii,(void*)&tid);
+          yax=(Yaxis*)tid;
+          if (!yax->scale())
             continue;
           if ((xxev->m_mods&osix::xx_modShift)>0) { 
-            ax->scale()->unstackRange(1);
+            yax->scale()->unstackRange(1);
             jj++; 
           }
           else if (xxev->m_mods==0) { 
-            vvv=vv;
-            vvdown=vdown;
-            ax->sz2sc(&vvv);
-            ax->sz2sc(&vvdown);
-            ax->scale()->stackRange(vvdown[1],vvv[1],boundsopt);
+            mk_vertexcopy(vvv,vv);
+            mk_vertexcopy(vvdown,vdown);
+            yax->sz2sc(vvv);
+            yax->sz2sc(vvdown);
+            yax->scale()->stackRange(vvdown[1],vvv[1],boundsopt);
             jj++; 
           }
         }
@@ -851,10 +985,10 @@ int DiagramXY::drawCrosshair(osix::xxEvent *xxev) {
   if ((m_mouseMode&mouseCrosshair)==0) 
     return 0;
   
-  num::Vector3 pv0(xxev->m_pos.x(),m_pixplot.m_r.top()+1.),
-               pv1(xxev->m_pos.x(),m_pixplot.m_r.bottom()-1.),
-               ph0(m_pixplot.m_r.left()+1.,xxev->m_pos.y()),
-               ph1(m_pixplot.m_r.right()-1.,xxev->m_pos.y());
+  mk_vertex pv0={xxev->m_pos[0],m_pixplot.m_r.top()+1.,mk_dnan,1.};  
+  mk_vertex pv1={xxev->m_pos[0],m_pixplot.m_r.bottom()-1.,mk_dnan,1.}; 
+  mk_vertex ph0={m_pixplot.m_r.left()+1.,xxev->m_pos[1],mk_dnan,1.}; 
+  mk_vertex ph1={m_pixplot.m_r.right()-1.,xxev->m_pos[1],mk_dnan,1.}; 
   osix::xxGC gc;
   void *disp=findDisplay();
   redrawGraphs(disp);

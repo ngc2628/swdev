@@ -6,8 +6,8 @@ PRJ           = mkbase
 DESTDIR       = $(LIBDIR)
 TARGET        = lib$(PRJ).so
 DEFINES       =
-HEADER        = defs.h exportdefs.h mkutil.h mkmath.h mkconv.h mkla.h 
-SOURCES       = mkutil.c mkmath.c mkconv.c mkla.c
+HEADER        = defs.h exportdefs.h mkutil.h mkmath.h mkconv.h mkla.h  mkana.h
+SOURCES       = mkutil.c mkmath.c mkconv.c mkla.c mkana.c
 LIBS          = -lz -lm
 SOLN		  = -shared
 

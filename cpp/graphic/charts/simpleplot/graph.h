@@ -3,10 +3,9 @@
 #define _graph_h_
 //..end "Ifdef"
 
-#include <auxx/auxx.h>
-#include <numeric/vertex.h>
 #include <numeric/interpolation.h>
 #include <osix/xxstyle.h>
+#include <tools/typeid.h>
 #include <graphic/shapes/polygon.h>
 
 namespace simpleplot {
@@ -14,7 +13,9 @@ namespace simpleplot {
 const char *const typeGraphXY="graphxy";
 const int maxdatacnt=4096;
 const int nummarkshapes2d=6;
-const char * const markshapes2d[nummarkshapes2d]={"none","circle","square","triangle","diamond","unknown"};
+const char * const markshapes2d[nummarkshapes2d]={
+  "none","circle","square","triangle","diamond","unknown"
+};
 
 class oswinexp GraphData {
 
@@ -24,11 +25,11 @@ class oswinexp GraphData {
     virtual ~GraphData() {
     }
     virtual int count() const=0;
-    virtual num::Vector3 data(int,int *avail=0)=0;
-    virtual int data(num::VertexList *) {
+    virtual int data(int,mk_vertex,int *avail=0)=0;
+    virtual int data(mk_list *) {
       return 0;
     };
-    virtual int setData(int,num::Vector3*) {
+    virtual int setData(int,mk_vertex) {
       return -1;
     }
     virtual int findBounds(int,double *,double *)=0;
@@ -44,7 +45,7 @@ class oswinexp GraphData {
     virtual int setSortype(int) {
       return -1;
     }
-    virtual int match(num::Vector3,num::Vector3) {
+    virtual int match(mk_vertex,mk_vertex) {
       return -1;
     }
     
@@ -64,67 +65,63 @@ extern const char* oswinexp idx2markshape2(int);
 class oswinexp GraphData2 : public GraphData {
 
   protected:
-    num::VertexList m_data; 
-    aux::TPArr<shapes::Shape2> m_mark;
+    mk_list m_data; 
+    mk_list m_mark;
     int m_sortype;
+    GraphData2(const GraphData2 &ass) : GraphData(ass) {
+    }
+    GraphData2 &operator=(const GraphData2 &){
+      return *this;
+    }
 
   public:
     GraphData2(int sz=0);
-    GraphData2(const GraphData2 &ass);
-    virtual ~GraphData2() {
-      m_mark.resize(0,true);
-    }
-    GraphData2 &operator=(const GraphData2 &);
+    virtual ~GraphData2();
     virtual int count() const {
-      return m_data.count();
+      return m_data.count;
     }
-    virtual num::Vector3 data(int idx,int *avail=0);
-    virtual int data(num::VertexList *);
-    virtual int setData(int,num::Vector3*);
+    virtual int data(int,mk_vertex,int *avail=0);
+    virtual int data(mk_list *);
+    virtual int setData(int,mk_vertex);
     virtual int findBounds(int,double *,double *);
     virtual shapes::Shape2 *mark(int);
-    virtual  int setMark(int,shapes::Shape2 *);
+    virtual int setMark(int,shapes::Shape2 *);
     virtual int sortype() const {
       return m_sortype;
     }
     virtual int setSortype(int);
-    virtual int match(num::Vector3,num::Vector3);
+    virtual int match(mk_vertex,mk_vertex);
     
 };
 
-class oswinexp Graph : public aux::TypeId {
+class oswinexp Graph : public mk::TypeId {
 	
   public:
     GraphData *m_graphdata;
     osix::xxStyle m_linestyle;
-    aux::TypeId *m_axis[3];
-    num::VertexList m_scData;
-    aux::TVList<num::VertexList> m_scDataI;
-    aux::TPArr<shapes::Shape2> m_scMark;
-    Graph(const char *type=0,unsigned int idd=0) : aux::TypeId(type,idd),m_graphdata(0) {
-      m_axis[0]=m_axis[1]=m_axis[2]=0;
-    }
-		virtual ~Graph() {
-		  if (m_graphdata)
-		    delete m_graphdata;
-		}
+    mk::TypeId *m_axis[3];
+    mk_list m_scData;
+    mk_list m_scDataI;                        
+    mk_list m_scMark;
+    Graph(const char *type=0,unsigned int idd=0);
+		virtual ~Graph();
     bool operator==(const Graph &cmp) const {
-      return ((const aux::TypeId*)this)->operator==((const aux::TypeId&)cmp);
+      return ((const mk::TypeId*)this)->operator==((const mk::TypeId&)cmp);
     }
     bool operator<(const Graph &cmp) const {
-      return ((const aux::TypeId*)this)->operator<((const aux::TypeId&)cmp);
+      return ((const mk::TypeId*)this)->operator<((const mk::TypeId&)cmp);
     }
 
     virtual int findBounds(int,double *,double *) {
       return -1;
     }
-    virtual int match(num::Vector3) const;
-    virtual num::Vector3 value(int,int *avail=0) const {
+    virtual int match(mk_vertex) const;
+    virtual int value(int,mk_vertex vertex,int *avail=0) const {
       if (avail)
         *avail=0;
-      return num::Vector3();
+      return 1;
     }
-    virtual int setValue(int,num::Vector3*,int *modbounds=0) {
+    virtual int setValue(int,mk_vertex,int *modbounds=0) {
       if (modbounds)
         *modbounds=0;
       return -1;
@@ -132,11 +129,11 @@ class oswinexp Graph : public aux::TypeId {
     virtual int rescale() {
       return 0;
     }
-    virtual int sc2sz(num::Vector3 *) const;
-    virtual int sz2sc(num::Vector3 *) const;
+    virtual int sc2sz(mk_vertex) const;
+    virtual int sz2sc(mk_vertex) const;
     
 	protected:
-    Graph(const Graph &) : aux::TypeId() {
+    Graph(const Graph &) : mk::TypeId() {
     }
     Graph &operator=(const Graph &) {
       return *this; 
@@ -157,8 +154,8 @@ class oswinexp GraphXY : public Graph {
       return ((const Graph*)this)->operator<((const Graph&)cmp);
     }
     virtual int findBounds(int,double *,double *);
-    virtual num::Vector3 value(int,int *avail=0) const;
-    virtual int setValue(int,num::Vector3 *,int *modbounds=0);
+    virtual int value(int,mk_vertex,int *avail=0) const;
+    virtual int setValue(int,mk_vertex,int *modbounds=0);
     int rescale();
     
   protected:

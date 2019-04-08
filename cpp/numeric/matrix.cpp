@@ -8,279 +8,110 @@
 
 namespace num {
 
-Matrix::Matrix(int rows,int cols,double **m) : m_rows(0),m_cols(0),m_m(0) {
+Matrix::Matrix(int rows,int cols) {
 
-  setArr(rows,cols,m);
+  mk_matrixalloc(&m_mat,rows,cols);
 
 }
 
-Matrix::Matrix(const Matrix &ass)  : m_rows(0),m_cols(0),m_m(0) {
+Matrix::Matrix(const Matrix &ass) {
 
-  setArr(ass.m_rows,ass.m_cols,ass.m_m);
+  mk_matrixalloc(&m_mat,0,0);
+  mk_matrixcopy(&m_mat,&ass.m_mat);
 
 }
 
 Matrix::~Matrix() {
 
-  clearArr();
+  mk_matrixfree(&m_mat);
 
 }
 
 Matrix &Matrix::operator=(const Matrix &ass) {
 
-  if (this==&ass)
-    return *this;
-  setArr(ass.m_rows,ass.m_cols,ass.m_m);
+  if (&ass!=this) 
+    mk_matrixcopy(&m_mat,&ass.m_mat);
   return *this;
-
-}
-
-bool Matrix::operator==(const Matrix &cmp) const {
-
-  if (m_rows==cmp.m_rows && m_cols==cmp.m_cols) {
-    int ii=0,jj=0;
-    for (ii=0;ii<m_rows;ii++) {
-      for (jj=0;jj<m_cols;jj++) {
-        if (m_m[ii][jj]!=cmp.m_m[ii][jj])
-          return false;
-      }
-    }
-    return true;
-  }
-  return false;
-
-}
-
-bool Matrix::operator<(const Matrix &cmp) const {
-
-  if (m_rows==cmp.m_rows && m_cols==cmp.m_cols) {
-    int ii=0,jj=0;
-    for (ii=0;ii<m_rows;ii++) {
-      for (jj=0;jj<m_cols;jj++) {
-        if (m_m[ii][jj]<cmp.m_m[ii][jj])
-          return true;
-      }
-    }
-    return true;
-  }
-  return (m_rows<cmp.m_rows || (m_rows==cmp.m_rows && m_cols<cmp.m_cols));
-
-}
-
-void Matrix::clearArr() {
-
-  int ii=0;
-  if (m_m) {
-    for (ii=0;ii<m_rows;ii++)
-      delete [] m_m[ii];
-    delete [] m_m;
-  }
-  m_m=0;
-  m_rows=m_cols=0;
-
-}
-
-int  Matrix::setArr(int rows,int cols,double **m) {
-
-  clearArr();
-  if (rows<1 || cols<1)
-    return 1; // that does not look like a matrix --> out
-  int ii=0,jj=0;
-  m_rows=rows;
-  m_cols=cols;
-  m_m=new double*[(size_t)rows];
-  for (ii=0;ii<rows;ii++) {
-    m_m[ii]=new double[(size_t)cols];
-    // make identity matrix (if quadratic, else set subdiagonal to identity)
-    for (jj=0;jj<cols;jj++)
-      m_m[ii][jj]=(m ? m[ii][jj] : (ii==jj ? 1. : .0));
-  }
-  return 0;
 
 }
 
 int Matrix::rows() const {
 
-  return m_rows;
+  return m_mat.rows;
 
 }
 
 int Matrix::cols() const {
 
-  return m_cols;
+  return m_mat.cols;
 
 }
 
-double **Matrix::data(int *rows,int *cols) {
+double Matrix::getValue(int row,int col) const {
 
-  if (rows)
-    *rows=m_rows;
-  if (cols)
-    *cols=m_cols;
-  return m_m;
+  return mk_matrixget(&m_mat,row,col);
 
 }
 
-double Matrix::m(int row,int col) {
+int Matrix::setValue(int row,int col,double value) {
 
-  if (!m_m || row<0 || row>=m_rows || col<0 || col>=m_cols)
-    return .0;
-  return m_m[row][col];
-
-}
-
-bool Matrix::isIdentity(double df) {
-
-  if (!m_m || m_rows!=m_cols)
-    return false;
-  int ii=0,jj=0;
-  for (ii=0;ii<m_rows;ii++) {
-    for (jj=0;jj<m_cols;jj++) {
-      if ((ii==jj && mk_diff(m_m[ii][jj],1.,df)!=.0) || (ii!=jj && mk_diff(m_m[ii][jj],.0,df)!=0))
-        return false;
+  int ii=0,jj=0,orr=m_mat.rows,occ=m_mat.cols;
+  if (row>=orr || col>=occ) {
+    struct mk_matrix cpmat;
+    mk_matrixalloc(&cpmat,0,0);
+    mk_matrixcopy(&cpmat,&m_mat);
+    mk_matrixfree(&m_mat);
+    mk_matrixalloc(&m_mat,(row>=orr ? row+1 : orr),(col>=occ ? col+1 : occ));
+    for (ii=0;ii<orr;ii++) {
+      for (jj=0;jj<occ;jj++)
+        mk_matrixset(&m_mat,ii,jj,mk_matrixget(&cpmat,ii,jj));
     }
+    mk_matrixfree(&cpmat);
   }
-  return true;
-
-}
-
-void Matrix::clearCtrl() {
-
-  clearArr();
-
-}
-
-int Matrix::setCtrl(int rows,int cols,double **m) {
-
-  return setArr(rows,cols,m);
-
-}
-
-void Matrix::invalidate() {
-
-}
-
-void Matrix::reset(bool zero) {
-
-  int ii=0,jj=0;
-  for (ii=0;ii<m_rows;ii++) {
-    if (zero)
-      memset(m_m[ii],0,m_cols*sizeof(double));
-    else {
-      for (jj=0;jj<m_cols;jj++)
-        m_m[ii][jj]=(ii==jj ? 1. : .0);
-    }
-  }
-
-}
-
-int Matrix::alter(int row, int col, double value) {
-
-  if (row<0 || col<0)
-    return 1;
-  int ii=0;
-  // do we have to expand the data structure ? ...
-  bool addrows=(row>=m_rows || !m_m),addcols=(col>=m_cols || !m_m);
-  // ... if yes do so (copy all contents into a temorary matrix and copy back afterwards)
-  if (addrows || addcols) {
-    int rows=m_rows,cols=m_cols;
-    Matrix *cpm=0;
-    if (m_m)
-      cpm=new Matrix(rows,cols,m_m);
-    if (!setArr(addrows ? row+1 : rows,addcols ? col+1 : cols,0)) {
-      if (cpm)
-        delete cpm;
-      return 1;
-    }
-    if (cpm) {
-      for (ii=0;ii<rows;ii++)
-        memcpy(m_m[ii],cpm->m_m[ii],cols*sizeof(double));
-      delete cpm;
-    }
-  }
-  // set the value now ...
-  m_m[row][col]=value;
-  // ... and invalidate all post calculated data
+  int res=mk_matrixset(&m_mat,row,col,value);
   invalidate();
-  return 0;
+  return res;
 
 }
 
-void Matrix::transpose() {
+int Matrix::clear() {
 
-  if (!m_m)
-    return;
-  Matrix cpm(m_rows,m_cols,m_m);
-  if (m_rows!=m_cols)
-    setArr(m_cols,m_rows,0);
-  int ii=0,jj=0;
-  for (ii=0;ii<m_rows;ii++) {
-    for (jj=0;jj<m_cols;jj++)
-      m_m[ii][jj]=cpm.m_m[jj][ii];
-  }
+  return mk_matrixfree(&m_mat);
 
 }
 
-int Matrix::mult(int rows,int cols,double **m) {
+int Matrix::invalidate() {
 
-  if (!m_m || m_cols!=rows)
-    return 1;
-  int ii=0,jj=0,kk=0,myrows=m_rows;
-  double **res=new double*[(size_t)m_rows];
-  for (ii=0;ii<m_rows;ii++) {
-    res[ii]=new double[(size_t)cols];
-    memset(&res[ii][0],0,cols*sizeof(double));
-  }
-  for (ii=0;ii<m_rows;ii++) {
-    for (jj=0;jj<cols;jj++) {
-      for (kk=0;kk<m_cols;kk++)
-        res[ii][jj]+=m_m[ii][kk]*m[kk][jj];
-    }
-  }
-  invalidate();
-  clearArr();
-  m_rows=myrows;
-  m_cols=cols;
-  m_m=res;
-  return 0;
+  return 1;
 
 }
 
-int Matrix::mult(Matrix *matrix) {
+int Matrix::reset(int identity) {
 
-  if (!matrix || !m_m || m_cols!=matrix->m_rows)
-    return 1;
-  int ii=0,jj=0,kk=0,myrows=m_rows;
-  double **res=new double*[(size_t)m_rows];
-  for (ii=0;ii<m_rows;ii++) {
-    res[ii]=new double[(size_t)matrix->m_cols];
-    memset(&res[ii][0],0,matrix->m_cols*sizeof(double));
-  }
-  for (ii=0;ii<m_rows;ii++) {
-    for (jj=0;jj<matrix->m_cols;jj++) {
-      for (kk=0;kk<m_cols;kk++)
-        res[ii][jj]+=m_m[ii][kk]*matrix->m_m[kk][jj];
-    }
-  }
-  invalidate();
-  clearArr();
-  m_rows=myrows;
-  m_cols=matrix->m_cols;
-  m_m=res;
-  return 0;
+  return mk_matrixreset(&m_mat,identity);
+
+}
+
+int Matrix::transpose() {
+
+  return mk_matrixtranspose(&m_mat);
+
+}
+
+int Matrix::mult(Matrix *mat) {
+
+  return mk_matrixmult(&m_mat,(const struct mk_matrix*)&mat->m_mat);
 
 }
 
 int Matrix::toString(mk_string str) const {
 
-  if (!m_m)
-    return 1;
   mk_string numstr;
   mk_stringset(numstr,0);
   int ii=0,jj=0;
-  for (ii=0;ii<m_rows;ii++) {
-    for (jj=0;jj<m_cols;jj++) {
-      mk_d2str(m_m[ii][jj],numstr,6,1,12,0,0);
+  for (ii=0;ii<m_mat.rows;ii++) {
+    for (jj=0;jj<m_mat.cols;jj++) {
+      mk_d2str(getValue(ii,jj),numstr,8,'e',1,0,0);
       mk_stringappend(str,&numstr[0]);
       mk_stringappend(str,"  ");
     }
@@ -290,9 +121,10 @@ int Matrix::toString(mk_string str) const {
 
 }
 
-SquareMatrix::SquareMatrix(int dim,double **m) : Matrix(dim,dim,m),m_lum(0),m_rowperm(0),m_parity(1.) {
+SquareMatrix::SquareMatrix(int dim) : 
+  Matrix(dim,dim),m_rowperm(0),m_parity(1.) {
 
-  decomposition();
+  mk_matrixalloc(&m_lum,0,0);
 
   /*int ii=0,jj=0;
   for (ii=0;ii<m_rows;ii++) {
@@ -304,28 +136,21 @@ SquareMatrix::SquareMatrix(int dim,double **m) : Matrix(dim,dim,m),m_lum(0),m_ro
 }
 
 SquareMatrix::SquareMatrix(const SquareMatrix &ass) :
-    Matrix(ass.m_rows,ass.m_cols,ass.m_m),m_lum(0),m_rowperm(0),m_parity(ass.m_parity) {
+    Matrix(0,0),m_rowperm(0),m_parity(ass.m_parity) {
 
-  int ii=0,jj=0;
-  if (ass.m_lum) {
-    m_lum=new double*[(size_t)ass.m_rows];
-    for (ii=0;ii<ass.m_rows;ii++) {
-      m_lum[ii]=new double[(size_t)ass.m_cols];
-      for (jj=0;jj<ass.m_cols;jj++)
-        m_lum[ii][jj]=ass.m_lum[ii][jj];
-    }
-  }
-  if (ass.m_rowperm) {
-    m_rowperm=new int[(size_t)ass.m_rows];
-    for (ii=0;ii<ass.m_rows;ii++)
-      m_rowperm[ii]=ass.m_rowperm[ii];
-  }
+  mk_matrixcopy(&m_mat,&ass.m_mat);
+  mk_matrixalloc(&m_lum,0,0);
+  mk_matrixcopy(&m_lum,&ass.m_lum);
+  m_rowperm=(int*)malloc(m_mat.rows);
+  memcpy(&m_rowperm[0],&ass.m_rowperm[0],m_mat.rows*sizeof(int));
 
 }
 
 SquareMatrix::~SquareMatrix() {
 
-  invalidate();
+  mk_matrixfree(&m_lum);
+  if (m_rowperm)
+    free(m_rowperm);
 
 }
 
@@ -333,207 +158,88 @@ SquareMatrix &SquareMatrix::operator=(const SquareMatrix &ass) {
 
   if (this==&ass)
     return *this;
-  ((Matrix*)this)->operator=((const Matrix &)ass);
   invalidate();
-  int ii=0,jj=0;
-  if (ass.m_lum) {
-    m_lum=new double*[(size_t)ass.m_rows];
-    for (ii=0;ii<ass.m_rows;ii++) {
-      m_lum[ii]=new double[(size_t)ass.m_cols];
-      for (jj=0;jj<ass.m_cols;jj++)
-        m_lum[ii][jj]=ass.m_lum[ii][jj];
-    }
-  }
+  mk_matrixcopy(&m_mat,&ass.m_mat);
+  mk_matrixalloc(&m_lum,0,0);
+  mk_matrixcopy(&m_lum,&ass.m_lum);
   if (ass.m_rowperm) {
-    m_rowperm=new int[(size_t)ass.m_rows];
-    for (ii=0;ii<ass.m_rows;ii++)
-      m_rowperm[ii]=ass.m_rowperm[ii];
+    m_rowperm=(int*)malloc(m_mat.rows);
+    memcpy(&m_rowperm[0],&ass.m_rowperm[0],m_mat.rows*sizeof(int));
   }
   m_parity=ass.m_parity;
   return *this;
 
 }
 
-bool SquareMatrix::operator==(const SquareMatrix &cmp) const {
+int SquareMatrix::setValue(int row,int col,double value) {
 
-  return ((Matrix*)this)->operator==((const Matrix &)cmp);
-
-}
-
-bool SquareMatrix::operator<(const SquareMatrix &cmp) const {
-
-  return ((Matrix*)this)->operator<((const Matrix &)cmp);
-
-}
-
-void SquareMatrix::invalidate() {
-
-  if (m_lum) {
-    int ii=0;
-    for (ii=0;ii<m_cols;ii++)
-      delete [] m_lum[ii];
-    delete [] m_lum;
-    m_lum=0;
-  }
-  if (m_rowperm) {
-    delete [] m_rowperm;
-    m_rowperm=0;
-  }
-  m_parity=1.;
-
-}
-
-void SquareMatrix::clearCtrl() {
-
-  invalidate();
-  clearArr();
-
-}
-
-int SquareMatrix::setCtrl(int num,double **m) {
-
-  invalidate();
-  return Matrix::setCtrl(num,num,m);
-
-}
-
-int SquareMatrix::setCtrl(int rows,int cols,double **m) {
-
-  if (rows==cols)
-    return setCtrl(rows,m);
+  if ((row<m_mat.rows && col<m_mat.cols) || row==col)
+    return Matrix::setValue(row,col,value);
   return 1;
 
 }
 
-double SquareMatrix::determinant() {
+int SquareMatrix::invalidate() {
 
-  if (!m_m || m_rows<=1)
-    return .0;
-  if (!m_lum) {
-    if (decomposition()!=0)
-      return .0;
+  mk_matrixfree(&m_lum);
+  if (m_rowperm) {
+    free(m_rowperm);
+    m_rowperm=0;
   }
-  int ii=0;
-  double det=m_parity;
-  for (ii=0;ii<m_rows;ii++)
-    det*=m_lum[ii][ii];
+  m_parity=1.;
+  return 0;
+
+}
+
+int SquareMatrix::clear() {
+
+  invalidate();
+  return Matrix::clear();
+
+}
+
+bool SquareMatrix::isIdentity(double df) const {
+
+  if (m_mat.rows!=m_mat.cols)
+    return false;
+  int ii=0,jj=0;
+  double value=mk_dnan;
+  for (ii=0;ii<m_mat.rows;ii++) {
+    for (jj=0;jj<m_mat.cols;jj++) {
+      value=mk_matrixget(&m_mat,ii,jj);
+      if ((ii==jj && mk_diff(value,1.,df)!=.0) || (ii!=jj && mk_diff(value,.0,df)!=0))
+        return false;
+    }
+  }
+  return true;
+
+}
+
+double SquareMatrix::determinant() {
+ 
+  double det=mk_matrixdet(&m_mat);
   return det;
 
 }
 
 int SquareMatrix::invert() {
 
-  if (!m_m || m_rows<=1)
-    return 1;
-  int ii=0,jj=0;
-  double *identity=new double[(size_t)m_cols];
-  double *inv=new double[(size_t)m_cols];
-  for (ii=0;ii<m_cols;ii++) {
-    for (jj=0;jj<m_rows;jj++)
-      identity[jj]=inv[jj]=(ii==jj ? 1. : .0);
-    // solve column by column the equation M*M(-1)=1
-    if (backsubstitution(identity,inv)!=0) {
-      delete [] identity;
-      delete [] inv;
-      return 1;
-    }
-    // set the new elements ...
-    for (jj=0;jj<m_rows;jj++)
-      m_m[jj][ii]=inv[jj];
-  }
-  // ... and invalidate decomposition matrix
-  invalidate();
-  delete [] identity;
-  delete [] inv;
-  return 0;
+  return mk_matrixinvert(&m_mat);
 
 }
 
 int SquareMatrix::decomposition() {
 
-  if (!m_m || m_rows<=1)
-    return 1;
-  int ii=0,jj=0,kk=0,imax=0,num=m_rows;
-  double maxcoeff=.0,tmp=.0;
   invalidate();
-  // first find the largest element in every row (implicit pivoting)
-  // also copy the original matrix since we do not want to destroy it
-  double *rowscale=new double[(size_t)num];
-  m_lum=new double*[(size_t)num];
-  for (ii=0;ii<num;ii++) {
-    maxcoeff=.0;
-    m_lum[ii]=new double[(size_t)num];
-    for (jj=0;jj<num;jj++) {
-      m_lum[ii][jj]=m_m[ii][jj];
-      tmp=fabs(m_lum[ii][jj]);
-      if (tmp>maxcoeff)
-        maxcoeff=tmp;
-    }
-    if (mk_deq(maxcoeff,.0)) {
-      invalidate();
-      delete [] rowscale;
-      return 1;
-    }
-    rowscale[ii]=maxcoeff;
-  }
-  m_rowperm=new int[(size_t)num];
+  int ii=0,res=0,num=m_mat.rows;
+  if (num==0)
+    return 1;
+  mk_matrixalloc(&m_lum,num,num);
+  m_rowperm=(int*)malloc(num*sizeof(int));
   for (ii=0;ii<num;ii++)
-    m_rowperm[ii]=ii; // no row interchanging yet
-  // loop every column
-  // used alphas and betas are already calculated by the time they are needed
-  for (jj=0;jj<num;jj++) {
-    // loop rows for 'u'pper triangular matrix
-    for (ii=0;ii<jj;ii++) {
-      // do the matrix multiplication
-      // beta[i,j]=m[i,j]-sum(alpha[i,k]*beta[k,j])
-      for (kk=0;kk<ii;kk++)
-        m_lum[ii][jj]-=m_lum[ii][kk]*m_lum[kk][jj];
-    }
-    maxcoeff=.0;
-    // loop rows for 'l'ower triangular matrix
-    // and diagonal (denominators for lower matrix elements) inclusive
-    for (ii=jj;ii<num;ii++) {
-      // do the matrix multiplication
-      // beta[j,j]*alpha[i,j]=m[i,j]-sum(alpha[i,k]*beta[k,j])
-      for (kk=0;kk<jj;kk++)
-        m_lum[ii][jj]-=m_lum[ii][kk]*m_lum[kk][jj];
-      // beta[j,j] is to calculate as pivot(largest element)
-      // from this row=i and (precalculated) =rowscale[i]
-      tmp=fabs(m_lum[ii][jj])/rowscale[ii];
-      if (tmp>=maxcoeff) {
-        maxcoeff=tmp;
-        imax=ii;
-      }
-    }
-    // if index of precalculated rowscale!=scale[actrow]
-    // rows must be interchanged and index table updated
-    // for later dividing by pivot element (beta[j,j])
-    // this is possible since columns<j are already determined, and
-    // columns>j are not used yet, therefore row interchanging
-    // does not destroy the solution only just scrambles the order
-    // which means that the out-matrix may look queer but dissolves into
-    // a rowwise permutation of m
-    if (jj!=imax) {
-      for (ii=0;ii<num;ii++)
-        mk_swapf(&m_lum[imax][ii],&m_lum[jj][ii]);
-      rowscale[imax]=rowscale[jj]; // rowscale[j] is not needed anymore
-      mk_swapi(&m_rowperm[jj],&m_rowperm[imax]);
-      m_parity=-m_parity;
-    }
-    if (mk_deq(m_lum[jj][jj],.0)) {
-      invalidate();
-      delete [] rowscale;
-      return -1;
-    }
-    // finallly (for this column) divide all lower row elements
-    // by the pivot
-    if (jj<(num-1)) {
-      for (ii=(jj+1);ii<num;ii++)
-        m_lum[ii][jj]/=m_lum[jj][jj];
-    }
-  }
-  delete [] rowscale;
-  return 0;
+    m_rowperm[ii]=ii;
+  res=mk_matrixludecomposition(&m_mat,&m_lum,m_rowperm,&m_parity);
+  return res;
 
 }
 
@@ -541,42 +247,18 @@ int SquareMatrix::backsubstitution(double *rr,double *xx) {
 
   if (!rr || !xx)
     return 1;
-  if (!m_lum || !m_rowperm) {
+  if (!m_rowperm) {
     if (decomposition()!=0)
       return 1;
   }
-  int ii=0,jj=0,num=m_rows;
-  // first adapt the row permutation for the right hand side vector r
-  // also copy right hand side input (do not destroy)
-  for (ii=0;ii<num;ii++)
-    xx[ii]=rr[m_rowperm[ii]];
-  // do the forward substitution by solving for the lower triangular matrix (alpha)
-  // e.g. for (rows=cols=3) lum(lowerpart)={lum[1,1]=1,lum[1,2]=0,lum[1,3]=0,
-  // lum[2,1],lum[2,2]=1,lum[2,3]=0,lum[3,1],lum[3,2],lum[3,3]=1} as determined
-  // in --> ludecomposition
-  for (ii=0;ii<num;ii++) {
-    for (jj=0;jj<ii;jj++)
-      xx[ii]-=m_lum[ii][jj]*xx[jj];
-  }
-  // now do the backsubstitution by solving for the upper triangular matrix (beta)
-  // e.g. for (rows=cols=3) lum(upperpart)={lum[1,1],lum[1,2],lum[1,3],
-  // lum[2,1]=0,lum[2,2],lum[2,3],lum[3,1]=0,lum[3,2]=0,lum[3,3]} as determined
-  // in --> ludecomposition
-  // (since pivot is not ==1 here we have to do the dividing)
-  double tmp=.0;
-  for (ii=(num-1);ii>-1;ii--) {
-    tmp=xx[ii];
-    for (jj=(ii+1);jj<num;jj++)
-      tmp-=m_lum[ii][jj]*xx[jj];
-    xx[ii]=tmp/m_lum[ii][ii];
-  }
-  return 0;
+  int res=mk_matrixlubacksubstitution(&m_lum,m_rowperm,rr,xx);
+  return res;
 
 }
 
 int SquareMatrix::solveFor(int num,double *rr,double *xx) {
 
-  if (!xx || !rr || num!=m_rows || backsubstitution(rr,xx)!=0) {
+  if (!xx || !rr || num!=m_mat.rows || backsubstitution(rr,xx)!=0) {
     if (xx)
       memset(&xx[0],0,num*sizeof(double));
     return 1;
@@ -585,12 +267,17 @@ int SquareMatrix::solveFor(int num,double *rr,double *xx) {
 
 }
 
-TransformMatrix::TransformMatrix() : SquareMatrix(4,0) {
+TransformMatrix::TransformMatrix() : SquareMatrix(4) {
+
+  reset();
 
 }
 
-TransformMatrix::TransformMatrix(const TransformMatrix &ass) : SquareMatrix(ass.m_rows,ass.m_m) {
+TransformMatrix::TransformMatrix(const TransformMatrix &ass) : 
+  SquareMatrix(0) {
 
+  mk_matrixcopy(&m_mat,&ass.m_mat);
+  
 }
 
 TransformMatrix::~TransformMatrix() {
@@ -599,143 +286,119 @@ TransformMatrix::~TransformMatrix() {
 
 TransformMatrix &TransformMatrix::operator=(const TransformMatrix &ass) {
 
-  if (this==&ass)
-    return *this;
-  ((SquareMatrix*)this)->operator=((const SquareMatrix &)ass);
+  if (&ass!=this)
+    mk_matrixcopy(&m_mat,&ass.m_mat);
   return *this;
 
 }
 
-bool TransformMatrix::operator==(const TransformMatrix &cmp) const {
+int TransformMatrix::invalidate() {
 
-  return ((SquareMatrix*)this)->operator==((const SquareMatrix &)cmp);
-
-}
-
-bool TransformMatrix::operator<(const TransformMatrix &cmp) const {
-
-  return ((SquareMatrix*)this)->operator<((const SquareMatrix &)cmp);
+  return 0;
 
 }
 
-int TransformMatrix::translate(double x,double y,double z) {
+int TransformMatrix::translate(double xx,double yy,double zz) {
 
-  if (!m_m)
-    return 1;
   TransformMatrix tm;
-  tm.m_m[3][0]=x;
-  tm.m_m[3][1]=y;
-  tm.m_m[3][2]=z;
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(3,0,xx);
+  tm.setValue(3,1,yy);
+  tm.setValue(3,2,zz);
+  int res=mult(&tm);
+  return res;
 
 }
 
-int TransformMatrix::scale(double x,double y,double z) {
+int TransformMatrix::scale(double xx,double yy,double zz) {
 
-  if (!m_m)
-    return 1;
   TransformMatrix tm;
-  tm.m_m[0][0]=x;
-  tm.m_m[1][1]=y;
-  tm.m_m[2][2]=z;
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(0,0,xx);
+  tm.setValue(1,1,yy);
+  tm.setValue(2,2,zz);
+  return mult(&tm);
 
 }
 
 int TransformMatrix::rotateZ(double degrees) {
 
-  if (!m_m)
-    return 1;
   double radang=degrees*mk_rad;
   TransformMatrix tm;
-  tm.m_m[0][0]=cos(radang);
-  tm.m_m[0][1]=-sin(radang);
-  tm.m_m[1][0]=sin(radang);
-  tm.m_m[1][1]=cos(radang);
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(0,0,cos(radang));
+  tm.setValue(0,1,-sin(radang));
+  tm.setValue(1,0,sin(radang));
+  tm.setValue(1,1,cos(radang));
+  return mult(&tm);
 
 }
 
 int TransformMatrix::rotateX(double degrees) {
 
-  if (!m_m)
-    return 1;
   double radang=degrees*mk_rad;
   TransformMatrix tm;
-  tm.m_m[1][1]=cos(radang);
-  tm.m_m[1][2]=-sin(radang);
-  tm.m_m[2][1]=sin(radang);
-  tm.m_m[2][2]=cos(radang);
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(1,1,cos(radang));
+  tm.setValue(1,2,-sin(radang));
+  tm.setValue(2,1,sin(radang));
+  tm.setValue(2,2,cos(radang));
+  return mult(&tm);
 
 }
 
 int TransformMatrix::rotateY(double degrees) {
 
-  if (!m_m)
-    return 1;
   double radang=degrees*mk_rad;
   TransformMatrix tm;
-  tm.m_m[0][0]=cos(radang);
-  tm.m_m[0][2]=sin(radang);
-  tm.m_m[2][0]=-sin(radang);
-  tm.m_m[2][2]=cos(radang);
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(0,0,cos(radang));
+  tm.setValue(0,2,sin(radang));
+  tm.setValue(2,0,-sin(radang));
+  tm.setValue(2,2,cos(radang));
+  return mult(&tm);
 
 }
 
-int TransformMatrix::shearXY(double x,double y) {
+int TransformMatrix::shearXY(double xx,double yy) {
 
-  if (!m_m)
-    return 1;
   TransformMatrix tm;
-  tm.m_m[1][0]=y;
-  tm.m_m[0][1]=x;
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(1,0,yy);
+  tm.setValue(0,1,xx);
+  return mult(&tm);
 
 }
 
-int TransformMatrix::shearXZ(double x,double z) {
+int TransformMatrix::shearXZ(double xx,double zz) {
 
-  if (!m_m)
-    return 1;
   TransformMatrix tm;
-  tm.m_m[0][2]=x;
-  tm.m_m[2][0]=z;
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(0,2,xx);
+  tm.setValue(2,0,zz);
+  return mult(&tm);
 
 }
 
-int TransformMatrix::shearYZ(double y,double z) {
+int TransformMatrix::shearYZ(double yy,double zz) {
 
-  if (!m_m)
-    return 1;
   TransformMatrix tm;
-  tm.m_m[1][2]=y;
-  tm.m_m[2][1]=z;
-  return mult(m_rows,m_rows,tm.m_m);
+  tm.setValue(1,2,yy);
+  tm.setValue(2,1,zz);
+  return mult(&tm);
 
 }
 
-int TransformMatrix::transform(Vertex *vertex) {
+int TransformMatrix::transform(mk_vertex vertex) {
 
-  if (!m_m || !vertex)
-    return 1;
-  Vertex vv(vertex->data());  
-  if (mk_isbusted(vv.x())!=0)
-    vv.setX(.0);
-  if (mk_isbusted(vv.y())!=0)
-    vv.setY(.0);
-  if (mk_isbusted(vv.z())!=0)
-    vv.setZ(.0);
-  if (mk_isbusted(vv.w())!=0)
-    vv.setW(1.);
-  vertex->setXYZ(.0,.0,.0);
+  mk_vertexnan(vv);
+  mk_vertexcopy(vv,vertex);
+  if (mk_isbusted(vv[0])!=0)
+    vv[0]=.0;
+  if (mk_isbusted(vv[1])!=0)
+    vv[1]=.0;
+  if (mk_isbusted(vv[2])!=0)
+    vv[2]=.0;
+  if (mk_isbusted(vv[3])!=0)
+    vv[3]=1.;
+  mk_vertexset(vertex,.0);
   int ii=0,jj=0;
-  double *vdata=vertex->data();
   for (ii=0;ii<4;ii++) {
     for (jj=0;jj<4;jj++)
-      vdata[ii]+=vv[jj]*m_m[jj][ii];
+      vertex[ii]+=vv[jj]*getValue(jj,ii);
   }
   return 0;
 

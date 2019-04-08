@@ -143,50 +143,56 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   connect(m_checkinterpolationoption,SIGNAL(stateChanged(int)),this,SLOT(slotInterpolationOptions(int)));
   groupinterpolationlayout->addWidget(m_checkinterpolationoption,1,0);
   m_layout->addWidget(groupinterpolation,8,2,2,1);
-   
-  aux::TPList<simpleplot::Graph> gridL;
-  int ii=0,jj=0,ngr=(m_chart ? m_chart->typegraphs("graphxy",&gridL) : 0);
+  mk_list gridL;
+  mk_listalloc(&gridL,sizeof(mk::TypeId),0);
+  int ii=0,jj=0,ngr=(m_chart ? m_chart->entities(&gridL,"graphxy") : 0);
   if (ngr==0) {
     grouplinestyle->setEnabled(false);
     groupfill->setEnabled(false);
     groupmarkstyle->setEnabled(false);
     groupaxes->setEnabled(false);
     groupinterpolation->setEnabled(false);
+    mk_listfree(&gridL);
     return;
   }
   mk_string str;
-  aux::TypeId *typeidd=0; 
+  mk::TypeId typeidd; 
   QVariant qv;
   QString qvval;
   for (ii=0;ii<ngr;ii++) {
-    typeidd=(aux::TypeId*)(gridL[ii]);
-    typeidd->toString(str);
+    mk_listat(&gridL,ii,(void*)&typeidd);
+    typeidd.toString(str);
     qtutil::toQString(str,&qvval);
     qv.setValue(qvval);
     m_selector->addItem(qvval,qv);
     mk_stringset(str,0);
   }
-  
-  aux::TPList<simpleplot::Axis> xaxL,yaxL;
-  int nxax=(m_chart ? m_chart->typeaxes("xaxis",&xaxL) : 0),
-      nyax=(m_chart ? m_chart->typeaxes("yaxis",&yaxL) : 0);
+  mk_listfree(&gridL);
+  mk_list xaxL;
+  mk_listalloc(&xaxL,sizeof(mk::TypeId),0);
+  mk_list yaxL;
+  mk_listalloc(&yaxL,sizeof(mk::TypeId),0);
+  int nxax=(m_chart ? m_chart->entities(&xaxL,"xaxis") : 0),
+      nyax=(m_chart ? m_chart->entities(&yaxL,"yaxis") : 0);
   for (ii=0;ii<nxax;ii++) {
-    typeidd=(aux::TypeId*)(xaxL[ii]);
-    typeidd->toString(str);
+    mk_listat(&xaxL,ii,(void*)&typeidd);
+    typeidd.toString(str);
     qtutil::toQString(str,&qvval);
     qv.setValue(qvval);
     m_comboxax->addItem(qvval,qv);
     mk_stringset(str,0);
   }
+  mk_listfree(&xaxL);
   for (ii=0;ii<nyax;ii++) {
-    typeidd=(aux::TypeId*)(yaxL[ii]);
-    typeidd->toString(str);
+    mk_listat(&yaxL,ii,(void*)&typeidd);
+    typeidd.toString(str);
     qtutil::toQString(str,&qvval);
     qv.setValue(qvval);
     m_comboyax->addItem(qvval,qv);
     mk_stringset(str,0);
   }
-  
+  mk_listfree(&yaxL);
+
   m_combofillref->addItem("none");
   
   for (ii=0;ii<numlinestyles;ii++) {
@@ -202,7 +208,9 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   }
 
   shapes::Shape2 *samplemark=0;
-  num::VertexList smL(600);
+  mk_list smL;
+  mk_listalloc(&smL,sizeof(mk_vertex),600);
+  mk_vertexnan(vv);
   QPointF smpL[120];
   QPixmap smpix(30,30);
   QPainter smp;
@@ -214,9 +222,11 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
     samplemark=simpleplot::buildMarkshape2(simpleplot::markshapes2d[ii],12.);
     if (samplemark) {
       samplemark->eval(&smL);
-      cnteval=smL.count(); 
-      for (jj=0;jj<cnteval;jj++) 
-        smpL[jj]=QPointF(smL.get(jj).x()+15.,smL.get(jj).y()+15.);
+      cnteval=smL.count; 
+      for (jj=0;jj<cnteval;jj++) {
+        mk_listat(&smL,jj,(void*)&vv);
+        smpL[jj]=QPointF(vv[0]+15.,vv[1]+15.);
+      }
       smp.begin(&smpix);
       smp.fillRect(0,0,30,30,m_combomarkstyle->palette().button());
       smp.setBrush(Qt::NoBrush);
@@ -240,6 +250,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   }
      
   slotSelected(0);
+  mk_listfree(&smL);
   
 }
 
@@ -259,7 +270,7 @@ void GraphProps::slotSelected(int idx) {
   mk_string str;
   qtutil::fromQString(&qvval,str);
 //printf ("%d grid=%s\n",__LINE__,(const char *)str);
-  aux::TypeId grid;
+  mk::TypeId grid;
   grid.fromString(&str[0]);
   simpleplot::GraphXY *gr=dynamic_cast<simpleplot::GraphXY*>(m_chart->graph(grid));
   
@@ -301,20 +312,20 @@ void GraphProps::slotSelected(int idx) {
     m_editmarkwidth->setText("0");
   }
   else {
-    m_markcolorO=grmark->m_styleO.m_color;
-    m_markcolorF=grmark->m_styleF.m_color;
-    grmark->descr(str);
-    m_combomarkstyle->setCurrentIndex(simpleplot::markshape2idx(str));
+    m_markcolorO=grmark->getStyleO().m_color;
+    m_markcolorF=grmark->getStyleF().m_color;
+    grmark->getDescr(str);
+    m_combomarkstyle->setCurrentIndex(simpleplot::markshape2idx(&str[0]));
     m_editmarkwidth->setText(QString::number(grmark->circradius(),'f',2));
     m_buttoncolormarkF->setColor(m_markcolorF);
-    m_combomarkstyleF->setCurrentIndex(grmark->m_styleF.m_style);
+    m_combomarkstyleF->setCurrentIndex(grmark->getStyleF().m_style);
     m_buttoncolormarkO->setColor(m_markcolorO);
-    m_combomarkstyleO->setCurrentIndex(grmark->m_styleO.m_style);
+    m_combomarkstyleO->setCurrentIndex(grmark->getStyleO().m_style);
   }
    
-  aux::TypeId axid;
+  mk::TypeId axid;
   if (gr->m_axis[0]) {
-    axid=*((aux::TypeId*)(gr->m_axis[0]));
+    axid=*((mk::TypeId*)(gr->m_axis[0]));
     axid.toString(str);
     qtutil::toQString(str,&qvval);
     qv.setValue(qvval);
@@ -323,7 +334,7 @@ void GraphProps::slotSelected(int idx) {
     mk_stringset(str,0);
   }
   if (gr->m_axis[1]) {
-    axid=*((aux::TypeId*)(gr->m_axis[1]));
+    axid=*((mk::TypeId*)(gr->m_axis[1]));
     axid.toString(str);
     qtutil::toQString(str,&qvval);
     qv.setValue(qvval);
@@ -449,7 +460,7 @@ void GraphProps::slotInterpolationOptionsDismiss(mk_ulreal optionL) {
 void GraphProps::sendValues() {
 
   QVariant qv1=m_selector->itemData(m_selector->currentIndex()),qv2;
-  aux::TypeId grid;
+  mk::TypeId grid;
   QString qvval(qv1.value<QString>());
   mk_string str;
   qtutil::fromQString(&qvval,str);
@@ -480,11 +491,10 @@ void GraphProps::sendValues() {
   gr->m_linestyle=linestyle;
   shapes::Shape2 *grmark=(gr->m_graphdata ? gr->m_graphdata->mark(0) : 0);
   if (grmark) {
-    grmark->m_styleO=markstyleO;
-    grmark->m_styleF=markstyleF;
+    grmark->setStyleO(markstyleO);
+    grmark->setStyleF(markstyleF);
+    grmark->getDescr(str);
   }
-  if (grmark)
-    grmark->descr(str);
   int prec=2,base=-1,markstyle=simpleplot::markshape2idx(str),
       newmarkstyle=m_combomarkstyle->currentIndex();
   qvval=m_editmarkwidth->text();
@@ -511,12 +521,12 @@ void GraphProps::sendValues() {
       if (markstyle!=newmarkstyle)
         markbuilder=simpleplot::idx2markshape2(newmarkstyle);
       else {
-        grmark->descr(str);
+        grmark->getDescr(str);
         markbuilder=&str[0];
       }
       grmark=simpleplot::buildMarkshape2(markbuilder,newmarkwidth);
-      grmark->m_styleO=markstyleO;
-      grmark->m_styleF=markstyleF;
+      grmark->setStyleO(markstyleO);
+      grmark->setStyleF(markstyleF);
       gr->m_graphdata->setMark(0,grmark);
     }
   }
@@ -678,38 +688,44 @@ AxisProps::AxisProps(QWidget *parent,QtDiagramXY *chart) :
   m_comboscaletype=new QComboBox(groupscaletype);
   groupscaletypelayout->addWidget(m_comboscaletype,0,0);
   m_layout->addWidget(groupscaletype,4,2,1,3);
-  
-  aux::TPList<simpleplot::Axis> xaxL,yaxL;
-  int ii=0,nxax=(m_chart ? m_chart->typeaxes("xaxis",&xaxL) : 0),
-      nyax=(m_chart ? m_chart->typeaxes("yaxis",&yaxL) : 0);
+  mk_list xaxL;
+  mk_listalloc(&xaxL,sizeof(mk::TypeId),0);
+  mk_list yaxL;
+  mk_listalloc(&yaxL,sizeof(mk::TypeId),0);
+  int ii=0,nxax=(m_chart ? m_chart->entities(&xaxL,"xaxis") : 0),
+      nyax=(m_chart ? m_chart->entities(&yaxL,"yaxis") : 0);
   if (nxax==0 && nyax==0) {
     groupscaletype->setEnabled(false);
     groupautoscale->setEnabled(false);
     groupstyle->setEnabled(false);
     groupfont->setEnabled(false);
     grouppos->setEnabled(false);
+    mk_listfree(&xaxL);
+    mk_listfree(&yaxL);
     return;
   }
   mk_string str;
-  aux::TypeId *axid=0; 
+  mk::TypeId typeidd; 
   QVariant qv;
   QString qvval;
   for (ii=0;ii<nxax;ii++) {
-    axid=(aux::TypeId*)(xaxL[ii]);
-    axid->toString(str);
+    mk_listat(&xaxL,ii,(void*)&typeidd);
+    typeidd.toString(str);
     qvval=&str[0];
     qv.setValue(qvval);
     m_selector->addItem(&str[0],qv);
     mk_stringset(str,0);
   }
+  mk_listfree(&xaxL);
   for (ii=0;ii<nyax;ii++) {
-    axid=(aux::TypeId*)(yaxL[ii]);
-    axid->toString(str);
+    mk_listat(&yaxL,ii,(void*)&typeidd);
+    typeidd.toString(str);
     qvval=&str[0];
     qv.setValue(qvval);
     m_selector->addItem(&str[0],qv);
     mk_stringset(str,0);
   }
+  mk_listfree(&yaxL);
   
   for (ii=0;ii<numlinestyles;ii++) {
     qv.setValue(ii);
@@ -729,7 +745,7 @@ AxisProps::~AxisProps() {
 void AxisProps::slotSelected(int idx) {
 
   QVariant qv=m_selector->itemData(idx);
-  aux::TypeId axid;
+  mk::TypeId axid;
   QString qvval(qv.value<QString>());
   mk_string str;
   qtutil::fromQString(&qvval,str);
@@ -906,7 +922,7 @@ void AxisProps::sendValues() {
   QString qvval(qv.value<QString>());
   mk_string str;
   qtutil::fromQString(&qvval,str);
-  aux::TypeId axid;
+  mk::TypeId axid;
   axid.fromString(str);
   simpleplot::Axis *ax=dynamic_cast<simpleplot::Axis*>(m_chart->axis(axid));
   if (!ax) 

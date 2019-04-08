@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <auxx/auxx.h>
+#include <tools/tlist.h>
 #include <osix/xxstyle.h>
 #include <numeric/matrix.h>
 #include <numeric/interpolation.h>
@@ -17,7 +17,7 @@ int main(int argc,char **argv) {
 
   int ii=0,jj=0;
   double zero=.0,one=1.;
-  aux::TVList<double> coeffL;
+  mk::TVList<double> coeffL;
 
   // y=f(x)=9+7*x-5*x*x+3*x*x*x
   double xx[4]={2.,4.,5.,6.};

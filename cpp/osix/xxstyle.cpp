@@ -1,5 +1,4 @@
 
-#include <auxx/auxx.h>
 #include <osix/xxstyle.h>
 #include <mkbase/mkconv.h>
 #include <stdio.h>

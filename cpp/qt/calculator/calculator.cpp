@@ -90,7 +90,7 @@ QtCalculator::QtCalculator(QWidget *parent) :
   for (ii=4;ii<numradiobuttons;ii++)
     triggroup->addButton(m_radiobuttons[ii]);
   connect(triggroup,SIGNAL(buttonClicked(QAbstractButton*)),this,SLOT(slotTrig(QAbstractButton*)));
-  aux::heapsortpc(numradiobuttons,m_radiobuttons,cmpCustomRadioButton);
+  mk::heapsortpc(numradiobuttons,m_radiobuttons,cmpCustomRadioButton);
   
   memset(&m_pushbuttons[0],0,numpushbuttons*sizeof(qtutil::CustomPushButton*));
   for (ii=0;ii<numpushbuttons;ii++) {
@@ -108,7 +108,7 @@ QtCalculator::QtCalculator(QWidget *parent) :
     } 
   }
   col=4;
-  aux::heapsortpc(numpushbuttons,m_pushbuttons,cmpCustomPushButton);
+  mk::heapsortpc(numpushbuttons,m_pushbuttons,cmpCustomPushButton);
   
   wwinfo=new CalculatorOutput(this,this);
   wwinfo->setMinimumHeight(20);

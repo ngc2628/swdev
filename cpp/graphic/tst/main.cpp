@@ -4,8 +4,6 @@
 #include <graphic/shapes/rect.h>
 
 int main(int argc,char **argv) {
-
-  aux::Numstr numstr;
   
   shapes::Rect r(shapes::RectSize(4.,2.));
   r.rotate(45.);

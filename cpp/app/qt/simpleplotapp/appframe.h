@@ -26,7 +26,6 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QDialog>
-#include <auxx/auxx.h>
 #include <qt/simpleplot/chart2.h> 
 #include <qt/simpleplot/controls.h>
 
@@ -91,9 +90,9 @@ class AppFrame : public QFrame {
     QTimer m_t2;
     
     QtDiagramXY *m_chart2[ntabs];
-    aux::TVList<aux::TypeId> m_xaxes;
-    aux::TVList<aux::TypeId> m_yaxes;
-    aux::TVList<aux::TypeId> m_graphs;
+    mk_list m_xaxes;
+    mk_list m_yaxes;
+    mk_list m_graphs;
     
 };
 

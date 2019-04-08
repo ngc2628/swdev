@@ -1,6 +1,6 @@
 
 all:
-	cd $(SWDIR)/cpp/auxx; make -f Makefile.gnu
+	cd $(SWDIR)/cpp/tools; make -f Makefile.gnu
 	cd $(SWDIR)/cpp/numeric; make -f Makefile.gnu
 	cd $(SWDIR)/cpp/osix; make -f Makefile.gnu
 	cd $(SWDIR)/cpp/graphic/shapes; make -f Makefile.gnu
@@ -25,6 +25,6 @@ endif
 	cd $(SWDIR)/cpp/graphic/shapes; make -f Makefile.gnu clean
 	cd $(SWDIR)/cpp/osix; make -f Makefile.gnu clean
 	cd $(SWDIR)/cpp/numeric; make -f Makefile.gnu clean
-	cd $(SWDIR)/cpp/auxx; make -f Makefile.gnu clean
+	cd $(SWDIR)/cpp/tools; make -f Makefile.gnu clean
 	cd $(SWDIR)/cpp
   

@@ -11,8 +11,7 @@ Tic::Tic(double val,unsigned char sz,unsigned char drawable,unsigned char ucs) :
   m_val(val),m_size(sz),m_drawable(drawable),m_ucs(ucs) {
   
   mk_stringset(m_str,0);
-  
-    
+   
 }
 
 Tic::Tic(const Tic &ass) :
@@ -34,40 +33,30 @@ Tic &Tic::operator=(const Tic &ass) {
   
 }
 
-bool Tic::operator==(const Tic &cmp) const {
-      
-  int cc=0;
-  mk_dbusted(m_val,cmp.m_val,&cc);
-  return (cc==0);
-  
-}
-    
-bool Tic::operator<(const Tic &cmp) const {
-      
-  int cc=0;
-  mk_dbusted(m_val,cmp.m_val,&cc);
-  return (cc<0);
-  
-}
+int Tic::text(mk_string res) const {
 
-int Tic::setUcsText(const aux::Ucsstr &txt) {
-
-  mk_stringset(m_str,0);
-  int ii=0,ll=txt.length();
-  if (ll>0) {
-    if (ll>mk_sz/2-2)
-      ll=mk_sz/2-2;
-    for (ii=0;ii<ll;ii++) {
-      mk_stringsetat(m_str,mk_sz,(char)((txt[ii]>>8)&255));
-      mk_stringsetat(m_str,mk_sz,(char)(txt[ii]&255));
-    }
-    m_ucs=1;
+  if ((m_ucs&1)>0) {
+    mk_stringset(res,0);
+    int ii=0,jj=0,ll=mk_stringlength(m_str);
+    ll-=(ll%2);
+    for (ii=0;ii<ll-1;ii+=2)
+      res[jj++]=m_str[ii+1];
   }
+  else
+    mk_stringset(res,&m_str[0]);
   return 0;
 
 }
 
-int Tic::ucsText(aux::Ucsstr *res) const {
+int Tic::setText(mk_string txt) {
+
+  mk_stringset(m_str,&txt[0]);
+  m_ucs=0;
+  return 0;
+
+}
+
+int Tic::ucsText(mk::Ucsstr *res) const {
 
   int ii=0,ll=mk_stringlength(m_str);
   if ((m_ucs&1)>0) {
@@ -88,18 +77,46 @@ int Tic::ucsText(aux::Ucsstr *res) const {
 
 }
 
+int Tic::setUcsText(const mk::Ucsstr &txt) {
+
+  mk_stringset(m_str,0);
+  int ii=0,ll=txt.length();
+  if (ll>0) {
+    if (ll>mk_sz/2-2)
+      ll=mk_sz/2-2;
+    for (ii=0;ii<ll;ii++) {
+      mk_stringsetat(m_str,mk_sz,(char)((txt[ii]>>8)&255));
+      mk_stringsetat(m_str,mk_sz,(char)(txt[ii]&255));
+    }
+    m_ucs=1;
+  }
+  return 0;
+
+}
+
+int cmpTic(const void *itm1,const void *itm2) {
+
+  int cc=0;
+  mk_dbusted(((const Tic *)itm1)->m_val,((const Tic *)itm2)->m_val,&cc);
+  return cc;
+
+}
+
 Scale::Scale() : TypeId("linearscale"), 
   m_interval(1.,mk_dprec) {
 
-  mk_listalloc(&m_range,sizeof(Range),128);
+  mk_listalloc(&m_range,sizeof(Range),65);
   Range range(.0,1.);
   mk_listappend(&m_range,(void*)&range);
+  mk_listalloc(&m_tics,sizeof(Tic),1025);
+  m_tics.cmp=cmpTic;
 
 }
 
 Scale::~Scale() {
 
   mk_listfree(&m_range);  
+  mk_listfree(&m_tics); 
 
 }
 
@@ -129,11 +146,16 @@ int Scale::effRange(double *min,double *max,int *option) const {
 
   Range range;
   mk_listat(&m_range,m_range.count-1,(void*)&range);
-  if (m_tics.count()>1) {
-    if (min)
-      *min=m_tics[0].m_val;
-    if (max)
-      *max=m_tics[m_tics.count()-1].m_val;
+  Tic tic;
+  if (m_tics.count>1) {
+    if (min) {
+      mk_listat(&m_tics,0,(void*)&tic);
+      *min=tic.m_val;
+    }
+    if (max) {
+      mk_listat(&m_tics,m_tics.count-1,(void*)&tic);
+      *max=tic.m_val;
+    }
   }
   else {
     if (min)
@@ -260,18 +282,15 @@ int Scale::rangeOption (int *mod) {
 
 }
 
-int Scale::tics(aux::TVList<Tic> *ticL) const {
+int Scale::tics(mk_list *ticL) const {
 
   if (ticL)
-    *ticL=m_tics;
-  //int ii=0;
-  //for (ii=0;ii<m_tics.count();ii++)
-    //printf ("%d %d : tic=%s\n",__LINE__,ii,(const char *)m_tics.at(ii)->m_str.asciistr());
-  return m_tics.count();
+    mk_listcopy(ticL,&m_tics);
+  return m_tics.count;
 
 }
 
-aux::Rounded Scale::interval() const {
+mk::Rounded Scale::interval() const {
       
   return m_interval;
   
@@ -279,61 +298,66 @@ aux::Rounded Scale::interval() const {
 
 void Scale::clear() {
 
-  m_tics.clear();
+  
+  mk_listclear(&m_tics,0);
 
 }
 
-int Scale::calcTics(int maxtics,aux::TVList<Tic> *ticL) {
+int Scale::calcTics(int maxtics,mk_list *ticL) {
 
-  m_tics.clear();
-  if (ticL)
-    ticL->clear();
+  mk_listclear(&m_tics,0);
   Range range=currRange();
   int ii=0,idx=-1,ntics=0;
   double interval=calcInterval(maxtics,&ntics),pos=range.m_cmin;
-
+  ticL->cmp=cmpTic;
   if (mk_isnan(interval) || maxtics<=2)
     return failsave(ticL);
+  Tic tic;
   for (ii=0;ii<ntics;ii++) {
-    m_tics.inSort(Tic(pos));
+    tic=Tic(pos);
+    mk_listinsort(&m_tics,(void*)&tic);
     if (pos>=range.m_cmax)
       break;
     pos+=interval;
   }
-  ntics=m_tics.count();
+  ntics=m_tics.count;
   if (ntics<=2)
     return failsave(ticL);
   if ((currRange().m_option&typeBoundStaticMin)>0) {
-    Tic tb0=Tic(range.m_min);
-    int idxl=m_tics.findNextIndex(tb0);
+    Tic tb0(range.m_min);
+    int idxl=mk_listfindnextindex(&m_tics,(void *)&tb0);
     if (idxl<1)
       return failsave(ticL);
     for (ii=idxl-1;ii>-1;ii--)
-      m_tics.remove(ii); 
-    idx=m_tics.inSort(tb0);
-    m_tics.at(idx)->m_drawable=0;
-    ntics=m_tics.count();
+      mk_listremove(&m_tics,ii,0);
+    idx=mk_listinsort(&m_tics,(void*)&tb0);
+    mk_listat(&m_tics,idx,(void*)&tb0);
+    tb0.m_drawable=0;
+    mk_listsetat(&m_tics,(void*)&tb0,idx,0);
+    ntics=m_tics.count;
   }
-  if ((range.m_option&typeBoundStaticMax)>0) {
-    Tic tb1=Tic(range.m_max);
-    int idxh=m_tics.findNextIndex(tb1);
+  if ((currRange().m_option&typeBoundStaticMax)>0) {
+    Tic tb1(range.m_max);
+    int idxh=mk_listfindnextindex(&m_tics,(void *)&tb1);
     if (idxh>=ntics)
       return failsave(ticL);
     for (ii=ntics-1;ii>=idxh;ii--)
-      m_tics.remove(m_tics.count()-1);
-    idx=m_tics.inSort(tb1);
-    m_tics.at(idx)->m_drawable=0;
-    ntics=m_tics.count();
+      mk_listremove(&m_tics,m_tics.count-1,0);
+    idx=mk_listinsort(&m_tics,(void*)&tb1);
+    mk_listat(&m_tics,idx,(void*)&tb1);
+    tb1.m_drawable=0;
+    mk_listsetat(&m_tics,(void*)&tb1,idx,0);
+    ntics=m_tics.count;
   }
   if (ntics<=2)
     return failsave(ticL);
-
-  Tic *tic=0;
+  mk_string str;
   for (ii=0;ii<ntics;ii++) {
-    tic=m_tics.at(ii);
-    mk_d2a(tic->m_val,tic->m_str,m_interval.m_a);
+    mk_listat(&m_tics,ii,(void*)&tic);
+    mk_d2a(tic.m_val,str,m_interval.m_a);
+    tic.setText(str);
+    mk_listsetat(&m_tics,(void*)&tic,ii,0);
   }
-
   setMajTics();
   return tics(ticL);
 
@@ -341,7 +365,7 @@ int Scale::calcTics(int maxtics,aux::TVList<Tic> *ticL) {
 
 int Scale::doShift(double amount) {
 
-  int ii=0,ntics=m_tics.count();
+  int ii=0,ntics=m_tics.count;
   if (ntics<2)
     return 0;
   double sam=amount,interval=mk_round2(m_interval.m_d,m_interval.m_a);
@@ -350,16 +374,23 @@ int Scale::doShift(double amount) {
   double eps=mk_ipow10(mk_mag(((fabs(sam)>interval) ? interval : sam))-2);
   // do not do nothing when there is nothing to be done
   if (mk_diff(sam,.0,eps)==.0)
-    return m_tics.count();
+    return m_tics.count;
   double direction=mk_dsign(sam);
   // acoording to shift direction higher/lower end must grow/shrink
   int adaptotheredge=0;
-  Tic *tic=m_tics.at(0);
-  tic->m_val+=sam;
-  tic=m_tics.at(ntics-1);
-  tic->m_val+=sam;
-  double diffleft=mk_diff(m_tics.at(0)->m_val,m_tics.at(1)->m_val,eps),
-         diffright=mk_diff(m_tics.at(ntics-1)->m_val,m_tics.at(ntics-2)->m_val,eps);
+  Tic tic1,tic2;
+  mk_listat(&m_tics,0,(void*)&tic1);
+  tic1.m_val+=sam;
+  mk_listsetat(&m_tics,(void*)&tic1,0,0);
+  mk_listat(&m_tics,ntics-1,(void*)&tic1);
+  tic1.m_val+=sam;
+  mk_listsetat(&m_tics,(void*)&tic1,ntics-1,0);
+  mk_listat(&m_tics,0,(void*)&tic1);
+  mk_listat(&m_tics,1,(void*)&tic2);
+  double diffleft=mk_diff(tic1.m_val,tic2.m_val,eps);
+  mk_listat(&m_tics,ntics-1,(void*)&tic1);
+  mk_listat(&m_tics,ntics-2,(void*)&tic2);
+  double diffright=mk_diff(tic1.m_val,tic2.m_val,eps);
   bool matchl=(diffleft==.0),matchr=(diffright==.0);
   // shift to the left
   if (direction>.0) {
@@ -368,8 +399,12 @@ int Scale::doShift(double amount) {
       // shift ticmark array positions to the left clear the first one (not needed anymore)
       // and generate the suiting new one at the right edge
       rollInnerTics(direction);
-      diffleft=mk_diff(m_tics.at(0)->m_val,m_tics.at(1)->m_val,eps);
-      diffright=mk_diff(m_tics.at(ntics-1)->m_val,m_tics.at(ntics-2)->m_val,eps);
+      mk_listat(&m_tics,0,(void*)&tic1);
+      mk_listat(&m_tics,1,(void*)&tic2);
+      diffleft=mk_diff(tic1.m_val,tic2.m_val,eps);
+      mk_listat(&m_tics,ntics-1,(void*)&tic1);
+      mk_listat(&m_tics,ntics-2,(void*)&tic2);
+      diffright=mk_diff(tic1.m_val,tic2.m_val,eps);
       matchl=(diffleft==.0);
       matchr=(diffright==.0);
     }
@@ -385,8 +420,12 @@ int Scale::doShift(double amount) {
   else if (direction<.0) {
     while (diffright<=.0 && !matchr) {
       rollInnerTics(direction);
-      diffleft=mk_diff(m_tics.at(0)->m_val,m_tics.at(1)->m_val,eps);
-      diffright=mk_diff(m_tics.at(ntics-1)->m_val,m_tics.at(ntics-2)->m_val,eps);
+      mk_listat(&m_tics,0,(void*)&tic1);
+      mk_listat(&m_tics,1,(void*)&tic2);
+      diffleft=mk_diff(tic1.m_val,tic2.m_val,eps);
+      mk_listat(&m_tics,ntics-1,(void*)&tic1);
+      mk_listat(&m_tics,ntics-2,(void*)&tic2);
+      diffright=mk_diff(tic1.m_val,tic2.m_val,eps);
       matchl=(diffleft==.0);
       matchr=(diffright==.0);
     }
@@ -398,20 +437,27 @@ int Scale::doShift(double amount) {
     }
     ntics=adaptShiftedTicArray(direction,matchr,adaptotheredge);
   }
-
   // shifted positions should not be displayed because they usually have no correspondence with the interval size
   //if (CNumUtl::diff(fabs(CNumUtl::diff(m_tarr[0],m_tarr[1])),m_intervalSize)!=0.0) {
-  tic=m_tics.at(0);
-  if (mk_diff(m_tics.at(1)->m_val-tic->m_val,interval,eps)!=.0)
-    tic->m_drawable=0;
-  tic=m_tics.at(ntics-1);
-  if (mk_diff(tic->m_val-m_tics.at(ntics-2)->m_val,interval,eps)!=.0)
-    tic->m_drawable=0;
-
+  mk_listat(&m_tics,0,(void*)&tic1);
+  mk_listat(&m_tics,1,(void*)&tic2);
+  if (mk_diff(tic2.m_val-tic1.m_val,interval,eps)!=.0) {
+    tic1.m_drawable=0;
+    mk_listsetat(&m_tics,(void*)&tic1,0,0);
+  }
+  mk_listat(&m_tics,ntics-1,(void*)&tic1);
+  mk_listat(&m_tics,ntics-2,(void*)&tic2);
+  if (mk_diff(tic1.m_val-tic2.m_val,interval,eps)!=.0) {
+    tic1.m_drawable=0;
+    mk_listsetat(&m_tics,(void*)&tic1,ntics-1,0);
+  }
   setMajTics();
+  mk_string str;
   for (ii=0;ii<ntics;ii++) {
-    tic=m_tics.at(ii);
-    mk_d2a(tic->m_val,tic->m_str,m_interval.m_a);
+    mk_listat(&m_tics,ii,(void*)&tic1);
+    mk_d2a(tic1.m_val,str,m_interval.m_a);
+    tic1.setText(str);
+    mk_listsetat(&m_tics,(void*)&tic1,ii,0);
   }
   return ntics;
 
@@ -446,39 +492,48 @@ double Scale::calcInterval(int maxtics,int *ntics) {
 
 void Scale::setMajTics () {
 
-  int ii=0,ntics=m_tics.count();
+  int ii=0,ntics=m_tics.count;
   if (ntics<=0)
     return;
-  for (ii=0;ii<ntics;ii++)
-    m_tics.at(ii)->m_size=0;
+  Tic tic;
+  for (ii=0;ii<ntics;ii++) {
+    mk_listat(&m_tics,ii,(void*)&tic);
+    tic.m_size=0;
+    mk_listsetat(&m_tics,(void*)&tic,ii,0);
+  }
   double val=.0,interval=mk_round2(m_interval.m_d,m_interval.m_a);
   int idx=-1,magintv=mk_mag(interval),
       iinterval=(int)mk_round2(10.*interval/mk_ipow10(magintv));
-  Tic *tic=0;
   for (ii=0;ii<ntics;ii++) {
-    tic=m_tics.at(ii);
-    val=fabs(tic->m_val);
+    mk_listat(&m_tics,ii,(void*)&tic);
+    val=fabs(tic.m_val);
     if (mk_diff(val,.0,mk_ipow10(magintv-1))==.0) {
-      tic->m_size=1;
+      tic.m_size=1;
+      mk_listsetat(&m_tics,(void*)&tic,ii,0);
       continue;
     }
     if (mk_diff(mk_roundup(val,-magintv-1),
-             mk_rounddown(val,-magintv-1),mk_ipow10(magintv))==.0) {
+        mk_rounddown(val,-magintv-1),mk_ipow10(magintv))==.0) {
       idx=ii;
       break;
     }
     if (iinterval==10 &&
         mk_diff(mk_roundup(2.*val,-magintv-1),
-             mk_rounddown(2.*val,-magintv-1),mk_ipow10(magintv))==.0) {
+        mk_rounddown(2.*val,-magintv-1),mk_ipow10(magintv))==.0) {
       idx=ii;
       break;
     }
   }
   if (idx>=0) {
     int rangeoption=rangeOption();
-    m_tics.at(idx)->m_size=1;
-    if (iinterval==50 && (idx-2>0 || (idx-2==0 && (rangeoption&typeBoundStaticMin)==0)))
-      m_tics.at(idx-2)->m_size=1;
+    mk_listat(&m_tics,idx,(void*)&tic);
+    tic.m_size=1;
+    mk_listsetat(&m_tics,(void*)&tic,idx,0);
+    if (iinterval==50 && (idx-2>0 || (idx-2==0 && (rangeoption&typeBoundStaticMin)==0))) {
+      mk_listat(&m_tics,idx-2,(void*)&tic);
+      tic.m_size=1;
+      mk_listsetat(&m_tics,(void*)&tic,idx-2,0);
+    }
     while (idx<ntics) {
       if (iinterval==10 || iinterval==20)
         idx+=5;
@@ -486,8 +541,11 @@ void Scale::setMajTics () {
         idx+=4;
       else if (iinterval==50)
         idx+=2;
-      if (idx<ntics-1 || (idx==ntics-1 && (rangeoption&typeBoundStaticMax)==0))
-        m_tics.at(idx)->m_size=1;
+      if (idx<ntics-1 || (idx==ntics-1 && (rangeoption&typeBoundStaticMax)==0)) {
+        mk_listat(&m_tics,idx,(void*)&tic);
+        tic.m_size=1;
+        mk_listsetat(&m_tics,(void*)&tic,idx,0);
+      }
     }
   }
   
@@ -523,87 +581,102 @@ double Scale::growIntervalSize(double size) {
 
 void Scale::rollInnerTics(double direction) {
 
-  int ii=0,ntics=m_tics.count();
+  int ii=0,ntics=m_tics.count;
   if (ntics<3)
     return;
-  Tic *tic=0;
+  Tic tic;
   double interval=mk_round2(m_interval.m_d,m_interval.m_a);
   if (direction>.0) {
-    for (ii=2;ii<(ntics-2);ii++)
-      m_tics.replace(ii-1,*m_tics.at(ii));
-    tic=m_tics.at(ntics-2);
-    tic->m_val=m_tics.at(ntics-3)->m_val+interval;
+    for (ii=2;ii<(ntics-2);ii++) {
+      mk_listat(&m_tics,ii,(void*)&tic);
+      mk_listsetat(&m_tics,(void*)&tic,ii-1,0);
+    }
+    mk_listat(&m_tics,ntics-3,(void*)&tic);
+    tic.m_val+=interval;
+    mk_listsetat(&m_tics,(void*)&tic,ntics-2,0);
   }
   if (direction<.0) {
-    for (ii=(ntics-2);ii>1;ii--)
-      m_tics.replace(ii,*m_tics.at(ii-1));
-    tic=m_tics.at(1);
-    tic->m_val=m_tics.at(2)->m_val-interval;
+    for (ii=(ntics-2);ii>1;ii--) {
+      mk_listat(&m_tics,ii-1,(void*)&tic);
+      mk_listsetat(&m_tics,(void*)&tic,ii,0);
+    }
+    mk_listat(&m_tics,2,(void*)&tic);
+    mk_listsetat(&m_tics,(void*)&tic,1,0);
   }
-  m_tics.sort(true);
+  mk_listsort(&m_tics);
 
 }
 
 int Scale::adaptShiftedTicArray(double direction,bool clearedge,int adaptotheredge) {
 
-  int ii=0,ntics=m_tics.count();
+  int ii=0,ntics=m_tics.count;
   if (ntics<3 || direction==.0)
     return 0;
-  Tic *tic=0;
+  Tic tic;
+  double val=mk_dnan;
   double interval=mk_round2(m_interval.m_d,m_interval.m_a);
   if (direction>.0) {
     if (clearedge) {
-      for (ii=1;ii<ntics;ii++)
-        m_tics.replace(ii-1,*m_tics.at(ii));
-      m_tics.remove(ntics-1);
-      ntics=m_tics.count();
+      for (ii=1;ii<ntics;ii++) {
+        mk_listat(&m_tics,ii,(void*)&tic);
+        mk_listsetat(&m_tics,(void*)&tic,ii-1,0);
+      }
+      mk_listremove(&m_tics,ntics-1,0);
+      ntics=m_tics.count;
     }
     if (adaptotheredge==1) {
-      tic=m_tics.at(ntics-2);
-      m_tics.replace(ntics-1,*tic);
-      tic->m_val+=interval;
-      m_tics.inSort(*tic);
-      ntics=m_tics.count();
+      mk_listat(&m_tics,ntics-2,(void*)&tic);
+      mk_listsetat(&m_tics,(void*)&tic,ntics-1,0);
+      tic.m_val+=interval;
+      mk_listinsort(&m_tics,(void*)&tic);
+      ntics=m_tics.count;
     }
     else if (adaptotheredge==-1) {
-      m_tics.replace(ntics-2,*m_tics.at(ntics-1));
-      m_tics.remove(ntics-1);
-      ntics=m_tics.count();
+      mk_listat(&m_tics,ntics-1,(void*)&tic);
+      mk_listsetat(&m_tics,(void*)&tic,ntics-2,0);
+      mk_listremove(&m_tics,ntics-1,0);
+      ntics=m_tics.count;
     }
   }
   else {
     if (clearedge) {
-      for (ii=ntics-1;ii>0;ii--)
-        m_tics.replace(ii,*m_tics.at(ii-1));
-      m_tics.remove(0);
-      ntics=m_tics.count();
+      for (ii=ntics-1;ii>0;ii--) {
+        mk_listat(&m_tics,ii-1,(void*)&tic);
+        mk_listsetat(&m_tics,(void*)&tic,ii,0);
+      }
+      mk_listremove(&m_tics,0,0);
+      ntics=m_tics.count;
     }
     if (adaptotheredge==1) {
-      tic=m_tics.at(ntics-1);
-      tic->m_val+=interval;
-      m_tics.inSort(*tic);
-      ntics=m_tics.count();
-      for (ii=ntics-1;ii>1;ii--)
-        m_tics.replace(ii,*m_tics.at(ii-1));
-      tic=m_tics.at(1);
-      tic->m_val=m_tics.at(2)->m_val-interval;
-      m_tics.replace(1,*tic);
+      mk_listat(&m_tics,ntics-1,(void*)&tic);
+      tic.m_val+=interval;
+      mk_listinsort(&m_tics,(void*)&tic);
+      ntics=m_tics.count;
+      for (ii=ntics-1;ii>1;ii--) {
+        mk_listat(&m_tics,ii-1,(void*)&tic);
+        mk_listsetat(&m_tics,(void*)&tic,ii,0);
+      }
+      mk_listat(&m_tics,2,(void*)&tic);
+      val=tic.m_val-interval;
+      mk_listsetat(&m_tics,(void*)&tic,1,0);
     }
     else if (adaptotheredge==-1) {
-      for (ii=1;ii<ntics-1;ii++)
-        m_tics.replace(ii,*m_tics.at(ii+1));
-      m_tics.remove(ntics-1);
-      ntics=m_tics.count();
+      for (ii=1;ii<ntics-1;ii++) {
+        mk_listat(&m_tics,ii+1,(void*)&tic);
+        mk_listsetat(&m_tics,(void*)&tic,ii,0);
+      }
+      mk_listremove(&m_tics,ntics-1,0);
+      ntics=m_tics.count;
     }
   }
-  m_tics.sort(true);
-  return m_tics.count();
+  mk_listsort(&m_tics);
+  return m_tics.count;
 
 }
 
-int Scale::failsave(aux::TVList<Tic> *ticL) {
+int Scale::failsave(mk_list *ticL) {
 
-  m_tics.clear();
+  mk_listclear(&m_tics,0);
   Range currrange=currRange();
   int cmp=0,db=mk_dbusted(currrange.m_min,currrange.m_max,&cmp);
   if (db!=0)
@@ -621,14 +694,18 @@ int Scale::failsave(aux::TVList<Tic> *ticL) {
   m_interval.m_d=calcInterval(11,0);
   m_interval.m_a=-(short)mk_mag(m_interval.m_d)+1;
   Tic tic(currrange.m_cmin,1,1);
-  mk_d2a(currrange.m_cmin,tic.m_str,m_interval.m_a);
-  m_tics.inSort(tic);
+  mk_string str;
+  mk_d2a(currrange.m_cmin,str,m_interval.m_a);
+  tic.setText(str);
+  mk_listinsort(&m_tics,(void*)&tic);
   tic=Tic((currrange.m_cmax+currrange.m_cmin)/2.,1,1);
-  mk_d2a((currrange.m_cmax+currrange.m_cmin)/2.,tic.m_str,m_interval.m_a+1);
-  m_tics.inSort(tic);
+  mk_d2a((currrange.m_cmax+currrange.m_cmin)/2.,str,m_interval.m_a+1);
+  tic.setText(str);
+  mk_listinsort(&m_tics,(void*)&tic);
   tic=Tic(currrange.m_cmax,1,1);
-  mk_d2a(currrange.m_cmax,tic.m_str,m_interval.m_a);
-  m_tics.inSort(tic);
+  mk_d2a(currrange.m_cmax,str,m_interval.m_a);
+  tic.setText(str);
+  mk_listinsort(&m_tics,(void*)&tic);
   return tics(ticL);
 
 }

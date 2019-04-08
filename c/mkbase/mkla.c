@@ -710,7 +710,7 @@ int mk_matrixalloc(struct mk_matrix *mat,int rows_,int cols_) {
   int sz=mat->rows*mat->cols;
   if (sz==0)
     mat->rows=mat->cols=0;
-  if (sz>0) {
+  else {
     mat->matrix=(double *)malloc(sz*sizeof(double));
     memset(&mat->matrix[0],0,sz*sizeof(double));
   }
@@ -733,7 +733,7 @@ int mk_matrixfree(struct mk_matrix *mat) {
 double mk_matrixget(const struct mk_matrix *mat,int row,int col) {
 
   if (mat && mat->matrix && row>=0 && row<mat->rows && col>=0 && col<mat->cols)
-    return *(mat->matrix+(row*mat->rows+col));
+    return *(mat->matrix+(row*mat->cols+col));
   return mk_dnan;
 
 }
@@ -743,7 +743,7 @@ int mk_matrixset(struct mk_matrix *mat,int row,int col,double val) {
 
   int res=1;
   if (mat && mat->matrix && row>=0 && row<mat->rows && col>=0 && col<mat->cols) {
-    *(mat->matrix+(row*mat->rows+col))=val;
+    *(mat->matrix+(row*mat->cols+col))=val;
     res=0;
   } 
   return res;
@@ -753,13 +753,19 @@ int mk_matrixset(struct mk_matrix *mat,int row,int col,double val) {
 /* ########## */
 int mk_matrixcopy(struct mk_matrix *dest,const struct mk_matrix *src) {
 
-  mk_matrixfree(dest);
-  int rr=(src && src->matrix ? src->rows : 0),cc=(src && src->matrix ? src->cols : 0);
-  if (rr*cc>0) {
-    if (mk_matrixalloc(dest,rr,cc)>0)
-      memcpy((void*)dest->matrix,(void*)src->matrix,rr*cc*sizeof(double));
+  if (!dest)
+    return 1;
+  int sz=(src ? src->rows*src->cols : 0);
+  if (sz==0) {
+    mk_matrixfree(dest);
+    return 0;
   }
-  return rr*cc;
+  if (sz!=dest->rows*dest->cols) {
+    mk_matrixfree(dest);
+    mk_matrixalloc(dest,src->rows,src->cols);
+  }
+  memcpy((void*)dest->matrix,(void*)src->matrix,sz*sizeof(double));
+  return sz;
 
 }
 
@@ -779,6 +785,51 @@ int mk_matrixreset(struct mk_matrix *mat,int identity) {
     }
   }
   return 0;  
+
+}
+
+/* ########## */
+int mk_matrixtranspose(struct mk_matrix *trmat) {
+
+  if (!trmat || !trmat->matrix || trmat->rows*trmat->cols==0)
+    return 1;
+  int row=0,col=0,sz=trmat->rows*trmat->cols;
+  struct mk_matrix mat;
+  mk_matrixalloc(&mat,trmat->rows,trmat->cols);
+  mk_matrixcopy(&mat,trmat);
+  mk_swapi(&trmat->rows,&trmat->cols);
+  for (row=0;row<trmat->rows;row++) {
+    for (col=0;col<trmat->cols;col++) {
+      *(trmat->matrix+(row*trmat->cols+col))=*(mat.matrix+(col*mat.cols+row));
+    }
+  }
+  mk_matrixfree(&mat);
+  return 0;
+
+}
+
+/* ########## */
+int mk_matrixmult(struct mk_matrix *mmat,const struct mk_matrix *mat) {
+
+  int ii=0,jj=0,kk=0,rr=(mmat ? mmat->rows: 0),cc=(mmat ? mmat->cols : 0);
+  if (rr*cc==0 || !mat || mat->rows*mat->cols==0 || cc!=mat->rows)
+    return 1;
+  double *rmat=(double*)malloc(rr*cc*sizeof(double));
+  memcpy((void*)&rmat[0],(void*)&mmat->matrix[0],rr*cc*sizeof(double));
+  mk_matrixfree(mmat);
+  mk_matrixalloc(mmat,rr,mat->cols);
+  memset((void*)mmat->matrix,0,mmat->rows*mmat->cols*sizeof(double));
+  double tmp=mk_dnan;
+  for (ii=0;ii<rr;ii++) {
+    for (jj=0;jj<mat->cols;jj++) {
+      for (kk=0;kk<cc;kk++) {
+        tmp=mk_matrixget(mmat,ii,jj)+(*(rmat+(ii*cc+kk)))*mk_matrixget(mat,kk,jj);
+        mk_matrixset(mmat,ii,jj,tmp);
+      }
+    }
+  }
+  free(rmat);
+  return 0;
 
 }
 
@@ -921,6 +972,58 @@ int mk_matrixlubacksubstitution(struct mk_matrix *lumat,int *lurowperm,double *r
 }
 
 /* ########## */
+double mk_matrixdet(struct mk_matrix *dmat) {
+ 
+  int ii=0,rr=(dmat ? dmat->rows : 0),cc=(dmat ? dmat->cols : 0);
+  if (rr*cc==0 || rr!=cc)
+    return 1;
+  struct mk_matrix lumat;
+  mk_matrixalloc(&lumat,rr,cc);
+  int *rowperm=(int*)malloc(rr*sizeof(int));
+  double parity=1.;
+  if (mk_matrixludecomposition(dmat,&lumat,rowperm,&parity)!=0)
+    return .0;
+  double det=parity;
+  for (ii=0;ii<dmat->rows;ii++)
+    det*=mk_matrixget(&lumat,ii,ii);
+  free(rowperm);
+  mk_matrixfree(&lumat);
+  return det;
+
+}
+
+/* ########## */
+int mk_matrixinvert(struct mk_matrix *imat) {
+
+  int ii=0,jj=0,len=imat->rows;
+  struct mk_matrix lumat;
+  mk_matrixalloc(&lumat,len,len);
+  int *rowperm=(int*)malloc(len*sizeof(int));
+  for (ii=0;ii<len;ii++)
+    rowperm[ii]=ii;
+  double *identity=(double*)malloc(len*sizeof(double));
+  double *inverted=(double*)malloc(len*sizeof(double));
+  double parity=1.;
+  int chk=mk_matrixludecomposition(imat,&lumat,rowperm,&parity);
+  for (ii=0;ii<len && chk==0;ii++) {
+    for (jj=0;jj<len;jj++)
+      identity[jj]=inverted[jj]=(ii==jj ? 1. : .0);
+    // solve column by column the equation M*M(-1)=1
+    if (mk_matrixlubacksubstitution(&lumat,rowperm,identity,inverted)==0) {
+      // set the new elements ...
+      for (jj=0;jj<len;jj++)
+        mk_matrixset(imat,jj,ii,inverted[jj]);
+    }
+  }
+  free(inverted);
+  free(identity);
+  free(rowperm);
+  mk_matrixfree(&lumat);
+  return chk;
+
+}
+
+/* ########## */
 int mk_matrixsolve(struct mk_matrix *mat,double *rr,double *xx) {
 
   if (!mat || !rr || !xx || mat->rows<=0 || mat->rows!=mat->cols)
@@ -942,163 +1045,4 @@ int mk_matrixsolve(struct mk_matrix *mat,double *rr,double *xx) {
 
 }
 
-/* ########## */
-int mk_polynomialalloc(struct mk_polynomial *polynomial,int len) {
-
-  len=MAX(0,len);
-  mk_listalloc(&polynomial->ctrlL,sizeof(mk_vertex),len);
-  mk_vertexzero(vv);
-  int ii=0;
-  for (ii=0;ii<len;ii++)
-    mk_listappend(&polynomial->ctrlL,(void*)&vv);
-  mk_matrixalloc(&polynomial->cc,len,len);
-  mk_matrixalloc(&polynomial->dd,len,len);
-  return 0;
- 
-}
-
-/* ########## */
-int mk_polynomialfree(struct mk_polynomial *polynomial) {
-
-  if (!polynomial)
-    return 1;
-  mk_matrixfree(&polynomial->dd);
-  mk_matrixfree(&polynomial->cc);
-  mk_listfree(&polynomial->ctrlL);
-  return 0;
-
-}
-
-/* ########## */
-double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
-
-  if (!polynomial || mk_isnan(xx))
-    return mk_dnan;
-  int ii=0,jj=0,idx=0,downward=0,len=polynomial->ctrlL.count;
-  mk_vertexzero(vv0);
-  mk_vertexzero(vv1);
-  mk_listat(&polynomial->ctrlL,0,(void*)&vv0);
-  double res=.0,tmp=.0,dxmin=fabs(vv0[0]-xx),dxl=.0,dxh=.0,dxincr=.0;
-  /* first columns of cc,dd are the ctrlL function values */ 
-  for (ii=0;ii<len;ii++) {
-    mk_listat(&polynomial->ctrlL,ii,(void*)&vv0);
-    mk_matrixset(&polynomial->cc,0,ii,vv0[1]);
-    mk_matrixset(&polynomial->dd,0,ii,vv0[1]);
-  }
-  /* update cc,dd */
-  for (ii=1;ii<len;ii++) {
-    /* calc nearest distance to (then) starting point in ctrlL underway */
-    mk_listat(&polynomial->ctrlL,ii,(void*)&vv0);
-    if (fabs(vv0[0]-xx)<dxmin) {
-      dxmin=fabs(vv0[0]-xx);
-      idx=ii;
-    }
-    /* 
-    lagrange :
-    p(x)=(x-x1)*(x-x2)*...*(x-xn)*y0/(x0-x1)*(x0-x2)*...*(x0-xn) +
-         (x-x0)*(x-x2)*...*(x-xn)*y1/(x1-x0)*(x1-x2)*...*(x1-xn) + ...
-         (x-x0)*(x-x1)*...*(x-xn-1)*yn/(xn-x0)*(xn-x1)*...*(xn-xn-1)
-    ===> neville aitken : 
-    p0(x)=y0
-             p01(x)=((x-x1)*p0+(x0-x)*p1)/(x0-x1)
-    p1(x)=y1                                      p012=((x-x2)*p01+(x0-x)*p12)/(x0-x2)
-             p12(x)=((x-x2)*p1+(x1-x)*p2)/(x1-x2)
-    p2(x)=y2                                      p123=((x-x3)*p12+(x0-x)*p23)/(x0-x3)
-             p23(x)=((x-x3)*p2+(x2-x)*p3)/(x2-x3)
-    ===> diffs :
-    c10=p01-p0
-    d10=p01-p1   
-    c11=p12-p1
-    d11=p12-p2
-    c12=p23-p2 
-               c20=p012-p01=((x0-x)*(c11-d10))/(x0-x2)
-               d20=p012-p12=((x2-x)*(c11-d10))/(x0-x2)
-               c21=p123-p12=((x1-x)*(c12-d11))/(x1-x3)
-               d21=p123-p23=((x3-x)*(c12-d11))/(x1-x3)
-    */
-    for (jj=0;jj<(len-ii);jj++) {
-      mk_listat(&polynomial->ctrlL,jj,(void*)&vv0);
-      mk_listat(&polynomial->ctrlL,jj+ii,(void*)&vv1);
-      dxl=vv0[0]-xx;
-      dxh=vv1[0]-xx;
-      dxincr=mk_matrixget(&polynomial->cc,ii-1,jj+1)-mk_matrixget(&polynomial->dd,ii-1,jj);
-      dxincr=(mk_deq(dxh-dxl,.0) ? .0 : dxincr/(dxl-dxh));
-      mk_matrixset(&polynomial->cc,ii,jj,dxincr*dxl);
-      mk_matrixset(&polynomial->dd,ii,jj,dxincr*dxh);
-    }
-  }
-  /*
-  accumulate result from diffs c,d (s.a) - walk along any of these ways 
-  p(x)=p0+c10+c20 down-down     
-  p(x)=p1+d10+c20 up-down | p1+c11+d20 down-up | p1+c11+c21 down-down
-  p(x)=p2+d11+c20 up-up | p2+d11+c21 up-down | p2+c12+d21 down-up
-  way up-or-down to nearest difference at resp index position 
-  */
-  res=mk_matrixget(&polynomial->cc,0,idx);
-  if (idx==0 || len/idx>=2)
-    downward=1;
-  for (ii=1;ii<len;ii++) {
-    if (downward==1) {
-      if (idx>=1)
-        downward=0;
-      tmp=mk_matrixget(&polynomial->cc,ii,idx);
-    }
-    else {
-      if (idx<1 || idx<(len-ii-1))
-        downward=1;
-      tmp=mk_matrixget(&polynomial->dd,ii,--idx);
-    }
-    res+=tmp;
-  }
-  return res;
-
-}
-
-/* ########## */
-int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeff) {
-
-  if (!polynomial || !coeff)
-    return 1;
-  int ii=0,idx=0,jj=0,kk=0,ll=0,len=polynomial->ctrlL.count;
-  double min=mk_dnan,zcoeff=.0;
-  mk_vertexzero(vv0);
-  struct mk_polynomial pp;
-  mk_polynomialalloc(&pp,len);
-  mk_listcopy(&pp.ctrlL,&polynomial->ctrlL);
-  for (ii=0;ii<len;ii++) {
-    zcoeff=mk_polynomialinterp(&pp,.0);
-    coeff[idx++]=zcoeff;
-    min=mk_dnan;
-    kk=0;
-    for (jj=0;jj<len-ii;jj++) {
-      mk_listat(&pp.ctrlL,jj,(void*)&vv0);
-      if (mk_isnan(min)!=0 || fabs(vv0[0])<min) {
-        min=fabs(vv0[0]);
-        kk=jj;
-      }
-      /* p(x)=a0+a1*x+a2*x*x+a3*x*x*x+a4*x*x*x*x .....
-      ===> (p(x)-a0)/x=a1+a2*x+a3*x*x+a4*x*x*x ... */
-      vv0[1]=(vv0[1]-zcoeff)/vv0[0];
-      mk_listsetat(&pp.ctrlL,(void*)&vv0,jj,0);
-    }
-    /* recycle pp with shifted down elements and reinitialize cc,dd */
-    for (jj=kk+1;jj<len-ii;jj++) {
-      mk_listat(&pp.ctrlL,jj,(void*)&vv0);
-      mk_listsetat(&pp.ctrlL,(void*)&vv0,jj-1,0);
-    }
-    mk_listpop(&pp.ctrlL,(void*)&vv0);
-    jj=pp.ctrlL.count;
-    mk_matrixreset(&pp.cc,0);
-    mk_matrixreset(&pp.dd,0);
-    for (kk=0;kk<pp.ctrlL.count;kk++) {
-      mk_listat(&pp.ctrlL,kk,(void*)&vv0);
-      mk_matrixset(&pp.cc,0,kk,vv0[1]);
-      mk_matrixset(&pp.dd,0,kk,vv0[1]);
-    }
-  }
-  mk_polynomialfree(&pp);
-
-  return 0;
-
-}
 

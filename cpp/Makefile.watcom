@@ -1,6 +1,6 @@
 
 all:
-	cd $(SWDIR)\cpp\auxx
+	cd $(SWDIR)\cpp\tools
 	nmake -f Makefile.watcom
 	cd $(SWDIR)\cpp\numeric
 	nmake -f Makefile.watcom
@@ -38,7 +38,7 @@ clean:
 	nmake -f Makefile.watcom clean
 	cd $(SWDIR)\cpp\osix
 	nmake -f Makefile.watcom clean
-	cd $(SWDIR)\cpp\auxx
+	cd $(SWDIR)\cpp\tools
 	nmake -f Makefile.watcom clean
 	cd $(SWDIR)\cpp
 
