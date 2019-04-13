@@ -984,10 +984,10 @@ int Polynomial::invalidate() {
 
 int Polynomial::setCtrl(struct mk_list *ctrlL) {
 
-  if (Interpolation::setCtrl(ctrlL)!=0)
-    return 1;
-  int regrdeg=0;
-  return fitRegr(regrdeg);
+  invalidate();
+  int res=Interpolation::setCtrl(ctrlL);
+  if (res==0 && (m_options&interpolation_regr)>0)
+    fitRegr(m_options&(~interpolation_regr));
   return 0;
 
 }
@@ -995,7 +995,7 @@ int Polynomial::setCtrl(struct mk_list *ctrlL) {
 int Polynomial::fitRegr(int regrdeg) {
 
   mk_listclear(&m_coeffL,0);
-  int ii=0,jj=0,kk=0,nctrl=m_ctrlL.count;
+  int ii=0,jj=0,kk=0,nctrl=m_ctrlL.count; 
   if (nctrl==0 || regrdeg<=0 || regrdeg>=nctrl)
     return 1;
   double tmp=mk_dnan;
@@ -1252,11 +1252,12 @@ int Polynomial::coeff(double,struct mk_list *cc) {
     }
     return ncoeff;
   }
+  mk_listclear(&m_coeffL,0);
   mk_listrealloc(&m_coeffL,nctrl);
   Polynomial pp(interpolation_ctrl);
   pp.setCtrl(&m_ctrlL);
   pp.prepTable();
-  double min=mk_dnan,ctmp=.0;
+  double min=mk_dnan;
   mk_vertexnan(coeff);
   for (ii=0;ii<nctrl;ii++) {
     coeff[0]=.0;
@@ -1273,7 +1274,7 @@ int Polynomial::coeff(double,struct mk_list *cc) {
       }
       // y=f(x)=a0+a1+x+a2*x*x+a3*x*x*x+a4*x*x*x*x .....
       // -> (y-a0)/x=a1+a2*x+a3*x*x+a4*x*x*x ...
-      vv[1]=((vv[1]-ctmp)/vv[0]);
+      vv[1]=((vv[1]-coeff[1])/vv[0]);
       mk_listsetat(&(pp.m_ctrlL),(void*)&vv,jj,0);
     }
     for (jj=kk+1;jj<nctrl-ii;jj++) {

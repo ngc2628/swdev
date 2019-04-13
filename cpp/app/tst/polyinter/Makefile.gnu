@@ -2,7 +2,7 @@
 ####### definitions #######
 
 PRJROOT       = $(SWDIR)
-PRJ           = tstpolyinter
+PRJ           = tstppolyinter
 DESTDIR       = $(BINDIR)
 TARGET        = $(PRJ)
 DEFINES       =

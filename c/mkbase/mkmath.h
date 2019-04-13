@@ -12,42 +12,61 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 
-#if defined (_MSC_VER)
-static const mk_lreal mk_i64limit=9223372036854775807i64;
-static const mk_ulreal mk_ui64limit=18446744073709551615ui64;
-static const unsigned int mk_uilimit=4294967295;
-#else
-#if defined (__WATCOMC__)
-static const mk_lreal mk_i64limit=9223372036854775807LL;
-static const mk_ulreal mk_ui64limit=18446744073709551615ULL;
-static const unsigned int mk_uilimit=4294967295U;
-#else
-#if defined (__MACH__)
-static const mk_lreal mk_i64limit=9223372036854775807LL;
-static const mk_ulreal mk_ui64limit=18446744073709551615ULL;
-static const unsigned int mk_uilimit=4294967295U;
-#else
-static const mk_lreal mk_i64limit=9223372036854775807LL;
-static const mk_ulreal mk_ui64limit=18446744073709551615ULL;
-static const unsigned int mk_uilimit=4294967295U;
-#endif
-#endif
-#endif
-static const int mk_ilimit=2147483647;
-static const unsigned short mk_uslimit=65535;
-static const short mk_slimit=32767;
-static const double mk_dlimit=1.7976931348623157e308;
-static const double mk_derr=0.000000000000001;
-static const double mk_euler=2.718281828459045235;
-static const double mk_pi=3.1415926535897932385;
-static const double mk_rad=0.0174532925199432957694;
-static const double mk_log210=0.3010299956639812;
-static const double mk_loge10=0.4342944819032518;
-static const double mk_log10e=2.3025850929940457;
-static const unsigned short mk_dmag=308;
-static const unsigned short mk_i64mag=18;
-static const unsigned short mk_ui64mag=19;
-static const unsigned short mk_dprec=15;
+/* ucd:number as char , ff:number as float 
+union tp_ucpf {
+  unsigned char ucf[4];
+  float ff;
+};
+big endian
+union tp_ucpf mk_deffnan={{127,192,0,0}};
+union tp_ucpf mk_deffsnan={{255,192,0,0}};
+union tp_ucpf mk_deffinf={{127,128,0,0}};
+union tp_ucpf mk_deffsinf={{255,128,0,0}};
+little endian
+union tp_ucpf mk_deffnan={{0,0,192,127}};
+union tp_ucpf mk_deffsnan={{0,0,192,255}};
+union tp_ucpf mk_deffinf={{0,0,128,127}};
+union tp_ucpf mk_deffsinf={{0,0,128,255}};
+#define mk_fnan *((const float *)&mk_deffnan.ff)
+#define mk_fsnan *((const float *)&mk_deffsnan.ff)
+#define mk_finf *((const float *)&mk_deffinf.ff)
+#define mk_fsinf *((const float *)&mk_deffsinf.ff)
+*/
+
+/* ucd:number as char , dd:number as double */ 
+union tp_ucpd {
+  unsigned char ucd[8];
+  double dd;
+};
+
+extern const union tp_ucpd mk_defdnan; 
+extern const union tp_ucpd mk_defdsnan;
+extern const union tp_ucpd mk_defdinf;
+extern const union tp_ucpd mk_defdsinf;
+
+#define mk_dnan mk_defdnan.dd
+#define mk_dsnan mk_defdsnan.dd
+#define mk_dinf mk_defdinf.dd
+#define mk_dsinf mk_defdsinf.dd
+
+extern const mk_lreal mk_i64limit;
+extern const mk_ulreal mk_ui64limit;
+extern const unsigned int mk_uilimit;
+extern const int mk_ilimit;
+extern const unsigned short mk_uslimit;
+extern const short mk_slimit;
+extern const double mk_dlimit;
+extern const double mk_derr;
+extern const double mk_euler;
+extern const double mk_pi;
+extern const double mk_rad;
+extern const double mk_log210;
+extern const double mk_loge10;
+extern const double mk_log10e;
+extern const unsigned short mk_dmag;
+extern const unsigned short mk_i64mag;
+extern const unsigned short mk_ui64mag;
+extern const unsigned short mk_dprec;
 
 #ifdef __cplusplus
 /* #pragma message "cplusplus" */

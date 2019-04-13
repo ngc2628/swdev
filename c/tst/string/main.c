@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <tst/string/decl.h>
 
 typedef unsigned long long int tst_ulreal;
 #define tst_sz 128
@@ -51,6 +52,11 @@ int main(int argc,char **argv) {
 
   int ii=0,jj=0;
   double zero=.0,one=1.;
+
+  printf("%d [%f]\n",__LINE__,tst_dnan);
+  printf("%d [%f]\n",__LINE__,tst_dsnan);
+  printf("%d [%f]\n",__LINE__,tst_dinf);
+  printf("%d [%f]\n",__LINE__,tst_dsinf);
 
   tst_ulreal tstnum=1234;
   tst_string tststr;

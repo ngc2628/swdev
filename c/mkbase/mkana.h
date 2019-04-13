@@ -36,14 +36,21 @@ xtern int oswinexp mk_polynomialalloc(struct mk_polynomial *,int);
 xtern int oswinexp mk_polynomialfree(struct mk_polynomial *);
 
 /*
-  in polynomial* , interpolation at x-value , return 0,1
+  in polynomial* , interpolation at x-value , in coeff-arr - 0:ignore, calc from ctrlL ,
+  return value-interp
 */
-xtern double oswinexp mk_polynomialinterp(struct mk_polynomial *,double);
+xtern double oswinexp mk_polynomialinterp(struct mk_polynomial *,double,double *);
 
 /*
-  inout polynomial* , interpolation at x-value , intern slat 
+  inout polynomial* , inout coeff-arr , return 0|1
 */
 xtern int oswinexp mk_polynomialcoeff(struct mk_polynomial *,double *);
+
+/*
+  inout polynomial* , in 0<degree<length ,
+  inout coeff-arr[degree+2] (mean square diff appended) , return 0|1
+*/
+xtern int oswinexp mk_polynomialfitdegr(struct mk_polynomial *,int,double *);
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,7 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 #include <mkbase/mkutil.h>
+#include <mkbase/mkmath.h>
 
 typedef double mk_vertex[4];
 #define mk_vertexnan(name) mk_vertex name={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
@@ -128,13 +129,13 @@ xtern double oswinexp mk_vertexangrad(const mk_vertex,const mk_vertex);
 */
 xtern double oswinexp mk_vertexangdeg(const mk_vertex,const mk_vertex);
 
-/* 
-  in linep1 , in linep2 , in xarg , return result 
+/*
+  in linep1 , in linep2 , in xarg , return result
 */
 xtern double oswinexp mk_lineq(const mk_vertex,const mk_vertex,double);
 
-/* 
-  in hp1 , in hp2 , in xarg , return result 
+/*
+  in hp1 , in hp2 , in xarg , return result
 */
 xtern double oswinexp mk_lgeq(const mk_vertex,const mk_vertex,double);
 
@@ -147,8 +148,8 @@ xtern int oswinexp mk_linesintersection(
 
 /*
   in rect.topleft , in rect.bottomright , in line.p1 , in line.p2 ,
-  out p.left , out p.top , out p.right , out p.bottom , 
-  out (left,top,right,bottom) as 0,1 indicator line-cuts-rect , 
+  out p.left , out p.top , out p.right , out p.bottom ,
+  out (left,top,right,bottom) as 0,1 indicator line-cuts-rect ,
   in cliplinetorect 0,1
 */
 xtern int oswinexp mk_intersectionpointslinerect(const mk_vertex,const mk_vertex,const mk_vertex,
@@ -165,19 +166,19 @@ xtern int oswinexp mk_ellipse(struct mk_list *,int);
 xtern int oswinexp mk_polygonintersection(struct mk_list *,struct mk_list *,struct mk_list *);
 
 /*
-  in list-of-vertices* , out list-of-1st-derivatives* (df/dx)[i][0], (df/dy)[i][1] , 
+  in list-of-vertices* , out list-of-1st-derivatives* (df/dx)[i][0], (df/dy)[i][1] ,
   out list-of-2nd-derivatives* (df2/dxdx)[i][0], (d2f/dydy)[i][1] , return 0,1
 */
 xtern int oswinexp mk_derivatives(struct mk_list *,struct mk_list *,struct mk_list *);
 
 /*
-  in list-of-vertices* , out list-of-2nd-derivatives* (d2f/dxdy)[i][2] , 
+  in list-of-vertices* , out list-of-2nd-derivatives* (d2f/dxdy)[i][2] ,
   in number grid columns , return 0,1
 */
 xtern int oswinexp mk_derivativesmixed(struct mk_list *,struct mk_list *,int);
 
 /*
-  inout matrix* , return 0,size
+  inout matrix* , in rows , in cols , return 0,size
 */
 xtern int oswinexp mk_matrixalloc(struct mk_matrix *,int,int);
 
@@ -218,7 +219,7 @@ int oswinexp mk_matrixmult(struct mk_matrix *,const struct mk_matrix *);
 
 /*
   in squarematrix* , out decomposited squarematrix ,
-  out row permutation (which row goes where) , out row interchangeables even(1)/odd(-1) 
+  out row permutation (which row goes where) , out row interchangeables even(1)/odd(-1)
 */
 xtern int oswinexp mk_matrixludecomposition(struct mk_matrix *,struct mk_matrix *,int *, double *);
 
@@ -239,8 +240,8 @@ double oswinexp mk_matrixdet(struct mk_matrix *);
 int oswinexp mk_matrixinvert(struct mk_matrix *);
 
 /*
-  in squarematrix* , in right hand side column vector* , 
-  out result vector* a : a0+a1x+a2x**2 ... anx**n
+  in squarematrix* , in right hand side column vector* ,
+  out result vector* a : a0+a1*x+a2*x**2 ... an*x**n
 */
 xtern int oswinexp mk_matrixsolve(struct mk_matrix *,double *,double *);
 

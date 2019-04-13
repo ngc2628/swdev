@@ -6,8 +6,8 @@ PRJ           = tststring
 DESTDIR       = $(BINDIR)
 TARGET        = $(PRJ)
 DEFINES       =
-HEADER        = 
-SOURCES       = main.c
+HEADER        = decl.h
+SOURCES       = decl.c main.c
 LIBS          = -lz -lm
 SOLN					=
 

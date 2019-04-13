@@ -16,7 +16,7 @@ int mk_polynomialalloc(struct mk_polynomial *polynomial,int len) {
   mk_matrixalloc(&polynomial->cc,len,len);
   mk_matrixalloc(&polynomial->dd,len,len);
   return 0;
- 
+
 }
 
 /* ########## */
@@ -32,7 +32,7 @@ int mk_polynomialfree(struct mk_polynomial *polynomial) {
 }
 
 /* ########## */
-double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
+double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx,double *coeffL) {
 
   if (!polynomial || mk_isnan(xx))
     return mk_dnan;
@@ -41,7 +41,7 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
   mk_vertexzero(vv1);
   mk_listat(&polynomial->ctrlL,0,(void*)&vv0);
   double res=.0,tmp=.0,dxmin=fabs(vv0[0]-xx),dxl=.0,dxh=.0,dxincr=.0;
-  /* first columns of cc,dd are the ctrlL function values */ 
+  /* first columns of cc,dd are the ctrlL function values */
   for (ii=0;ii<len;ii++) {
     mk_listat(&polynomial->ctrlL,ii,(void*)&vv0);
     mk_matrixset(&polynomial->cc,0,ii,vv0[1]);
@@ -55,12 +55,12 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
       dxmin=fabs(vv0[0]-xx);
       idx=ii;
     }
-    /* 
+    /*
     lagrange :
     p(x)=(x-x1)*(x-x2)*...*(x-xn)*y0/(x0-x1)*(x0-x2)*...*(x0-xn) +
          (x-x0)*(x-x2)*...*(x-xn)*y1/(x1-x0)*(x1-x2)*...*(x1-xn) + ...
          (x-x0)*(x-x1)*...*(x-xn-1)*yn/(xn-x0)*(xn-x1)*...*(xn-xn-1)
-    ===> neville aitken : 
+    ===> neville aitken :
     p0(x)=y0
              p01(x)=((x-x1)*p0+(x0-x)*p1)/(x0-x1)
     p1(x)=y1                                      p012=((x-x2)*p01+(x0-x)*p12)/(x0-x2)
@@ -69,10 +69,10 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
              p23(x)=((x-x3)*p2+(x2-x)*p3)/(x2-x3)
     ===> diffs :
     c10=p01-p0
-    d10=p01-p1   
+    d10=p01-p1
     c11=p12-p1
     d11=p12-p2
-    c12=p23-p2 
+    c12=p23-p2
                c20=p012-p01=((x0-x)*(c11-d10))/(x0-x2)
                d20=p012-p12=((x2-x)*(c11-d10))/(x0-x2)
                c21=p123-p12=((x1-x)*(c12-d11))/(x1-x3)
@@ -90,11 +90,11 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx) {
     }
   }
   /*
-  accumulate result from diffs c,d (s.a) - walk along any of these ways 
-  p(x)=p0+c10+c20 down-down     
+  accumulate result from diffs c,d (s.a) - walk along any of these ways
+  p(x)=p0+c10+c20 down-down
   p(x)=p1+d10+c20 up-down | p1+c11+d20 down-up | p1+c11+c21 down-down
   p(x)=p2+d11+c20 up-up | p2+d11+c21 up-down | p2+c12+d21 down-up
-  way up-or-down to nearest difference at resp index position 
+  way up-or-down to nearest difference at resp index position
   */
   res=mk_matrixget(&polynomial->cc,0,idx);
   if (idx==0 || len/idx>=2)
@@ -128,7 +128,7 @@ int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeff) {
   mk_polynomialalloc(&pp,len);
   mk_listcopy(&pp.ctrlL,&polynomial->ctrlL);
   for (ii=0;ii<len;ii++) {
-    zcoeff=mk_polynomialinterp(&pp,.0);
+    zcoeff=mk_polynomialinterp(&pp,.0,0);
     coeff[idx++]=zcoeff;
     min=mk_dnan;
     kk=0;
@@ -164,3 +164,47 @@ int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeff) {
 
 }
 
+/* ########## */
+int mk_polynomialfitdegr(struct mk_polynomial *polynomial,int degree,double *coeffL) {
+
+  int ii=0,jj=0,kk=0,len=(polynomial ? polynomial->ctrlL.count : 0);
+  if (degree<1 || len<=degree || !coeffL)
+    return 1;
+  memset((void*)coeffL,0,(degree+2)*sizeof(double));
+  double tmp=mk_dnan;
+  mk_vertexnan(vv);
+  struct mk_matrix xxpow;
+  mk_matrixalloc(&xxpow,len,2*(degree+1));
+  for (ii=0;ii<len;ii++) {
+    mk_matrixset(&xxpow,ii,0,1.);
+    mk_listat(&polynomial->ctrlL,ii,(void*)&vv);
+    for (jj=1;jj<2*(degree+1);jj++)
+      mk_matrixset(&xxpow,ii,jj,mk_matrixget(&xxpow,ii,jj-1)*vv[0]);
+  }
+  double *rhs=(double*)malloc((degree+1)*sizeof(double));
+  for (ii=0;ii<=degree;ii++) {
+    for (jj=0;jj<len;jj++) {
+      mk_listat(&polynomial->ctrlL,jj,(void*)&vv);
+      rhs[ii]+=mk_matrixget(&xxpow,jj,ii)*vv[1];
+    }
+  }
+  struct mk_matrix mat;
+  mk_matrixalloc(&mat,degree+1,degree+1);
+  for (ii=0;ii<=degree;ii++) {
+    for (jj=0;jj<=degree;jj++) {
+      if (ii==jj)
+        mk_matrixset(&mat,ii,jj,.0);
+      for (kk=0;kk<len;kk++) {
+        tmp=mk_matrixget(&mat,ii,jj)+mk_matrixget(&xxpow,kk,ii+jj);
+        mk_matrixset(&mat,ii,jj,tmp);
+      }
+    }
+  }
+  mk_matrixfree(&xxpow);
+  mk_matrixsolve(&mat,rhs,coeffL);
+  free(rhs);
+  mk_matrixfree(&mat);
+
+  return 0;
+
+}

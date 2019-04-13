@@ -1,6 +1,7 @@
 
 #include <tst/croutdoolittle.2d/mmat.h>
 #include <mkbase/defs.h>
+#include <mkbase/mkmath.h>
 
 int mmatalloc(struct mmat *mat,int rows_,int cols_) {
 
