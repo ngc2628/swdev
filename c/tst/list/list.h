@@ -2,6 +2,8 @@
 #ifndef _tst_list_h_
 #define _tst_list_h_
 
+#define sh133 1ULL<<33 /* 8589934592ULL */
+
 struct tst_list {
   int typesize,reserved,count,sorted;
   int (*cmp)(const void *,const void *);
@@ -13,6 +15,9 @@ int tst_heapsortvc(int,void *,int (*)(const void *,const void *));
 int tst_heapsort(int,int,void *,int (*)(const void *,const void *));
 
 int tst_binsearch(void *,int,int,void *,int (*)(const void *,const void *),int);
+
+int tst_binsearchinterval(
+  void *,int,int,void *,int (*)(const void *,const void *),int *,int *,int);
 
 int tst_listalloc(struct tst_list *,int,int);
 

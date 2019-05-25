@@ -24,8 +24,9 @@ struct oswinexp mk_typeid {
   mk_string type;
 };
 
-/* list of consecutive items , typesize:mem-size of stored type , reserved:num-max-items, 
-   cnt:num-current-items , sorted:0,1 , cmp:item-compare-function , arr:array of items
+/* 
+  list of consecutive items , typesize:mem-size of stored type , reserved:num-max-items, 
+  cnt:num-current-items , sorted:0,1 , cmp:item-compare-function , arr:array of items
 */
 struct oswinexp mk_list {
   int typesize,reserved,count,sorted;
@@ -33,8 +34,9 @@ struct oswinexp mk_list {
   void *arr;
 };
 
-/* list of consecutive lists of consecutive items , typesize:mem-size of stored payload type , 
-   reserved:num-max-lists, cnt:num-current-lists , arr:array of lists
+/* 
+  list of consecutive lists of consecutive items , typesize:mem-size of stored payload type , 
+  reserved:num-max-lists, cnt:num-current-lists , arr:array of lists
 */
 struct oswinexp mk_lol {
   int typesize,reserved,count;
@@ -52,7 +54,7 @@ xtern mk_ulreal oswinexp mk_nextcnt();
 /* return time-cnt */
 xtern mk_ulreal oswinexp mk_nextt();
 
-/* in string , in string* , return length */
+/* inout string , in string* , return length */
 xtern int oswinexp mk_stringset(mk_string,const char *);
 
 /* in string* , in string* , return -1|0|1 */
@@ -61,19 +63,19 @@ xtern int oswinexp mk_stringcmp(const void *,const void *);
 /* in string* , return length */
 xtern int oswinexp mk_stringlength(const mk_string);
 
-/* in string* , int new-length , return length */
+/* inout string* , int new-length , return length */
 xtern int oswinexp mk_stringsetlength(mk_string,int);
 
-/* in string , in string* , return length */
+/* inout string , in string* , return length */
 xtern int oswinexp mk_stringappend(mk_string,const char *);
 
-/* in string , in string* , return length */
+/* inout string , in string* , return length */
 xtern int oswinexp mk_stringprepend(mk_string,const char *);
 
-/* in string , in index , in letter , return 0|1 */
+/* inout string , in index , in letter , return 0|1 */
 xtern int oswinexp mk_stringsetat(mk_string,int,char);
 
-/* in string , in index-start , in length , inout substring , return substr-length */
+/* in string , in index-start , in length , out substring , return substr-length */
 xtern int oswinexp mk_stringsubstr(const mk_string,int,int,mk_string);
 
 /* in string , in char-to-find , in from-index , 
@@ -93,14 +95,14 @@ xtern int oswinexp mk_cmptypeidref(const void *,const void *);
 /* in typeid** , in typeid* , return -1|0|1 */
 xtern int oswinexp mk_cmptypeidrefi(const void *,const void *);
 
-/* in typeid* , inout string , return 0|1 */
+/* in typeid* , out string , return 0|1 */
 xtern int oswinexp mk_typeid2string(const struct mk_typeid *,mk_string);
 
-/* inout typeid* , in string , return 0|1 */
+/* out typeid* , in string , return 0|1 */
 xtern int oswinexp mk_typeid4string(struct mk_typeid *,mk_string);
 
 /* in numberitems , in array , out indexarray */
-xtern void oswinexp mk_indextab1(int,double[],int []);
+xtern void oswinexp mk_indextab1(int,double [],int []);
 
 /* in numberitems , in array , out indexarray */
 xtern void oswinexp mk_indextab2(int,double [],int []);
@@ -136,10 +138,10 @@ xtern int oswinexp mk_listclear(struct mk_list *,void *);
 /* inout list* */
 xtern int oswinexp mk_listsort(struct mk_list *);
 
-/* in list* , in item* , out index-left* , out index-right* , return cnt-items */
+/* in list* , in item* , out found-index-first* , out found-index-last* , return cnt-items */
 xtern int oswinexp mk_listfind(const struct mk_list *,void *,int *,int *);
 
-/* in list* , in item* , return 0|list-cnt|index */
+/* in list* , in item* , return -1,0,list-cnt,nextindex */
 xtern int oswinexp mk_listfindnextindex(const struct mk_list *,void *);
 
 /* in list* , in index , out item-at-index* , return 0,1 */
@@ -166,7 +168,7 @@ xtern int oswinexp mk_listpush(struct mk_list *,void *);
 /* inout list* , out item* , return 0|1 */
 xtern int oswinexp mk_listpop(struct mk_list *,void *);
 
-/* inout dest-list* , in src-list* , return 0|1 */
+/* out dest-list* , in src-list* , return 0|1 */
 xtern int oswinexp mk_listcopy(struct mk_list *,const struct mk_list *);
 
 #ifdef __cplusplus

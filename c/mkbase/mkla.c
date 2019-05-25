@@ -543,6 +543,7 @@ int mk_ellipse(struct mk_list *vertices,int nn) {
 
   if (!vertices)
     return 1;
+  mk_listclear(vertices,0);
   nn=MAX(1,MIN(vertices->reserved,nn));
   int ii=0,off=nn/2;
   double sc=360./(double)nn;
@@ -1004,8 +1005,8 @@ int mk_matrixinvert(struct mk_matrix *imat) {
   double *identity=(double*)malloc(len*sizeof(double));
   double *inverted=(double*)malloc(len*sizeof(double));
   double parity=1.;
-  int chk=mk_matrixludecomposition(imat,&lumat,rowperm,&parity);
-  for (ii=0;ii<len && chk==0;ii++) {
+  int res=mk_matrixludecomposition(imat,&lumat,rowperm,&parity);
+  for (ii=0;ii<len && res==0;ii++) {
     for (jj=0;jj<len;jj++)
       identity[jj]=inverted[jj]=(ii==jj ? 1. : .0);
     // solve column by column the equation M*M(-1)=1
@@ -1019,7 +1020,7 @@ int mk_matrixinvert(struct mk_matrix *imat) {
   free(identity);
   free(rowperm);
   mk_matrixfree(&lumat);
-  return chk;
+  return res;
 
 }
 
@@ -1027,21 +1028,41 @@ int mk_matrixinvert(struct mk_matrix *imat) {
 int mk_matrixsolve(struct mk_matrix *mat,double *rr,double *xx) {
 
   if (!mat || !rr || !xx || mat->rows<=0 || mat->rows!=mat->cols)
-    return -1;
+    return 1;
   int num=mat->rows;
   struct mk_matrix lumat;
   mk_matrixalloc(&lumat,num,num);
   int *rowperm=(int*)malloc(num*sizeof(int));
   memset(&rowperm[0],0,num*sizeof(int));
-  double *parity=(double*)malloc(num*sizeof(double));
-  memset(&parity[0],0,num*sizeof(double));
-  int res=mk_matrixludecomposition(mat,&lumat,&rowperm[0],&parity[0]);
+  double parity=1.;
+  int res=mk_matrixludecomposition(mat,&lumat,&rowperm[0],&parity);
   if (res==0)
     res=mk_matrixlubacksubstitution(&lumat,&rowperm[0],rr,xx);
-  free(parity);
   free(rowperm);
   mk_matrixfree(&lumat);
   return res;
+
+}
+
+/* ########## */
+int mk_matrixdbg(struct mk_matrix *mat,mk_string str) {
+
+  char buf[16];
+  memset(&buf[0],0,16);
+  int ii=0,jj=0;
+  for (ii=0;ii<mat->rows;ii++) {
+    for (jj=0;jj<mat->cols;jj++) {
+      sprintf(&buf[0],"%1.8e",mk_matrixget(mat,ii,jj));
+      mk_stringappend(str,&buf[0]);
+      if (jj>0 && (jj%4)==0)
+        mk_stringappend(str,"\n");
+      else
+        mk_stringappend(str,"  ");
+      memset(&buf[0],0,16);
+    }
+    mk_stringappend(str,"\n");
+  }
+  return 0;
 
 }
 

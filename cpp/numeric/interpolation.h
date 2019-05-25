@@ -3,6 +3,7 @@
 #define interpolation2d_h
 
 #include <numeric/matrix.h>
+#include <mkbase/mkana.h>
 
 namespace num {
 
@@ -10,34 +11,33 @@ const int numinterpolationtypes=7;
 const int numinerpolationoptions=18;
 extern int numsmoothIntermediates;
 
-const mk_ulreal interpolation_none=0;
-const mk_ulreal interpolation_const=1;
-const mk_ulreal interpolation_linear=2;
-const mk_ulreal interpolation_cubicspline=4;
-const mk_ulreal interpolation_polynomial=8;
-const mk_ulreal interpolation_bezier=16;
-const mk_ulreal interpolation_bicubic=32;
-const mk_ulreal interpolation_type=63;
-
-const mk_ulreal interpolation_notappl=64;
-const mk_ulreal interpolation_steps=128; /* #8 */
-const mk_ulreal interpolation_fwd=256;
-const mk_ulreal interpolation_bwd=512;
-const mk_ulreal interpolation_lin1=1024;
-const mk_ulreal interpolation_lin2=2048;
-const mk_ulreal interpolation_solve1st=4096;
-const mk_ulreal interpolation_solve2nd=8192;
-const mk_ulreal interpolation_parametric=16384;
-const mk_ulreal interpolation_notaknot=32768; /* #16 */
-const mk_ulreal interpolation_nat=65536;
-const mk_ulreal interpolation_periodic=131072;
-const mk_ulreal interpolation_der1st=262144;
-const mk_ulreal interpolation_der2nd=524288;
-const mk_ulreal interpolation_monotonic=1048576;
-const mk_ulreal interpolation_ctrl=2097152;
-const mk_ulreal interpolation_eq=4194304;
-const mk_ulreal interpolation_regr=8388608; /* #24 */
-const mk_ulreal interpolation_options=16777152;
+const mk_ulreal interpol_none=0;
+const mk_ulreal interpol_regrdeg=(MK_SH(1,13))-1;          // mask 1fff
+const mk_ulreal interpol_const=MK_SH(1,13);
+const mk_ulreal interpol_linear=MK_SH(1,14);
+const mk_ulreal interpol_cubicspline=MK_SH(1,15);
+const mk_ulreal interpol_polynomial=MK_SH(1,16);
+const mk_ulreal interpol_bezier=MK_SH(1,17);
+const mk_ulreal interpol_bicubic=MK_SH(1,18);
+const mk_ulreal interpol_type=MK_SH(63,13);   // mask 7e000
+const mk_ulreal interpol_notappl=MK_SH(1,24);
+const mk_ulreal interpol_steps=MK_SH(1,25);
+const mk_ulreal interpol_fwd=MK_SH(1,26);
+const mk_ulreal interpol_bwd=MK_SH(1,27);
+const mk_ulreal interpol_lin1=MK_SH(1,28);
+const mk_ulreal interpol_lin2=MK_SH(1,29);
+const mk_ulreal interpol_solve1st=mk_spline_solve1st;
+const mk_ulreal interpol_solve2nd=mk_spline_solve2nd;
+const mk_ulreal interpol_parametric=MK_SH(1,32);
+const mk_ulreal interpol_notaknot=mk_splineboundary_notaknot;
+const mk_ulreal interpol_nat=mk_splineboundary_natural;
+const mk_ulreal interpol_periodic=mk_splineboundary_periodic;
+const mk_ulreal interpol_der1st=mk_splineboundary_der1st;
+const mk_ulreal interpol_monotonic=mk_spline_monotonic;
+const mk_ulreal interpol_der2nd=MK_SH(1,38);
+const mk_ulreal interpol_ctrl=MK_SH(1,39);
+const mk_ulreal interpol_regr=MK_SH(1,40);
+const mk_ulreal interpol_options=MK_SH(262143,24);  // mask 3ffff000000
 
 const char *const interpolationtypes[numinterpolationtypes]=
   {"none","const","linear","cubicspline","polynomial","bezier","bicubic"};
@@ -49,33 +49,36 @@ class oswinexp Interpolation {
 
   protected:
     mk_ulreal m_options;
-    int m_ready;
     struct mk_list m_ctrlL;
-    struct mk_list m_coeffL;
-    
-  public:
-    virtual ~Interpolation();
-    mk_ulreal options() const;
-    virtual int invalidate();
-    virtual int clearCtrl();
-    virtual int setCtrl(struct mk_list *);
-    int nctrl() const;
-    virtual int setup();
-    virtual int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    virtual int interp(mk_vertex);
-    virtual int extrap(mk_vertex);
-    virtual int coeff(double,struct mk_list *);
-    mk_ulreal setOptions(mk_ulreal options=0);
-
-  protected:
     Interpolation(mk_ulreal);
     Interpolation(const Interpolation &) {
     }
     Interpolation &operator=(const Interpolation &) {
       return *this;
     }
-    void clearArr();
-    int setArr(struct mk_list *);
+    
+  public:
+    virtual ~Interpolation();
+    mk_ulreal options() const;
+    virtual mk_ulreal setOptions(mk_ulreal,int acc=1);
+    virtual int nctrl() const;
+    virtual int clearCtrl();
+    virtual int setCtrl(struct mk_list *);
+    virtual int setup() {
+      return 0;
+    }
+    virtual int coeff(double,double *) {
+      return 1;
+    }
+    virtual int interp(mk_vertex) {
+      return 1;
+    }
+    virtual int extrap(mk_vertex) {
+      return 1;
+    }
+    virtual int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan) {
+      return 1;
+    }
 
 };
 
@@ -85,144 +88,134 @@ extern int oswinexp interpolation2string(mk_ulreal,mk_string);
 
 class oswinexp InterpolationConst : public Interpolation {
 
-  public:
-    InterpolationConst(struct mk_list *ctrlL=0);
-    virtual ~InterpolationConst();
-    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    int interp(mk_vertex);
-
   protected:
-    InterpolationConst(const InterpolationConst &) : Interpolation(0) {
+    InterpolationConst(const InterpolationConst &) : 
+      Interpolation(interpol_const) {
     }
     InterpolationConst &operator=(const InterpolationConst &) {
       return *this;
     }
 
+  public:
+    InterpolationConst(struct mk_list *ctrlL=0);
+    virtual ~InterpolationConst();
+    int interp(mk_vertex);
+    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
+   
 };
 
 class oswinexp InterpolationLinear : public Interpolation {
 
-  public:
-    InterpolationLinear(struct mk_list *ctrlL=0);
-    virtual ~InterpolationLinear();
-    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    int interp(mk_vertex);
-
   protected:
-    InterpolationLinear(const InterpolationLinear &) : Interpolation(0) {
+    InterpolationLinear(const InterpolationLinear &) : 
+      Interpolation(interpol_linear) {
     }
     InterpolationLinear &operator=(const InterpolationLinear &) {
       return *this;
     }
-
+  
+  public:
+    InterpolationLinear(struct mk_list *ctrlL=0);
+    virtual ~InterpolationLinear();
+    int interp(mk_vertex);
+    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
+    
 };
 
 class oswinexp CubicSpline : public Interpolation {
 
   protected:
-    double *m_der;
-
-  public:
-    CubicSpline(mk_ulreal options=0);
-    virtual ~CubicSpline();
-    int setup();
-    int invalidate();
-    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    int interp(mk_vertex);
-    int extrap(mk_vertex);
-    int makeSpline(double *der=0);
-    int setSpline(double *der=0);
-    int coeff(double,struct mk_list *);
-
-  protected:
-    CubicSpline(const CubicSpline &) : Interpolation(0) {
+    struct mk_spline m_spline;
+    CubicSpline(const CubicSpline &) : 
+      Interpolation(interpol_cubicspline|interpol_solve2nd|interpol_nat) {
     }
     CubicSpline &operator=(const CubicSpline &) {
       return *this;
     }
-    int makeSpline1st();
-    int makeSpline2nd();
 
+  public:
+    CubicSpline(
+      mk_ulreal options=interpol_cubicspline|interpol_solve2nd|interpol_nat);
+    virtual ~CubicSpline();
+    mk_ulreal setOptions(mk_ulreal,int acc=1);
+    int clearCtrl();
+		int setCtrl(struct mk_list *);
+    int setup();
+    int coeff(double,double *);
+    int interp(mk_vertex);
+    int extrap(mk_vertex);
+    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
+    
 };
 
 class oswinexp CubicSplineP : public Interpolation {
 
   protected:
-    CubicSpline *m_xspline;
-    CubicSpline *m_yspline;
-
-  public:
-    CubicSplineP(struct mk_list *ctrlL=0);
-    virtual ~CubicSplineP();
-    int setup();
-    int invalidate();
-    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    int interp(mk_vertex);
-    int makeSpline(double *der1=0,double *der2=0);
-    int setSpline(double *der1=0,double *der2=0);
-
-  protected:
-    CubicSplineP(const CubicSplineP &) : Interpolation(0) {
+    struct mk_spline m_xspline;
+    struct mk_spline m_yspline;
+    CubicSplineP(const CubicSplineP &) : 
+      Interpolation(
+        interpol_cubicspline|interpol_parametric|
+        interpol_solve2nd|interpol_nat) {
     }
     CubicSplineP &operator=(const CubicSplineP &) {
       return *this;
     }
+
+  public:
+    CubicSplineP();
+    virtual ~CubicSplineP();
+    mk_ulreal setOptions(mk_ulreal,int acc=1);
+    int clearCtrl();
+		int setCtrl(struct mk_list *);
+    int setup();
+    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
 
 };
 
 class oswinexp Polynomial : public Interpolation {
 
   protected:
-    double **m_c;
-    double **m_d;
-
-  public:
-    Polynomial(mk_ulreal options=0);
-    virtual ~Polynomial();
-    int invalidate();
-		int setCtrl(struct mk_list *);
-    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    int interp(mk_vertex);
-    int coeff(double,struct mk_list *);
-    int rootsBrute(double *,double,double,int *effdeg=0);
-
-  protected:
-    Polynomial(const Polynomial &) : Interpolation(0) {
+    struct mk_polynomial m_polynomial;
+    Polynomial(const Polynomial &) : Interpolation(interpol_polynomial) {
     }
     Polynomial &operator=(const Polynomial &) {
       return *this;
     }
-    int prepTable();
-		int fitRegr(int);
+    int canRegr();
+
+  public:
+    Polynomial(mk_ulreal options=interpol_polynomial);
+    virtual ~Polynomial();
+    mk_ulreal setOptions(mk_ulreal,int acc=1);
+    int clearCtrl();
+		int setCtrl(struct mk_list *);
+    int coeff(double,double *);
+    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
+    int rootsBrute(double *,double,double,int *effdeg=0);
 
 };
 
 class oswinexp Bezier : public Interpolation {
 
-  public:
-    Bezier(struct mk_list *ctrlL=0);
-    virtual ~Bezier ();
-    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    int interp(mk_vertex) {
-      return 0;
-    }
-
   protected:
-    Bezier(const Bezier &) : Interpolation(0) {
+    Bezier(const Bezier &) : Interpolation(interpol_bezier) {
     }
     Bezier &operator=(const Bezier &) {
       return *this;
     }
 
+  public:
+    Bezier(struct mk_list *ctrlL=0);
+    virtual ~Bezier ();
+    int interp(mk_vertex) {
+      return 0;
+    }
+    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
+
 };
 
 class BicubicPatch {
-
-  public:
-    struct mk_list m_der;
-    SquareMatrix m_c;
-    BicubicPatch();
-    ~BicubicPatch();
 
   protected:
     BicubicPatch(const BicubicPatch &) {
@@ -230,25 +223,30 @@ class BicubicPatch {
     BicubicPatch &operator=(const BicubicPatch &) {
       return *this;
     }
+  
+  public:
+    struct mk_list m_der;
+    SquareMatrix m_c;
+    BicubicPatch();
+    ~BicubicPatch();
 
 }; 
 
 class oswinexp Bicubic : public Interpolation {
 
-  public:
-    Bicubic();
-    virtual ~Bicubic();
-    int setup();
-    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
-    int interp(mk_vertex);
-
   protected:
-    Bicubic(const Bicubic &) : Interpolation(0) {
+    Bicubic(const Bicubic &) : Interpolation(interpol_bicubic) {
     }
     Bicubic &operator=(const Bicubic &) {
       return *this;
     }
 
+  public:
+    Bicubic();
+    virtual ~Bicubic();
+    int interp(mk_vertex);
+    int interpol(int,struct mk_list *,double start=mk_dnan,double end=mk_dnan);
+   
 };
 
 } // namespace

@@ -432,7 +432,7 @@ int mk_binsearchinterval(
 
   if (!xx || cnt<1 || typesize<1 || !arr || !comp)
     return 1;
-  int ii=0,ih=cnt,il=-1,cmp=0;
+  int ii=0,ih=cnt,il=-1,cmp=0,res=0;
   while ((ih-il)>1) {
     ii=(ih+il)/2;
     cmp=comp((const void*)(arr+ii*typesize),(const void*)xx);
@@ -441,7 +441,6 @@ int mk_binsearchinterval(
     else
       il=ii;
   }
-  int res=0;
   if (ih>=cnt) {
     ih=(cnt==0 ? 0 : cnt-1);
     il=(cnt==0 ? 0 : (cnt>1 ? cnt-2 : cnt-1));

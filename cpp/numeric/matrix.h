@@ -27,7 +27,6 @@ class oswinexp Matrix {
     double getValue(int,int) const;
     virtual int setValue(int,int,double);
     virtual int clear();
-    virtual int invalidate();
     int reset(int identity=1);
     int transpose();
     int mult(Matrix *);
@@ -38,11 +37,6 @@ class oswinexp Matrix {
 class oswinexp SquareMatrix : public Matrix {
 
   protected:
-    int *m_rowperm;
-    double m_parity;
-    struct mk_matrix m_lum;
-    int decomposition();
-    int backsubstitution(double *,double *);
     bool operator==(const SquareMatrix &cmp) const {
       return false;
     }
@@ -56,8 +50,6 @@ class oswinexp SquareMatrix : public Matrix {
     SquareMatrix(const SquareMatrix &);
     SquareMatrix &operator=(const SquareMatrix &);
     int setValue(int,int,double);
-    virtual int clear();
-    virtual int invalidate();
     bool isIdentity(double) const;
     double determinant();
     int invert();
@@ -80,7 +72,6 @@ class oswinexp TransformMatrix : public SquareMatrix {
     TransformMatrix(const TransformMatrix &);
     virtual ~TransformMatrix();
     TransformMatrix &operator=(const TransformMatrix &);
-    virtual int invalidate();
     int scale(double x=1.,double y=1.,double z=1.);
     int translate(double x=.0,double y=.0,double z=.0);
     int rotateX(double degrees=.0);

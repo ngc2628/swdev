@@ -43,62 +43,96 @@ static int degree=4;
 /* -.01182*x*x*x*x+.2169*x*x*x+-1.233*x*x+2.301*x+2.686 */
 static double tabledcoeffregr[]={-.01182,.2169,-1.233,2.301,2.686}; 
 
+int fregr(struct mk_polynomial *poly) {
+
+  double coeffL[5]={mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan};
+  double cod=.0;
+  int ii=0,len=8;
+  mk_vertexzero(vv);
+  mk_polynomialalloc(poly,len);
+  for(ii=0;ii<len;ii++)
+    mk_listsetat(&poly->ctrlL,(void*)vvregr[ii],ii,0);
+  mk_polynomialfitdegr(poly,4,&coeffL[0],&cod);
+  for(ii=0;ii<5;ii++) {
+    printf ("[%9.5f]",coeffL[ii]);
+  }
+  printf("\n%d cod [%9.5f]\n",__LINE__,cod); 
+  return 0;
+
+}
+
+int tstpolyeval(int len,double *coeffL,mk_vertex vertex) {
+
+  vertex[1]=.0;
+  while (--len>-1)
+    vertex[1]=vertex[0]*vertex[1]+coeffL[len];
+  return 0;
+
+}
+
 int main(int argc,char **argv) {
 
   int ii=0,jj=0,len=4;
   double zero=.0,one=1.;
-  double coeff[6]={mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan};
+  mk_vertexzero(vv);
+  double coeffL[6]={mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan};
   // y=f(x)=9+7*x-5*x*x+3*x*x*x
   
   struct mk_polynomial poly;
+
   mk_polynomialalloc(&poly,len);
   for(ii=0;ii<len;ii++)
     mk_listsetat(&poly.ctrlL,(void*)vvL1[ii],ii,0);
-  mk_polynomialcoeff(&poly,&coeff[0]);
-  for(ii=0;ii<len;ii++)
-    printf ("[%7.3f]",coeff[ii]);
+  mk_polynomialcoeff(&poly,&coeffL[0]);
+  for(ii=0;ii<len;ii++) {
+    printf ("[%9.5f]",coeffL[ii]);
+  }
   printf("\n%d\n",__LINE__);
+  memset(&coeffL[0],0,6*sizeof(double));
 
   mk_polynomialfree(&poly);
   len=3;
   mk_polynomialalloc(&poly,len);
   for(ii=0;ii<len;ii++)
     mk_listsetat(&poly.ctrlL,(void*)vvL2[ii],ii,0);
-  mk_polynomialcoeff(&poly,&coeff[0]);
-  for(ii=0;ii<len;ii++)
-    printf ("[%7.3f]",coeff[ii]);
+  mk_polynomialcoeff(&poly,&coeffL[0]);
+  for(ii=0;ii<len;ii++) {
+    printf ("[%9.5f]",coeffL[ii]);
+  }
   printf("\n%d\n",__LINE__);
+  memset(&coeffL[0],0,6*sizeof(double));
 
   mk_polynomialfree(&poly);
   len=2;
   mk_polynomialalloc(&poly,len);
   for(ii=0;ii<len;ii++)
     mk_listsetat(&poly.ctrlL,(void*)vvL3[ii],ii,0);
-  mk_polynomialcoeff(&poly,&coeff[0]);
-  for(ii=0;ii<len;ii++)
-    printf ("[%7.3f]",coeff[ii]);
+  mk_polynomialcoeff(&poly,&coeffL[0]);
+  for(ii=0;ii<len;ii++) {
+    printf ("[%9.5f]",coeffL[ii]);
+  }
   printf("\n%d\n",__LINE__);
+  memset(&coeffL[0],0,6*sizeof(double));
   
   mk_polynomialfree(&poly);
   len=1;
   mk_polynomialalloc(&poly,len);
   mk_listsetat(&poly.ctrlL,(void*)vvL4[0],0,0);
-  mk_polynomialcoeff(&poly,&coeff[0]);
-  for(ii=0;ii<len;ii++)
-    printf ("[%7.3f]",coeff[ii]);
+  mk_polynomialcoeff(&poly,&coeffL[0]);
+  for(ii=0;ii<len;ii++) {
+    printf ("[%9.5f]",coeffL[ii]);
+  }
   printf("\n%d\n",__LINE__);
+  memset(&coeffL[0],0,6*sizeof(double));
 
   mk_polynomialfree(&poly);
-  len=8;
-  mk_polynomialalloc(&poly,len);
-  for(ii=0;ii<len;ii++)
-    mk_listsetat(&poly.ctrlL,(void*)vvregr[ii],ii,0);
-  mk_polynomialfitdegr(&poly,4,&coeff[0]);
-  for(ii=0;ii<6;ii++)
-    printf ("[%9.5f]",coeff[ii]);
-  printf("\n%d\n",__LINE__); 
+  fregr(&poly);
 
   mk_polynomialfree(&poly);
+
+  mk_vertex veval={11.,mk_dnan,mk_dnan,mk_dnan};
+  tstpolyeval(4,&tabledcoeff1[0],veval);
+  printf("%d [%9.5f %9.5f]\n",__LINE__,veval[0],veval[1]); 
 
   return 0;
 

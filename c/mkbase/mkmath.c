@@ -53,69 +53,95 @@ const unsigned short mk_dprec=15;
 
 /* ########## */
 int mk_dsgn(double dd) {
+
   return (((((const unsigned char *)&dd)[7])>>7)>0 ? -1 : 1);
+
 } // little endian 0 -> 7
 
 /* ########## */
 double mk_dsign(double dd) {
+
   return (double)mk_dsgn(dd);
+
 }
 
 /* ########## */
 int mk_isinf(double dd) {
+
 #if defined (_MSC_VER)
   return (_fpclass(d)==_FPCLASS_NINF ? -1 : (_fpclass(d)==_FPCLASS_PINF ? 1 : 0));
 #else
   return (isinf(dd)>0 ? 1 : (isinf(dd)<0 ? -1 : 0));
 #endif
+
 }
 
 /* ########## */
 int mk_isnan(double dd) {
+
 #if defined (_MSC_VER)
   return (_isnan(dd)==0 ? 0 : mk_dsgn(dd));
 #else
   return (isnan(dd)==0 ? 0 : mk_dsgn(dd));
 #endif
+
 }
 
 /* ########## */
 int mk_isfinite(double dd) {
+
 #if defined (_MSC_VER)
   return (_finite(dd)==0 ? 0 : mk_dsgn(dd));
 #else
   return (finite(dd)==0 ? 0 : mk_dsgn(dd));
 #endif
+
 }
 
 /* ########## */
 int mk_isbusted(double dd) {
+
 #if defined (_MSC_VER)
   return (!_isnan(dd) && _finite(dd) ? 0 : mk_dsgn(dd));
 #else
   return (!isnan(dd) && finite(dd) ? 0 : mk_dsgn(dd));
 #endif
+
+}
+
+/* ########## */
+int mk_cmpdouble(const void *cmp1,const void *cmp2) {
+
+  double d1=*((double*)cmp1),d2=*((double*)cmp2);
+  return (d1<d2 ? -1 : (d2<d1 ? 1 : 0)); 
+
 }
 
 /* ########## */
 void mk_swapi(int *i1,int *i2) {
+  
   int i3=*i1;
   *i1=*i2;
   *i2=i3;
+
 }
 
 /* ########## */
 void mk_swapf(double *d1,double *d2) {
+
   double d3=*d1;
   *d1=*d2;
   *d2=d3;
+
 }
 
 /* ########## */
 void mk_swapc(char **c1,char **c2) {
+
   char *c3=*c1;
   *c1=*c2;
   *c2=c3;
+
 }
 
 /* ########## */
@@ -198,7 +224,17 @@ double mk_ipow10(int nn) {
 }
 
 /* ########## */
+mk_ulreal mk_1sh(int nn) {
+  
+  if (nn<0 || nn>63)
+    return (mk_ulreal)0;
+  return 1ULL<<nn;
+
+}
+
+/* ########## */
 double mk_ipow2(int nn) {
+
   static double powtab[1025]={1.,
         2.000000000000000e+00,4.000000000000000e+00,8.000000000000000e+00,1.600000000000000e+01,
         3.200000000000000e+01,6.400000000000000e+01,1.280000000000000e+02,2.560000000000000e+02,

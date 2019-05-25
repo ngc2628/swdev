@@ -69,7 +69,6 @@ int Matrix::setValue(int row,int col,double value) {
     mk_matrixfree(&cpmat);
   }
   int res=mk_matrixset(&m_mat,row,col,value);
-  invalidate();
   return res;
 
 }
@@ -77,12 +76,6 @@ int Matrix::setValue(int row,int col,double value) {
 int Matrix::clear() {
 
   return mk_matrixfree(&m_mat);
-
-}
-
-int Matrix::invalidate() {
-
-  return 1;
 
 }
 
@@ -122,35 +115,18 @@ int Matrix::toString(mk_string str) const {
 }
 
 SquareMatrix::SquareMatrix(int dim) : 
-  Matrix(dim,dim),m_rowperm(0),m_parity(1.) {
-
-  mk_matrixalloc(&m_lum,0,0);
-
-  /*int ii=0,jj=0;
-  for (ii=0;ii<m_rows;ii++) {
-    for (jj=0;jj<m_cols;jj++)
-      printf ("%e ",m_lum[ii][jj]);
-    printf ("\n");
-  }*/
+  Matrix(dim,dim) {
 
 }
 
 SquareMatrix::SquareMatrix(const SquareMatrix &ass) :
-    Matrix(0,0),m_rowperm(0),m_parity(ass.m_parity) {
+    Matrix(0,0) {
 
   mk_matrixcopy(&m_mat,&ass.m_mat);
-  mk_matrixalloc(&m_lum,0,0);
-  mk_matrixcopy(&m_lum,&ass.m_lum);
-  m_rowperm=(int*)malloc(m_mat.rows);
-  memcpy(&m_rowperm[0],&ass.m_rowperm[0],m_mat.rows*sizeof(int));
 
 }
 
 SquareMatrix::~SquareMatrix() {
-
-  mk_matrixfree(&m_lum);
-  if (m_rowperm)
-    free(m_rowperm);
 
 }
 
@@ -158,15 +134,7 @@ SquareMatrix &SquareMatrix::operator=(const SquareMatrix &ass) {
 
   if (this==&ass)
     return *this;
-  invalidate();
   mk_matrixcopy(&m_mat,&ass.m_mat);
-  mk_matrixalloc(&m_lum,0,0);
-  mk_matrixcopy(&m_lum,&ass.m_lum);
-  if (ass.m_rowperm) {
-    m_rowperm=(int*)malloc(m_mat.rows);
-    memcpy(&m_rowperm[0],&ass.m_rowperm[0],m_mat.rows*sizeof(int));
-  }
-  m_parity=ass.m_parity;
   return *this;
 
 }
@@ -176,25 +144,6 @@ int SquareMatrix::setValue(int row,int col,double value) {
   if ((row<m_mat.rows && col<m_mat.cols) || row==col)
     return Matrix::setValue(row,col,value);
   return 1;
-
-}
-
-int SquareMatrix::invalidate() {
-
-  mk_matrixfree(&m_lum);
-  if (m_rowperm) {
-    free(m_rowperm);
-    m_rowperm=0;
-  }
-  m_parity=1.;
-  return 0;
-
-}
-
-int SquareMatrix::clear() {
-
-  invalidate();
-  return Matrix::clear();
 
 }
 
@@ -228,42 +177,9 @@ int SquareMatrix::invert() {
 
 }
 
-int SquareMatrix::decomposition() {
-
-  invalidate();
-  int ii=0,res=0,num=m_mat.rows;
-  if (num==0)
-    return 1;
-  mk_matrixalloc(&m_lum,num,num);
-  m_rowperm=(int*)malloc(num*sizeof(int));
-  for (ii=0;ii<num;ii++)
-    m_rowperm[ii]=ii;
-  res=mk_matrixludecomposition(&m_mat,&m_lum,m_rowperm,&m_parity);
-  return res;
-
-}
-
-int SquareMatrix::backsubstitution(double *rr,double *xx) {
-
-  if (!rr || !xx)
-    return 1;
-  if (!m_rowperm) {
-    if (decomposition()!=0)
-      return 1;
-  }
-  int res=mk_matrixlubacksubstitution(&m_lum,m_rowperm,rr,xx);
-  return res;
-
-}
-
 int SquareMatrix::solveFor(int num,double *rr,double *xx) {
 
-  if (!xx || !rr || num!=m_mat.rows || backsubstitution(rr,xx)!=0) {
-    if (xx)
-      memset(&xx[0],0,num*sizeof(double));
-    return 1;
-  }
-  return 0;
+  return mk_matrixsolve(&m_mat,rr,xx);
 
 }
 
@@ -289,12 +205,6 @@ TransformMatrix &TransformMatrix::operator=(const TransformMatrix &ass) {
   if (&ass!=this)
     mk_matrixcopy(&m_mat,&ass.m_mat);
   return *this;
-
-}
-
-int TransformMatrix::invalidate() {
-
-  return 0;
 
 }
 

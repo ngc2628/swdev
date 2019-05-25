@@ -357,7 +357,7 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
 
-  mk_ulreal interpoloptL=num::interpolation_ctrl;
+  mk_ulreal interpoloptL=num::interpol_ctrl;
   graph->m_interpolation=new num::Polynomial(interpoloptL);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
   xax->assignGraph(graph);
@@ -367,28 +367,11 @@ printf ("%d datafile=%s\n",__LINE__,(const char *)m_datafile);
  
   num::Polynomial polyinter1(interpoloptL);
   polyinter1.setCtrl(&vvL);
-  mk_listclear(&vvL,0);
-  polyinter1.coeff(.0,&vvL);
-  for (ii=0;ii<vvL.count;ii++) {
-    mk_listat(&vvL,ii,(void*)&vv);
-    xx[ii]=vv[1];
-    printf ("%d coeff#%d=%.15f\n",__LINE__,ii,xx[ii]);
+  double coeffL[8]={mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan};
+  polyinter1.coeff(.0,&coeffL[0]);
+  for (ii=0;ii<8;ii++) {
+    printf ("%d coeff#%d=%.15f\n",__LINE__,ii,coeffL[ii]);
   }
-
-  interpoloptL=num::interpolation_eq;
-  num::Polynomial polyinter2(interpoloptL);
-  mk_listclear(&vvL,0);
-  for (ii=1;ii<vvL.count;ii++) {
-    xx[ii-1]=(double)ii*xx[ii];
-    vv[0]=xx[ii-1];
-    mk_listappend(&vvL,(void*)&vv);
-  }
-  
-  polyinter2.setCtrl(&vvL);
-  
-  jj=polyinter2.rootsBrute(xx,minx,maxx);
-  for (ii=0;ii<jj;ii++)
-    printf ("%d root-%d=%.15f\n",__LINE__,ii,xx[ii]);
   
   m_chart2[idx]->show();
 
@@ -418,25 +401,27 @@ void AppFrame::slotChart2Action() {
   simpleplot::Yaxis *yax=new simpleplot::Yaxis();
   sc=new simpleplot::Scale();
   int boundsoption=(simpleplot::typeBoundStaticMin|simpleplot::typeBoundStaticMax);
-  sc->setRange(-101.,101.,boundsoption);
+  //sc->setRange(-101.,101.,boundsoption);
   yax->setScale(sc);
   tid=m_chart2[idx]->setAxis(yax);
   mk_listinsort(&m_yaxes,(void*)&tid);
     
   simpleplot::GraphData2 *graphdata=new simpleplot::GraphData2(500);
-  graphdata->setSortype(0);
+  graphdata->setSortype(-1);
   mk_vertex vv;
   for (ii=0;ii<cnttstdata;ii++) {
-    vv[0]=(double)(ii*360/(cnttstdata-1));
-    vv[1]=100.*sin((double)(ii*360/(cnttstdata-1))*mk_rad);
-    if (ii==cnttstdata/2-1) 
-      vv[1]=vv[1]-9.;
-    jj=graphdata->setData(-1,vv);
+    //vv[0]=(double)(ii*360/(cnttstdata-1));
+    vv[0]=(ii<cnttstdata/2 ? (double)(ii+1) : (double)(cnttstdata-ii));
+    vv[1]=11.+100.*sin((double)(ii*360/(cnttstdata-1))*mk_rad);
+    if (ii==cnttstdata/4) 
+      vv[1]=vv[1]-21.;
+    else if (ii==cnttstdata/2)
+      vv[1]=vv[1]+17.;
+    else if (ii==5*cnttstdata/6+1) 
+      vv[1]=vv[1]-15.;
+//printf ("%d [%9.5f,%9.5f]\n",__LINE__,vv[0],vv[1]);
+    jj=graphdata->setData(cnttstdata,vv);
   }
-
-//mk::TVList<num::Vector3> dbgdata;
-//graphdata->data(&dbgdata);
-//for (i=0;i<dbgdata.count();i++) printf ("data-in %d  x=%f y=%f\n",i,dbgdata[i][0],dbgdata[i][1]);
 
   shapes::Shape2 *mark=0;
   mark=simpleplot::buildMarkshape2("triangle",5.);
@@ -446,15 +431,22 @@ void AppFrame::slotChart2Action() {
   graphdata->setMark(0,mark);
   simpleplot::GraphXY *graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
-  graph->m_interpolation=new num::CubicSpline(num::interpolation_solve2nd);
+  int regrdegr=3;
+  mk_ulreal interpopt=num::interpol_solve2nd;
+  //interpopt=num::interpolation_polynomial|num::interpolation_regr|regrdegr;
+  //graph->m_interpolation=new num::CubicSpline(interpopt);
+  //graph->m_interpolation=new num::Polynomial();
+  //graph->m_interpolation=new num::Bezier();
+  graph->m_interpolation=new num::CubicSplineP();
+  graph->m_interpolation->setOptions(interpopt);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);
   tid=m_chart2[idx]->setGraph(graph);
   mk_listinsort(&m_graphs,(void*)&tid);
 
-  //m_chart2[idx]->show();
-  //return;
+  m_chart2[idx]->show();
+  return;
   
   xax=new simpleplot::Xaxis();
   xax->setScale(new simpleplot::Scale());
@@ -470,13 +462,10 @@ void AppFrame::slotChart2Action() {
   graphdata=new simpleplot::GraphData2(500);
   graphdata->setSortype(0);
   for (ii=0;ii<cnttstdata;ii++) {
-    vv[0]=(double)(ii*360/(cnttstdata-1));
-    vv[1]=50.*cos((double)(ii*360/(cnttstdata-1))*mk_rad);
+    vv[0]=(double)(ii*180/(cnttstdata-1));
+    vv[1]=50.*cos((double)(ii*180/(cnttstdata-1))*mk_rad);
     jj=graphdata->setData(-1,vv);
   }
-  
-//graphdata->data(&dbgdata);
-//for (i=0;i<dbgdata.count();i++) printf ("data-in %d  x=%f y=%f\n",i,dbgdata[i][0],dbgdata[i][1]);
   
   mark=simpleplot::buildMarkshape2("circle",5.);
   mark->setStyleO(osix::xxStyle(osix::xx_somecolors[osix::darkgreen],1,1));
@@ -484,7 +473,7 @@ void AppFrame::slotChart2Action() {
   graphdata->setMark(0,mark);
   graph=new simpleplot::GraphXY();
   graph->m_graphdata=graphdata;
-  graph->m_interpolation=new num::CubicSpline(num::interpolation_solve2nd);
+  graph->m_interpolation=new num::CubicSpline(num::interpol_solve2nd);
   graph->m_linestyle=osix::xxStyle(osix::xx_somecolors[osix::blue],1,1);
   xax->assignGraph(graph);
   yax->assignGraph(graph);

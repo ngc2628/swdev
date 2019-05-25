@@ -16,6 +16,8 @@
 
 namespace mk {
 
+
+
 template <class X> inline void swap (X *obj1, X *obj2) {
   if (!obj1 || !obj2)
     return;

@@ -160,6 +160,39 @@ int tst_binsearch(
 }
 
 /* ########## */
+int tst_binsearchinterval(
+  void *xx,int typesize,int cnt,void *arr,int (*comp)(const void *,const void *),
+  int *idxl,int *idxh,int sortedrev) {
+
+  if (!xx || cnt<1 || typesize<1 || !arr || !comp)
+    return 1;
+  int ii=0,ih=cnt,il=-1,cmp=0;
+  while ((ih-il)>1) {
+    ii=(ih+il)/2;
+    cmp=comp((const void*)(arr+ii*typesize),(const void*)xx);
+    if (sortedrev>0 ? cmp<0 : cmp>0)
+      ih=ii;
+    else
+      il=ii;
+  }
+  int res=0;
+  if (ih>=cnt) {
+    ih=(cnt==0 ? 0 : cnt-1);
+    il=(cnt==0 ? 0 : (cnt>1 ? cnt-2 : cnt-1));
+  }
+  if (il<0) {
+    il=0;
+    ih=(cnt>1 ? 1 : 0);
+  }
+  if (idxl)
+    *idxl=il;
+  if (idxh)
+    *idxh=ih;
+  return res;
+
+}
+
+/* ########## */
 int tst_listalloc(struct tst_list *list,int typesize_,int reserved_) {
 
   if (!list || typesize_<=0)

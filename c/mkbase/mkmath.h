@@ -67,6 +67,24 @@ extern const unsigned short mk_dmag;
 extern const unsigned short mk_i64mag;
 extern const unsigned short mk_ui64mag;
 extern const unsigned short mk_dprec;
+/* 1<<0 ... 1<<63
+  1                      ,2                      ,4                      ,8                      ,
+  16                     ,32                     ,64                     ,128                    ,
+  256                    ,512                    ,1024                   ,2048                   ,
+  4096                   ,8192                   ,16384                  ,32768                  ,
+  65536                  ,131072                 ,262144                 ,524288                 ,
+  1048576                ,2097152                ,4194304                ,8388608                ,
+  16777216               ,33554432               ,67108864               ,134217728              ,
+  268435456              ,536870912              ,1073741824             ,2147483648U            ,
+  4294967296ULL          ,8589934592ULL          ,17179869184ULL         ,34359738368ULL         ,
+  68719476736ULL         ,137438953472ULL        ,274877906944ULL        ,549755813888ULL        ,
+  1099511627776ULL       ,2199023255552ULL       ,4398046511104ULL       ,8796093022208ULL       ,
+  17592186044416ULL      ,35184372088832ULL      ,70368744177664ULL      ,140737488355328ULL     ,
+  281474976710656ULL     ,562949953421312ULL     ,1125899906842624ULL    ,2251799813685248ULL    ,
+  4503599627370496ULL    ,9007199254740992ULL    ,18014398509481984ULL   ,36028797018963968ULL   ,
+  72057594037927936ULL   ,144115188075855872ULL  ,288230376151711744ULL  ,576460752303423488ULL  ,
+  1152921504606846976ULL ,2305843009213693952ULL ,4611686018427387904ULL ,9223372036854775808ULL
+*/
 
 #ifdef __cplusplus
 /* #pragma message "cplusplus" */
@@ -91,6 +109,9 @@ xtern int oswinexp mk_isfinite(double);
 /* is or not a regular number , in number , return 0 or -1,1 */
 xtern int oswinexp mk_isbusted(double);
 
+/* in number-1 , in number-2 , return -1|0|1 */
+xtern int oswinexp mk_cmpdouble(const void *,const void *);
+
 /* inout *number1 , inout *number2 */
 xtern void oswinexp mk_swapi(int *,int *);
 
@@ -102,6 +123,9 @@ xtern void oswinexp mk_swapc(char **,char **);
 
 /* in exponent , return result */
 xtern double oswinexp mk_ipow10(int);
+
+/* in bits-to-shift (0...63) , return 1<<bits */
+xtern mk_ulreal oswinexp mk_1sh(int);
 
 /* in exponent , return result */
 xtern double oswinexp mk_ipow2(int);

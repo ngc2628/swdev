@@ -25,10 +25,10 @@ int main(int argc,char **argv) {
   double yyyy[2]={10.,13.};
   double yyyyy[1]={3.};
   mk_vertexnan(vv);
+  double coeff=.0;
+  double coeffL[8]={mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan,mk_dnan};
   mk_list ctrlL;
   mk_listalloc(&ctrlL,sizeof(mk_vertex),len);
-  mk_list coeffL;
-  mk_listalloc(&coeffL,sizeof(mk_vertex),len);
   num::Polynomial pp;
 
   for(ii=0;ii<len;ii++) {
@@ -37,15 +37,14 @@ int main(int argc,char **argv) {
     mk_listsetat(&ctrlL,(void*)&vv[0],ii,1);
   }
   pp.setCtrl(&ctrlL);
-  pp.coeff(.0,&coeffL);
+  pp.coeff(.0,&coeffL[0]);
   for(ii=0;ii<len;ii++) {
-    mk_listat(&coeffL,ii,(void*)&vv[0]);
-    printf ("[%7.3f] ",vv[1]);
+    printf ("[%7.3f] ",coeffL[ii]);
   }
   printf("%d\n",__LINE__);
 
   len--;
-  mk_listclear(&coeffL,0);
+  memset(&coeffL[0],0,len*sizeof(double));
   mk_listclear(&ctrlL,0);
   for(ii=0;ii<len;ii++) {
     vv[0]=xx[ii];
@@ -53,15 +52,14 @@ int main(int argc,char **argv) {
     mk_listsetat(&ctrlL,(void*)&vv[0],ii,1);
   }
   pp.setCtrl(&ctrlL);
-  pp.coeff(.0,&coeffL);
+  pp.coeff(.0,&coeffL[0]);
   for(ii=0;ii<len;ii++) {
-    mk_listat(&coeffL,ii,(void*)&vv[0]);
-    printf ("[%7.3f] ",vv[1]);
+    printf ("[%7.3f] ",coeffL[ii]);
   }
-  printf("%d %d\n",__LINE__,coeffL.count);
+  printf("%d\n",__LINE__);
 
   len--;
-  mk_listclear(&coeffL,0);
+  memset(&coeffL[0],0,len*sizeof(double));
   mk_listclear(&ctrlL,0);
   for(ii=0;ii<len;ii++) {
     vv[0]=xx[ii];
@@ -69,15 +67,14 @@ int main(int argc,char **argv) {
     mk_listsetat(&ctrlL,(void*)&vv[0],ii,1);
   }
   pp.setCtrl(&ctrlL);
-  pp.coeff(.0,&coeffL);
+  pp.coeff(.0,&coeffL[0]);
   for(ii=0;ii<len;ii++) {
-    mk_listat(&coeffL,ii,(void*)&vv[0]);
-    printf ("[%7.3f] ",vv[1]);
+    printf ("[%7.3f] ",coeffL[ii]);
   }
   printf("%d\n",__LINE__);
 
   len--;
-  mk_listclear(&coeffL,0);
+  memset(&coeffL[0],0,len*sizeof(double));
   mk_listclear(&ctrlL,0);
   for(ii=0;ii<len;ii++) {
     vv[0]=xx[ii];
@@ -85,14 +82,13 @@ int main(int argc,char **argv) {
     mk_listsetat(&ctrlL,(void*)&vv[0],ii,1);
   }
   pp.setCtrl(&ctrlL);
-  pp.coeff(.0,&coeffL);
+  pp.coeff(.0,&coeffL[0]);
   for(ii=0;ii<len;ii++) {
-    mk_listat(&coeffL,ii,(void*)&vv[0]);
-    printf ("[%7.3f] ",vv[1]);
+    printf ("[%7.3f] ",coeffL[ii]);
   }
   printf("%d\n",__LINE__);
 
-  mk_listclear(&coeffL,0);
+  memset(&coeffL[0],0,len*sizeof(double));
   mk_listclear(&ctrlL,0);
 
   len=8;
@@ -103,19 +99,15 @@ int main(int argc,char **argv) {
   mk_listrealloc(&ctrlL,len);
   for(ii=0;ii<len;ii++)
     mk_listsetat(&ctrlL,(void*)&vvregr[ii][0],ii,1);
-  mk_listrealloc(&coeffL,len);
-  pp.setOptions(num::interpolation_regr|4);
   pp.setCtrl(&ctrlL);
-  
-  pp.coeff(.0,&coeffL);
+  pp.setOptions(num::interpol_polynomial|num::interpol_regr|4);
+  pp.coeff(.0,&coeffL[0]);
   for(ii=0;ii<len;ii++) {
-    mk_listat(&coeffL,ii,(void*)&vv[0]);
-    printf ("[%7.3f] ",vv[1]);
+    printf ("[%7.3f] ",coeffL[ii]);
   }
   printf("%d\n",__LINE__);
 
   mk_listfree(&ctrlL);
-  mk_listfree(&coeffL);
 
   return 0;
 

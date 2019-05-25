@@ -6,16 +6,18 @@
 
 /* ########## */
 int mk_polynomialalloc(struct mk_polynomial *polynomial,int len) {
-
+ 
+  if (!polynomial)
+    return 0;
   len=MAX(0,len);
   mk_listalloc(&polynomial->ctrlL,sizeof(mk_vertex),len);
   mk_vertexzero(vv);
   int ii=0;
   for (ii=0;ii<len;ii++)
     mk_listappend(&polynomial->ctrlL,(void*)&vv);
-  mk_matrixalloc(&polynomial->cc,len,len);
-  mk_matrixalloc(&polynomial->dd,len,len);
-  return 0;
+  mk_matrixalloc(&polynomial->cc,0,0);
+  mk_matrixalloc(&polynomial->dd,0,0);
+  return len;
 
 }
 
@@ -32,15 +34,21 @@ int mk_polynomialfree(struct mk_polynomial *polynomial) {
 }
 
 /* ########## */
-double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx,double *coeffL) {
+int mk_polynomialinterpol(struct mk_polynomial *polynomial,mk_vertex vertex) {
 
-  if (!polynomial || mk_isnan(xx))
-    return mk_dnan;
-  int ii=0,jj=0,idx=0,downward=0,len=polynomial->ctrlL.count;
+  int ii=0,jj=0,idx=0,downward=0,len=(polynomial ? polynomial->ctrlL.count : 0);
+  if (len==0 || mk_isnan(vertex[0])) {
+    vertex[1]=mk_dnan;
+    return 1;
+  }
+  if (polynomial->cc.rows==0)
+    mk_matrixalloc(&polynomial->cc,len,len);
+  if (polynomial->dd.rows==0)
+    mk_matrixalloc(&polynomial->dd,len,len);
   mk_vertexzero(vv0);
   mk_vertexzero(vv1);
   mk_listat(&polynomial->ctrlL,0,(void*)&vv0);
-  double res=.0,tmp=.0,dxmin=fabs(vv0[0]-xx),dxl=.0,dxh=.0,dxincr=.0;
+  double res=.0,tmp=.0,dxmin=fabs(vv0[0]-vertex[0]),dxl=.0,dxh=.0,dxincr=.0;
   /* first columns of cc,dd are the ctrlL function values */
   for (ii=0;ii<len;ii++) {
     mk_listat(&polynomial->ctrlL,ii,(void*)&vv0);
@@ -51,8 +59,8 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx,double *co
   for (ii=1;ii<len;ii++) {
     /* calc nearest distance to (then) starting point in ctrlL underway */
     mk_listat(&polynomial->ctrlL,ii,(void*)&vv0);
-    if (fabs(vv0[0]-xx)<dxmin) {
-      dxmin=fabs(vv0[0]-xx);
+    if (fabs(vv0[0]-vertex[0])<dxmin) {
+      dxmin=fabs(vv0[0]-vertex[0]);
       idx=ii;
     }
     /*
@@ -81,8 +89,8 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx,double *co
     for (jj=0;jj<(len-ii);jj++) {
       mk_listat(&polynomial->ctrlL,jj,(void*)&vv0);
       mk_listat(&polynomial->ctrlL,jj+ii,(void*)&vv1);
-      dxl=vv0[0]-xx;
-      dxh=vv1[0]-xx;
+      dxl=vv0[0]-vertex[0];
+      dxh=vv1[0]-vertex[0];
       dxincr=mk_matrixget(&polynomial->cc,ii-1,jj+1)-mk_matrixget(&polynomial->dd,ii-1,jj);
       dxincr=(mk_deq(dxh-dxl,.0) ? .0 : dxincr/(dxl-dxh));
       mk_matrixset(&polynomial->cc,ii,jj,dxincr*dxl);
@@ -96,7 +104,7 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx,double *co
   p(x)=p2+d11+c20 up-up | p2+d11+c21 up-down | p2+c12+d21 down-up
   way up-or-down to nearest difference at resp index position
   */
-  res=mk_matrixget(&polynomial->cc,0,idx);
+  vertex[1]=mk_matrixget(&polynomial->cc,0,idx);
   if (idx==0 || len/idx>=2)
     downward=1;
   for (ii=1;ii<len;ii++) {
@@ -106,30 +114,31 @@ double mk_polynomialinterp(struct mk_polynomial *polynomial,double xx,double *co
       tmp=mk_matrixget(&polynomial->cc,ii,idx);
     }
     else {
+      tmp=mk_matrixget(&polynomial->dd,ii,--idx);
       if (idx<1 || idx<(len-ii-1))
         downward=1;
-      tmp=mk_matrixget(&polynomial->dd,ii,--idx);
     }
-    res+=tmp;
+    vertex[1]+=tmp;
   }
-  return res;
+  return 0;
 
 }
 
 /* ########## */
-int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeff) {
+int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeffL) {
 
-  if (!polynomial || !coeff)
+  int ii=0,idx=0,jj=0,kk=0,ncoeff=0,len=(polynomial ? polynomial->ctrlL.count : 0);
+  if (len==0 || !coeffL)
     return 1;
-  int ii=0,idx=0,jj=0,kk=0,ll=0,len=polynomial->ctrlL.count;
-  double min=mk_dnan,zcoeff=.0;
+  double min=mk_dnan;
   mk_vertexzero(vv0);
+  mk_vertexzero(zcoeff);
   struct mk_polynomial pp;
   mk_polynomialalloc(&pp,len);
   mk_listcopy(&pp.ctrlL,&polynomial->ctrlL);
   for (ii=0;ii<len;ii++) {
-    zcoeff=mk_polynomialinterp(&pp,.0,0);
-    coeff[idx++]=zcoeff;
+    mk_polynomialinterpol(&pp,zcoeff);
+    coeffL[ncoeff++]=zcoeff[1];
     min=mk_dnan;
     kk=0;
     for (jj=0;jj<len-ii;jj++) {
@@ -140,7 +149,7 @@ int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeff) {
       }
       /* p(x)=a0+a1*x+a2*x*x+a3*x*x*x+a4*x*x*x*x .....
       ===> (p(x)-a0)/x=a1+a2*x+a3*x*x+a4*x*x*x ... */
-      vv0[1]=(vv0[1]-zcoeff)/vv0[0];
+      vv0[1]=(vv0[1]-zcoeff[1])/vv0[0];
       mk_listsetat(&pp.ctrlL,(void*)&vv0,jj,0);
     }
     /* recycle pp with shifted down elements and reinitialize cc,dd */
@@ -159,18 +168,35 @@ int mk_polynomialcoeff(struct mk_polynomial *polynomial,double *coeff) {
     }
   }
   mk_polynomialfree(&pp);
-
   return 0;
 
 }
 
 /* ########## */
-int mk_polynomialfitdegr(struct mk_polynomial *polynomial,int degree,double *coeffL) {
+int mk_polynomialeval(int len,double *coeffL,mk_vertex vertex) {
 
+  if (len==0 || !coeffL || mk_isnan(vertex[0])) {
+    vertex[1]=mk_dnan;
+    return 1;
+  }
+  vertex[1]=.0;
+  while (--len>-1)
+    vertex[1]=vertex[0]*vertex[1]+coeffL[len];
+  return 0;
+
+}
+
+/* ########## */
+int mk_polynomialfitdegr(struct mk_polynomial *polynomial,int degree,double *coeffL,double *cod) {
+
+  if (coeffL)
+    memset(coeffL,0,(degree+1)*sizeof(double));
+  if (cod)
+    *cod=.0;
   int ii=0,jj=0,kk=0,len=(polynomial ? polynomial->ctrlL.count : 0);
   if (degree<1 || len<=degree || !coeffL)
     return 1;
-  memset((void*)coeffL,0,(degree+2)*sizeof(double));
+  mk_string strdbg;
   double tmp=mk_dnan;
   mk_vertexnan(vv);
   struct mk_matrix xxpow;
@@ -182,6 +208,7 @@ int mk_polynomialfitdegr(struct mk_polynomial *polynomial,int degree,double *coe
       mk_matrixset(&xxpow,ii,jj,mk_matrixget(&xxpow,ii,jj-1)*vv[0]);
   }
   double *rhs=(double*)malloc((degree+1)*sizeof(double));
+  memset(rhs,0,(degree+1)*sizeof(double));
   for (ii=0;ii<=degree;ii++) {
     for (jj=0;jj<len;jj++) {
       mk_listat(&polynomial->ctrlL,jj,(void*)&vv);
@@ -204,7 +231,516 @@ int mk_polynomialfitdegr(struct mk_polynomial *polynomial,int degree,double *coe
   mk_matrixsolve(&mat,rhs,coeffL);
   free(rhs);
   mk_matrixfree(&mat);
-
+  if (!cod)
+    return 0;
+  /* coefficient of determination : 
+    stot=sum((yi-ymean)*(yi-ymean))
+    serr=sum((yi-interp(xi))*(yi-interp(xi)))
+    cod=sqrt((stot-serr)/stot)
+  */
+  double ymean=.0,dym=.0,dyf=.0;
+  for (ii=0;ii<len;ii++) {
+    mk_listat(&polynomial->ctrlL,ii,(void*)&vv);
+    ymean+=vv[1];
+  }
+  ymean/=(double)len;
+  for (ii=0;ii<len;ii++) {
+    mk_listat(&polynomial->ctrlL,ii,(void*)&vv);
+    tmp=vv[1]-ymean;
+    dym+=(tmp*tmp);
+    tmp=vv[1];
+    mk_polynomialeval(degree+1,coeffL,vv);
+    tmp-=vv[1];
+    dyf+=(tmp*tmp);
+  }
+  *cod=sqrt((dym-dyf)/dym);
   return 0;
 
 }
+
+/* ########## */
+int mk_polynomialrootscrude(int ncoeff,double *coeffL,double left,double right,double *roots) {
+
+  ncoeff=(coeffL ? MAX(ncoeff,0) : 0);
+  if (ncoeff>0)
+    memset((void*)roots,0,ncoeff*sizeof(double));
+  int ii=0,degree=0;
+  for (ii=ncoeff-1;ii>0;ii--)  {
+    if (mk_isnan(coeffL[ii])==0 && coeffL[ii]!=.0) {
+      degree=ii;
+      break;
+    }
+  }
+  if (degree==0) {
+    if (mk_isnan(coeffL[ii])==0 && coeffL[0]==.0) /* all zero flat line */
+      degree=1; 
+  }
+  else if (degree==1)
+    roots[0]=-coeffL[0]/coeffL[1];
+  else if (degree==2) {
+    double pp2=-coeffL[1]/(2.*coeffL[2]),pqres=pp2*pp2-coeffL[0]/coeffL[2];
+    if (pqres<.0)
+      degree=0;            
+    pqres=sqrt(pqres);
+    roots[0]=pp2-pqres;
+    roots[1]=pp2+pqres;
+  }
+  else if (degree==3) {
+    // cardano goes here
+  }
+  if (degree<3)
+    return degree;
+
+  double res=.0,lastres=.0,minlres=mk_dnan,minhres=mk_dnan,minleval=mk_dnan,minheval=mk_dnan,
+         intv=(right-left)/1000.,eval=left,lasteval=eval;
+  int nroots=0;
+  mk_vertexzero(vv);
+  for (ii=0;ii<1000;ii++) {
+    eval=left+(double)ii*intv;
+    vv[0]=eval;
+    mk_polynomialeval(degree+1,coeffL,vv);
+    res=vv[1];
+    if (res==.0 || (res>.0 && lastres<.0) || (lastres>.0 && res<.0)) {
+      roots[nroots++]=(res==.0 ? eval : eval/2.+lasteval/2.);
+      if (nroots==degree)
+        break;
+    }
+    if (res<.0 && (mk_isbusted(minlres)!=0 || res>minlres)) {
+      minlres=res;
+      minleval=eval;
+    }
+    else if (res>.0 && (mk_isbusted(minhres)!=0 || res<minhres)) {
+      minhres=res;
+      minheval=eval;
+    }
+    lasteval=eval;
+    lastres=res;
+  }
+  if (nroots==0) {
+    if (mk_isbusted(minlres)==0) {
+      if (mk_isbusted(minhres)==0)
+        roots[nroots++]=(minhres<fabs(minlres) ? minheval : minleval);
+      else
+        roots[nroots++]=minleval;
+    }
+    else if (mk_isbusted(minhres)==0)
+      roots[nroots++]=minheval;
+  }
+  mk_heapsort(nroots,sizeof(double),(void*)roots,mk_cmpdouble);
+  return nroots;
+
+}
+
+/*
+  inout spline* , in spline-options , return 0,1
+*/
+static int mk_cubicsplineder1st(struct mk_spline *spline) {
+
+  if (!spline)
+    return 1;
+  if (spline->derL)
+    free(spline->derL);
+  spline->derL=0;
+  int ii=0,nctrl=spline->ctrlL.count,num=nctrl,pennum=num-1;
+  if (nctrl<=1)
+    return 1;
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  double *hx=(double*)malloc(pennum*sizeof(double));
+  double *hy=(double*)malloc(pennum*sizeof(double));
+  double *ss=(double*)malloc(pennum*sizeof(double));
+  for (ii=0;ii<pennum;ii++) {
+    mk_listat(&spline->ctrlL,ii,(void*)&vvl);
+    mk_listat(&spline->ctrlL,ii+1,(void*)&vvh);
+    hx[ii]=vvh[0]-vvl[0];
+    hy[ii]=vvh[1]-vvl[1];
+    if (hx[ii]==.0) {
+      free(hx);
+      free(hy);
+      free(ss);
+      return 1;
+    }
+    ss[ii]=hy[ii]/hx[ii];
+  }
+  struct mk_matrix mat;
+  mk_matrixalloc(&mat,num,num);
+  double *rr=(double*)malloc(num*sizeof(double));
+  rr[0]=rr[pennum]=.0;
+  for (ii=1;ii<pennum;ii++)
+    rr[ii]=3.*hx[ii-1]*ss[ii]+3.*hx[ii]*ss[ii-1];
+  if ((spline->options&mk_splineboundary_notaknot)>0 && num>3) {
+    rr[0]=ss[0]*hx[1]*(2.*hx[1]+3.*hx[0])+ss[1]*hx[0]*hx[0];
+    rr[pennum]=-ss[num-3]*hx[num-2]*hx[num-2]-ss[num-2]*hx[num-3]*(3.*hx[num-2]+2.*hx[num-3]);
+    double tmp=hx[0]+hx[1];
+    mk_matrixset(&mat,0,0,hx[1]*tmp);
+    mk_matrixset(&mat,0,1,tmp*tmp);
+    tmp=hx[num-2]+hx[num-3];
+    mk_matrixset(&mat,pennum,pennum-1,-tmp*tmp);
+    mk_matrixset(&mat,pennum,pennum,-hx[num-3]*tmp);
+  }
+  else {
+    if ((spline->options&mk_splineboundary_der1st)>0) { // try der1st
+      rr[0]=(nctrl>2 ? .0 : ss[0]);
+      rr[pennum]=(nctrl>2 ? .0 : ss[0]);
+      mk_matrixset(&mat,0,0,1.);
+      mk_matrixset(&mat,pennum,pennum,1.);
+    }
+    else { // =natural spline (splineoptions&splineboundary_natural)>0
+      rr[0]=.0;
+      rr[pennum]=.0;
+      mk_matrixset(&mat,0,0,1.);
+      mk_matrixset(&mat,pennum,pennum,1.);
+    }
+  }
+  for (ii=1;ii<pennum;ii++) {
+    mk_matrixset(&mat,ii,ii-1,hx[ii]);
+    mk_matrixset(&mat,ii,ii,2.*(hx[ii-1]+hx[ii]));
+    mk_matrixset(&mat,ii,ii+1,hx[ii-1]);
+  }
+  spline->derL=(double*)malloc(num*sizeof(double));
+  memset(&spline->derL[0],0,num*sizeof(double));
+  int solved=mk_matrixsolve(&mat,rr,spline->derL);
+  free(hy);
+  free(rr);
+  mk_matrixfree(&mat);
+  if (solved!=0) {
+    free(spline->derL);
+    spline->derL=0;
+    free(hx);
+    free(ss);
+    return 1;
+  }
+  if (nctrl>2 && (spline->options&mk_spline_monotonic)>0) {
+    // apply hyman filter
+    double corr=.0,pm=.0,pu=.0,pd=.0,MM=.0,deri=.0,fabsderi=.0;
+    for (ii=0;ii<num;ii++) {
+      corr=.0;
+      deri=spline->derL[ii];
+      fabsderi=fabs(deri);
+      if (ii==0) {
+        if (deri*ss[ii]>.0)
+          corr=deri*MIN(fabsderi,fabs(3.*ss[ii]))/fabsderi;
+      }
+      else if (ii==pennum) {
+        if (deri*ss[ii-1]>.0)
+          corr=deri*MIN(fabsderi,fabs(3.*ss[ii-1]))/fabsderi;
+      }
+      else {
+        pm=(ss[ii-1]*hx[ii]+ss[ii]*hx[ii-1])/(hx[ii-1]+hx[ii]);
+        MM=3.*MIN(MIN(fabs(ss[ii-1]),fabs(ss[ii])),fabs(pm));
+        if (ii>1) {
+          if ((ss[ii-1]-ss[ii-2])*(ss[ii]-ss[ii-1])>.0) {
+            pd=(ss[ii-1]*(2.*hx[ii-1]+hx[ii-2])-ss[ii-2]*hx[ii-1])/(hx[ii-2]+hx[ii-1]);
+            if (pm*pd>.0 && pm*(ss[ii-1]-ss[ii-2])>.0)
+              MM=MAX(MM,1.5*MIN(fabs(pm),fabs(pd)));
+          }
+        }
+        if (ii<num-2) {
+          if ((ss[ii]-ss[ii-1])*(ss[ii+1]-ss[ii])>.0) {
+            pu=(ss[ii]*(2.*hx[ii]+hx[ii+1])-ss[ii+1]*hx[ii])/(hx[ii]+hx[ii+1]);
+            if (pm*pu>.0 && -pm*(ss[ii]-ss[ii-1])>.0)
+              MM=MAX(MM,1.5*MIN(fabs(pm),fabs(pu)));
+          }
+        }
+        if (deri*pm>.0)
+          corr=deri*MIN(fabsderi,MM)/fabsderi;
+      }
+      if (corr!=deri)
+        spline->derL[ii]=corr;
+   //printf ("i=%d deri=%f corr=%f\n",i,deri,corr);
+    }
+  }
+  free(hx);
+  free(ss);
+  return solved;
+
+}
+
+/*
+  inout spline* , in spline-options , return 0,1
+*/
+static int mk_cubicsplineder2nd(struct mk_spline *spline) {
+
+  if (!spline)
+    return 1;
+  if (spline->derL)
+    free(spline->derL);
+  spline->derL=0;
+  int ii=0,nctrl=spline->ctrlL.count,num=nctrl,pennum=num-1;
+  if (nctrl<=1)
+    return 1;
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  double *hx=(double*)malloc(pennum*sizeof(double));
+  memset(&hx[0],0,pennum*sizeof(double));
+  double *hy=(double*)malloc(pennum*sizeof(double));
+  memset(&hy[0],0,pennum*sizeof(double));
+  for (ii=1;ii<num;ii++) {
+    mk_listat(&spline->ctrlL,ii-1,(void*)&vvl);
+    mk_listat(&spline->ctrlL,ii,(void*)&vvh);
+    hx[ii]=vvh[0]-vvl[0];
+    hy[ii]=vvh[1]-vvl[1];
+    if (hx[ii]==.0) {
+      free(hx);
+      free(hy);
+      return 1;
+    }
+  }
+  struct mk_matrix mat;
+  mk_matrixalloc(&mat,num,num);
+  if ((spline->options&mk_splineboundary_notaknot)>0 && num>3) {
+    mk_matrixset(&mat,0,0,hx[2]);
+    mk_matrixset(&mat,0,1,-hx[1]-hx[2]);
+    mk_matrixset(&mat,0,2,hx[1]);
+    mk_matrixset(&mat,pennum,pennum-2,hx[pennum]);
+    mk_matrixset(&mat,pennum,pennum-1,-hx[pennum]-hx[pennum-1]);
+    mk_matrixset(&mat,pennum,pennum,hx[pennum-1]);
+  }
+  else if ((spline->options&mk_splineboundary_periodic)>0) { // not implemented -> natural spline
+    mk_matrixset(&mat,0,0,1.);
+    mk_matrixset(&mat,pennum,pennum,1.);
+  }
+  else if ((spline->options&mk_splineboundary_natural)>0) { // natural spline
+    mk_matrixset(&mat,0,0,1.);
+    mk_matrixset(&mat,pennum,pennum,1.);
+  }
+  else { // not implemented -> natural spline
+    mk_matrixset(&mat,0,0,1.);
+    mk_matrixset(&mat,pennum,pennum,1.);
+  }
+  for (ii=1;ii<pennum;ii++) {
+    mk_matrixset(&mat,ii,ii-1,hx[ii]/6.0);   
+    mk_matrixset(&mat,ii,ii,(hx[ii+1]+hx[ii])/3.0);
+    mk_matrixset(&mat,ii,ii+1,hx[ii+1]/6.0);
+  }
+  double *rr=(double*)malloc(num*sizeof(double));
+  rr[0]=rr[pennum]=.0;
+  for (ii=1;ii<pennum;ii++)
+    rr[ii]=hy[ii+1]/hx[ii+1]-hy[ii]/hx[ii];
+  spline->derL=(double*)malloc(num*sizeof(double));
+  memset(&spline->derL[0],0,num*sizeof(double));
+  int solved=mk_matrixsolve(&mat,rr,spline->derL);
+  free(hx);
+  free(hy);
+  free(rr);
+  mk_matrixfree(&mat);
+  if (solved!=0) {
+    free(spline->derL);
+    spline->derL=0; 
+  }
+  return solved;
+
+}
+
+/* ########## */
+int mk_cubicsplinealloc(struct mk_spline *spline,int len) {
+
+  if (!spline)
+    return 0;
+  len=MAX(0,len);
+  mk_listalloc(&spline->ctrlL,sizeof(mk_vertex),len);
+  spline->options=0;
+  mk_vertexzero(vv);
+  int ii=0;
+  for (ii=0;ii<len;ii++)
+    mk_listappend(&spline->ctrlL,(void*)&vv);
+  spline->derL=0;
+  return len;
+
+}
+
+/* ########## */
+int mk_cubicsplinefree(struct mk_spline *spline) {
+
+  if (!spline)
+    return 1;
+  if (spline->derL)
+    free(spline->derL);
+  spline->derL=0;
+  spline->options=0;
+  mk_listfree(&spline->ctrlL);
+  return 0;
+
+}
+
+/* ########## */
+int mk_cubicsplineder(struct mk_spline *spline) {
+
+  int res=1;
+  if ((spline->options&mk_spline_solve1st)>0)
+    res=mk_cubicsplineder1st(spline);
+  else if ((spline->options&mk_spline_solve2nd)>0)
+    res=mk_cubicsplineder2nd(spline);
+  return res;
+
+}
+
+/* ########## */
+int mk_cubicsplinecoeff(double xx,struct mk_spline *spline,double *coeffL) {
+
+  if (coeffL)
+    memset(&coeffL[0],0,4*sizeof(double));
+  int ii=0,nctrl=(spline ? spline->ctrlL.count : 0),idxh=-1,idxl=nctrl,res=1;
+  if (mk_isbusted(xx)!=0 || nctrl==0 || !spline->derL || !coeffL)
+    return res;
+  mk_vertex vvl={xx,mk_dnan,mk_dnan,mk_dnan};
+  res=mk_binsearchinterval((void*)&vvl,sizeof(mk_vertex),nctrl,
+    spline->ctrlL.arr,mk_vertexcmpx,&idxl,&idxh,0);
+  if (res>0 || idxh<idxl)
+    return res;
+  mk_vertexnan(vvh);
+  mk_listat(&spline->ctrlL,idxl,(void*)&vvl);
+  mk_listat(&spline->ctrlL,idxh,(void*)&vvh);
+  double hx=vvh[0]-vvl[0],hy=vvh[1]-vvl[1],tmp=.0;
+  if (hx==.0)
+    return 1;
+  if ((spline->options&mk_spline_solve1st)>0) {
+    coeffL[0]=vvl[1];
+    coeffL[1]=spline->derL[idxl];
+    tmp=(spline->derL[idxh]+spline->derL[idxl]-2.*hy/hx)/(hx*hx);
+    coeffL[2]=(hy/hx-spline->derL[idxl])/hx-hx*tmp;
+    coeffL[3]=tmp;
+  }
+  else if ((spline->options&mk_spline_solve2nd)>0) {
+    double dx=-hx,dx6=6.*dx;
+    coeffL[0]=(6.*vvl[0]*vvh[1]+vvh[0]*
+      (-6.*vvl[1]+vvl[0]*(-vvh[0]*(2.*spline->derL[idxl]+spline->derL[idxh])+
+      vvl[0]*(spline->derL[idxl]+2.*spline->derL[idxh]))))/dx6;
+    coeffL[1]=(6.*(vvl[1]-vvh[1])+
+               2.*vvl[0]*vvh[0]*(spline->derL[idxl]-spline->derL[idxh])+
+               vvh[0]*vvh[0]*(2.*spline->derL[idxl]+spline->derL[idxh])-
+               vvl[0]*vvl[0]*(spline->derL[idxl]+2*spline->derL[idxh]))/dx6;
+    coeffL[2]=(vvl[0]*spline->derL[idxh]-vvh[0]*spline->derL[idxl])/(2.*dx);
+    coeffL[3]=(spline->derL[idxl]-spline->derL[idxh])/dx6;
+  }
+  return res;
+
+}
+
+/* ########## */
+int mk_cubicsplineinterpol(struct mk_spline *spline,mk_vertex vv) {
+
+  vv[1]=mk_dnan;
+  if (mk_isnan(vv[0]) || !spline || !spline->derL)
+    return 1;
+  int nctrl=spline->ctrlL.count,idxh=-1,idxl=nctrl;
+  mk_vertex vvv;
+  mk_vertexcopy(vvv,vv);
+  int res=mk_binsearchinterval((void*)&vvv,sizeof(mk_vertex),nctrl,spline->ctrlL.arr,
+    mk_vertexcmpx,&idxl,&idxh,0);
+  if (res!=0 || idxh<idxl)
+    return 1;
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  mk_listat(&spline->ctrlL,idxl,(void*)&vvl);
+  mk_listat(&spline->ctrlL,idxh,(void*)&vvh);
+  double vlx=vvl[0],vly=vvl[1],vhx=vvh[0],vhy=vvh[1];
+  double hx=vhx-vlx,hy=vhy-vly;
+  if(hx==.0) {
+    return 1;
+  }
+  double vvres=.0,aa=.0,bb=.0;
+  double derl=spline->derL[idxl],derh=spline->derL[idxh];
+  if ((spline->options&mk_spline_solve1st)>0) {
+    double eval=(vv[0]-vlx);
+    aa=vly;
+    bb=derl;
+    double dd=(derh+derl-2.*hy/hx)/(hx*hx);
+    double cc=(hy/hx-derl)/hx-hx*dd;
+    vvres=aa+eval*(bb+(eval*(cc+eval*dd)));
+  }
+  else if ((spline->options&mk_spline_solve2nd)>0) {
+    aa=(vhx-vv[0])/hx;
+    bb=(vv[0]-vlx)/hx;
+    vvres=aa*vly+bb*vhy+(aa*aa*aa-aa)*hx*hx*derl/6.0+(bb*bb*bb-bb)*hx*hx*derh/6.0;
+  }
+  vv[1]=vvres;
+  return 0;
+  
+}
+
+/* ########## */
+int mk_cubicsplineextrapol(struct mk_spline *spline,mk_vertex vv) {
+
+  vv[1]=mk_dnan;
+  if (mk_isnan(vv[0]) || !spline || !spline->derL)
+    return 1;
+  int nctrl=spline->ctrlL.count;
+  mk_vertexnan(vvl);
+  mk_vertexnan(vvh);
+  mk_listat(&spline->ctrlL,0,(void*)&vvl);
+  mk_listat(&spline->ctrlL,nctrl-1,(void*)&vvh);
+  if (vv[0]>=vvl[0] && vv[0]<=vvh[0])
+    return mk_cubicsplineinterpol(spline,vv);
+  int idxl=(vv[0]<vvl[0] ? 0 : nctrl-2),
+      idxh=(vv[0]<vvl[0] ? 1 : nctrl-1);
+  mk_listat(&spline->ctrlL,idxl,(void*)&vvl);
+  mk_listat(&spline->ctrlL,idxh,(void*)&vvh);
+  double vlx=vvl[0],vly=vvl[1],vhx=vvh[0],vhy=vvh[1];
+  double hx=vhx-vlx,hy=vhy-vly;
+  if (hx==.0) {
+    return 1;
+  }
+  double c0=.0,c1=.0,c2=.0,c3=.0;
+  double derl=spline->derL[idxl],derh=spline->derL[idxh];
+  if ((spline->options&mk_spline_solve1st)>0) {
+    c0=vly;
+    c1=derl;
+    c3=(derh+derl-2.*hy/hx)/(hx*hx);
+    c2=(hy/hx-derl)/hx-hx*c3;
+  }
+  else if ((spline->options&mk_spline_solve2nd)>0) {
+    double dx=-hx,dx6=6.*dx;
+    c0=(6.*vlx*vhy+vhx*(-6.*vly+vlx*(-vhx*(2.*derl+derh)+vlx*(derl+2.*derh))))/dx6;
+    c1=(6.*(vly-vhy)+2.*vlx*vhx*(derl-derh)+vhx*vhx*(2.*derl+derh)-vlx*vlx*(derl+2*derh))/dx6;
+    c2=(vlx*derh-vhx*derl)/(2.*dx);
+    c3=(derl-derh)/dx6;
+  }
+  double res=(c0+vv[0]*(c1+vv[0]*(c2+vv[0]*c3)));
+  vv[1]=res;
+  return 0;
+
+}
+
+/* ########## */
+int mk_bezierinterpol(struct mk_list *ctrlL,int nint,struct mk_list *vint) {
+
+  nint=(vint ? MAX(0,nint) : 0);
+  int ii=0,jj=0,nctrl=(ctrlL ? ctrlL->count : 0),penctrl=nctrl-1,penint=nint-1;
+  if (nctrl==0 || nint==0)
+    return 1;
+  mk_listclear(vint,0);
+  mk_listrealloc(vint,nint);
+  double t1=.0,t2=1.,bino=1.;
+  double *fac1=(double*)malloc(nctrl*sizeof(double));
+  double *fac2=(double*)malloc(nctrl*sizeof(double));
+  for (ii=0;ii<nctrl;ii++)
+    fac1[ii]=fac2[ii]=1.;
+  mk_vertexzero(vv);
+  mk_vertexzero(vctrl);
+  for (ii=0;ii<nint;ii++) {
+    vv[0]=vv[1]=.0;
+    t1=(double)ii/(double)penint;
+    t2=1.-t1;
+    /* poly-degree=nctrl , accumulate bernstein polynomials */
+    for (jj=1;jj<nctrl;jj++) {
+      fac1[jj]=fac1[jj-1]*t1;
+      fac2[penctrl-jj]=fac2[penctrl-jj+1]*t2;
+    }
+    for (jj=0;jj<nctrl;jj++) {
+      bino=mk_binomialcoeff(penctrl,jj);
+      mk_listat(ctrlL,jj,(void*)&vctrl);
+      vv[0]=(vv[0]+vctrl[0]*bino*fac1[jj]*fac2[jj]);
+      vv[1]=(vv[1]+vctrl[1]*bino*fac1[jj]*fac2[jj]);
+    }
+    for (jj=0;jj<nctrl;jj++)
+      fac1[jj]=fac2[jj]=1.;
+    mk_listappend(vint,(void*)&vv);
+  }
+  free(fac1);
+  free(fac2);
+  return 0;
+
+}
+
+

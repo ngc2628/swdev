@@ -18,6 +18,10 @@ typedef double mk_vertex[4];
 #define mk_vertexnan(name) mk_vertex name={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
 #define mk_vertexzero(name) mk_vertex name={.0,.0,.0,1.};
 
+/* 
+  matrix of double values , rows: number of rows , cols: number of columns , 
+  matrix: flat arr of values - element[ii][jj]=matrix[ii*cols+jj]
+*/
 struct oswinexp mk_matrix {
   int rows,cols;
   double *matrix;
@@ -34,7 +38,7 @@ extern "C" {
 xtern int oswinexp mk_vertexdbg(const mk_vertex,mk_string);
 
 /*
-  inout vertex-to , in vertex-from , return 0,1
+  out vertex-to , in vertex-from , return 0,1
 */
 xtern int oswinexp mk_vertexcopy(mk_vertex,const mk_vertex);
 
@@ -115,7 +119,7 @@ xtern double oswinexp mk_vertexdot(const mk_vertex,const mk_vertex);
 xtern int oswinexp mk_vertexnorm(const mk_vertex,mk_vertex);
 
 /*
-  inout vertex1 , in vertex2  , out vertex-result , return 0,1
+  in vertex1 , in vertex2  , out vertex-result , return 0,1
 */
 xtern int oswinexp mk_vertexcross(const mk_vertex,const mk_vertex,mk_vertex);
 
@@ -156,7 +160,7 @@ xtern int oswinexp mk_intersectionpointslinerect(const mk_vertex,const mk_vertex
   const mk_vertex,mk_vertex,mk_vertex,mk_vertex,mk_vertex,mk_vertex,int);
 
 /*
-  inout list-of-vertices* , in number-of-points , return 0,1
+  out list-of-vertices* , in number-of-points , return 0,1
 */
 xtern int oswinexp mk_ellipse(struct mk_list *,int);
 
@@ -193,12 +197,12 @@ xtern int oswinexp mk_matrixfree(struct mk_matrix *);
 double oswinexp mk_matrixget(const struct mk_matrix *,int,int);
 
 /*
-  inout matrix* , in row , in col , in new value , return old value at row,col | nan
+  inout matrix* , in row , in col , in new value , return 0|1
 */
 int oswinexp mk_matrixset(struct mk_matrix *,int,int,double);
 
 /*
-  inout matrix* , in matrix* , return 0|1
+  out matrix-to* , in matrix-from* , return 0|1
 */
 int oswinexp mk_matrixcopy(struct mk_matrix *,const struct mk_matrix *);
 
@@ -224,13 +228,13 @@ int oswinexp mk_matrixmult(struct mk_matrix *,const struct mk_matrix *);
 xtern int oswinexp mk_matrixludecomposition(struct mk_matrix *,struct mk_matrix *,int *, double *);
 
 /*
-  in squarematrix* from ludecomposition, in row permutation* ,
+  in squarematrix* from ludecomposition , in row permutation* from ludecomposition ,
   in right hand side column vector* , out result vector* a : a0+a1x+a2x**2 ... anx**n
 */
 xtern int oswinexp mk_matrixlubacksubstitution(struct mk_matrix *,int *,double *,double *);
 
 /*
-  inout matrix* , return determinant
+  in matrix* , return determinant
 */
 double oswinexp mk_matrixdet(struct mk_matrix *);
 
@@ -244,6 +248,11 @@ int oswinexp mk_matrixinvert(struct mk_matrix *);
   out result vector* a : a0+a1*x+a2*x**2 ... an*x**n
 */
 xtern int oswinexp mk_matrixsolve(struct mk_matrix *,double *,double *);
+
+/*
+  in matrix* , out dbgstring , return 0|1
+*/
+xtern int mk_matrixdbg(struct mk_matrix *,mk_string);
 
 #ifdef __cplusplus
 }

@@ -344,7 +344,7 @@ void GraphProps::slotSelected(int idx) {
      
   if (gr->m_interpolation) {
     mk_ulreal ioptions=gr->m_interpolation->options();
-    num::interpolation2string(ioptions&num::interpolation_type,str);
+    num::interpolation2string(ioptions&num::interpol_type,str);
     qtutil::toQString(str,&qvval);
     qv.setValue(qvval);
     m_combointerpolation->setCurrentIndex(m_combointerpolation->findData(qv));
@@ -450,7 +450,7 @@ void GraphProps::slotInterpolationOptions(int check) {
 
 void GraphProps::slotInterpolationOptionsDismiss(mk_ulreal optionL) {
       
-  mk_ulreal interpolationtype=(m_interpolationoptionL&num::interpolation_type);
+  mk_ulreal interpolationtype=(m_interpolationoptionL&num::interpol_type);
   m_interpolationoptionL=(interpolationtype|optionL);
   m_interpolationoptions=0;
   m_checkinterpolationoption->setChecked(false);
@@ -469,10 +469,10 @@ void GraphProps::sendValues() {
   if (!gr) 
     return;
   mk_ulreal ioptions=(gr->m_interpolation ? gr->m_interpolation->options() : 0);
-  mk_ulreal interpolationtype=(ioptions&num::interpolation_type);  
+  mk_ulreal interpolationtype=(ioptions&num::interpol_type);  
   mk_ulreal ninterpolationtype=mk_ulreal(mk_ipow2(m_combointerpolation->currentIndex()-1));
   if (interpolationtype!=ninterpolationtype) {
-    m_interpolationoptionL&=num::interpolation_options;
+    m_interpolationoptionL&=num::interpol_options;
     m_interpolationoptionL|=ninterpolationtype;
     if (gr->m_interpolation) {
       delete gr->m_interpolation;
@@ -574,7 +574,7 @@ void GraphInterpolationOptions::setOptionL(mk_ulreal optionL) {
 
   if (optionL==m_optionL)
     return;
-  m_optionL=(optionL&num::interpolation_options);
+  m_optionL=(optionL&num::interpol_options);
   mk_string str;
   mk_ulreal ii=0;
   int jj=0,chk=0;

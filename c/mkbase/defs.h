@@ -76,4 +76,10 @@ typedef unsigned long long int mk_ulreal;
 #define mk_maxintbase 36
 #define mk_maxmem 2147483647
 
+#if defined (_MSC_VER)
+#define MK_SH(N1,N2) (N1##ui64) << (N2)
+#else
+#define MK_SH(N1,N2) (N1##ULL) << (N2)
+#endif
+
 #endif

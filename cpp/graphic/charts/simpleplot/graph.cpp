@@ -77,8 +77,14 @@ shapes::Shape2 *buildMarkshape2(const char *type,double size) {
 
 }
 
+static int chkCoor(int coor) {
+
+  return (coor<0 || coor>3 ? -1 : coor);
+
+}
+
 GraphData2::GraphData2(int sz) : 
-  m_sortype(0) {
+  m_sortype(-1) {
 
   sz=(sz<0 ? 0 : (sz>maxdatacnt ? maxdatacnt : sz));
   mk_listalloc(&m_data,sizeof(mk_vertex),sz);
@@ -125,8 +131,18 @@ int GraphData2::setData(int idx,mk_vertex vv_) {
   mk_vertexcopy(vv,vv_);
   if (idx>=0 && idx<m_data.count)
     mk_listsetat(&m_data,(void*)&vv,idx,0);
-  else 
+  else if (m_sortype>=0)
     idx=mk_listinsort(&m_data,(void*)&vv);
+  else {
+    if (idx<0) {
+      idx=0;
+      mk_listprepend(&m_data,(void*)&vv);
+    }
+    else {
+      idx=m_data.count;
+      mk_listappend(&m_data,(void*)&vv);
+    }
+  }
   return idx;
 
 }
@@ -142,7 +158,7 @@ int GraphData2::findBounds(int type,double *bmin,double *bmax) {
   if (bmax)
     *bmax=mk_dsinf;
   mk_vertexnan(vv);
-  if (m_data.sorted>0 && type==m_sortype) {
+  if (m_data.sorted>=0 && type==m_sortype) {
     if (bmin) {
       mk_listat(&m_data,0,(void*)&vv[0]);
       *bmin=(type==1 ? vv[0] : vv[1]);
@@ -164,7 +180,7 @@ int GraphData2::findBounds(int type,double *bmin,double *bmax) {
       if (bmax) {
         if (type==1 && mk_dlt(*bmax,vv[0]))
           *bmax=vv[0];
-        else if (type==2 && mk_dlt(*bmin,vv[1]))
+        else if (type==2 && mk_dlt(*bmax,vv[1]))
           *bmax=vv[1];
       }
     }
@@ -175,10 +191,10 @@ int GraphData2::findBounds(int type,double *bmin,double *bmax) {
 
 int GraphData2::match(mk_vertex pp_,mk_vertex md) {
 
-  int ii=0,idxl=-1,idxh=-1,cnt=m_data.count,sortype=(m_data.sorted ? m_sortype : -1);
+  int ii=0,idxl=-1,idxh=-1,cnt=m_data.count;
+  int sortype=chkCoor(m_data.sorted ? m_sortype : -1);
   if (cnt==0)
     return -1;
-
   mk_vertexnan(pl);
   mk_vertexnan(ph);
   mk_vertex pp;
@@ -236,8 +252,8 @@ int GraphData2::setMark(int idx,shapes::Shape2 *mark) {
 int GraphData2::setSortype(int coor) {
 
   int sortype=m_sortype;
-  m_sortype=coor;
-  m_data.cmp=mk_vertexcmp[m_sortype];
+  m_sortype=chkCoor(coor);
+  m_data.cmp=(m_sortype>=0 ? mk_vertexcmp[m_sortype] : 0);
   mk_listsort(&m_data);
   return sortype;
 
@@ -454,7 +470,7 @@ int GraphXY::rescale() {
     }
   }
   mk_ulreal itype=m_interpolation->options();
-  if ((itype&num::interpolation_const)>0 && (itype&num::interpolation_steps)==0) {
+  if ((itype&num::interpol_const)>0 && (itype&num::interpol_steps)==0) {
     struct mk_list cpscDataI;
     mk_listalloc(&cpscDataI,sizeof(struct mk_list),m_scDataI.count);
     mk_listcopy(&cpscDataI,&m_scDataI);
