@@ -12,61 +12,59 @@
 #include <mkbase/defs.h>
 #include <mkbase/exportdefs.h>
 
-/* ucd:number as char , ff:number as float 
-union tp_ucpf {
-  unsigned char ucf[4];
-  float ff;
-};
-big endian
-union tp_ucpf mk_deffnan={{127,192,0,0}};
-union tp_ucpf mk_deffsnan={{255,192,0,0}};
-union tp_ucpf mk_deffinf={{127,128,0,0}};
-union tp_ucpf mk_deffsinf={{255,128,0,0}};
-little endian
-union tp_ucpf mk_deffnan={{0,0,192,127}};
-union tp_ucpf mk_deffsnan={{0,0,192,255}};
-union tp_ucpf mk_deffinf={{0,0,128,127}};
-union tp_ucpf mk_deffsinf={{0,0,128,255}};
-#define mk_fnan *((const float *)&mk_deffnan.ff)
-#define mk_fsnan *((const float *)&mk_deffsnan.ff)
-#define mk_finf *((const float *)&mk_deffinf.ff)
-#define mk_fsinf *((const float *)&mk_deffsinf.ff)
-*/
-
-/* ucd:number as char , dd:number as double */ 
-union tp_ucpd {
-  unsigned char ucd[8];
+/* cc:number as char , dd:number as double */ 
+union mk_ncd {
+  unsigned char cc[8];
   double dd;
 };
 
-extern const union tp_ucpd mk_defdnan; 
-extern const union tp_ucpd mk_defdsnan;
-extern const union tp_ucpd mk_defdinf;
-extern const union tp_ucpd mk_defdsinf;
+extern union mk_ncd mk_defdnan; 
+extern union mk_ncd mk_defdsnan;
+extern union mk_ncd mk_defdinf;
+extern union mk_ncd mk_defdsinf;
 
 #define mk_dnan mk_defdnan.dd
 #define mk_dsnan mk_defdsnan.dd
 #define mk_dinf mk_defdinf.dd
 #define mk_dsinf mk_defdsinf.dd
 
-extern const mk_lreal mk_i64limit;
-extern const mk_ulreal mk_ui64limit;
-extern const unsigned int mk_uilimit;
-extern const int mk_ilimit;
-extern const unsigned short mk_uslimit;
-extern const short mk_slimit;
-extern const double mk_dlimit;
-extern const double mk_derr;
-extern const double mk_euler;
-extern const double mk_pi;
-extern const double mk_rad;
-extern const double mk_log210;
-extern const double mk_loge10;
-extern const double mk_log10e;
-extern const unsigned short mk_dmag;
-extern const unsigned short mk_i64mag;
-extern const unsigned short mk_ui64mag;
-extern const unsigned short mk_dprec;
+#if defined (_MSC_VER)
+#define mk_i64limit 9223372036854775807i64
+#define mk_ui64limit 18446744073709551615ui64
+#define mk_uilimit 4294967295
+#else
+#if defined (__WATCOMC__)
+#define mk_i64limit 9223372036854775807LL
+#define mk_ui64limit 18446744073709551615ULL
+#define mk_uilimit 4294967295U
+#else
+#if defined (__MACH__)
+#define mk_i64limit 9223372036854775807LL
+#define mk_ui64limit 18446744073709551615ULL
+#define mk_uilimit 4294967295U
+#else
+#define mk_i64limit 9223372036854775807LL
+#define mk_ui64limit 18446744073709551615ULL
+#define mk_uilimit 4294967295U
+#endif
+#endif
+#endif
+#define mk_ilimit 2147483647
+#define mk_uslimit 65535
+#define mk_slimit 32767
+#define mk_dlimit 1.7976931348623157e308
+#define mk_derr 0.000000000000001
+#define mk_euler 2.718281828459045235
+#define mk_pi 3.1415926535897932385
+#define mk_rad 0.0174532925199432957694
+#define mk_log210 0.3010299956639812
+#define mk_loge10 0.4342944819032518
+#define mk_log10e 2.3025850929940457
+#define mk_dmag 308
+#define mk_i64mag 18
+#define mk_ui64mag 19
+#define mk_dprec 15
+
 /* 1<<0 ... 1<<63
   1                      ,2                      ,4                      ,8                      ,
   16                     ,32                     ,64                     ,128                    ,
@@ -123,9 +121,6 @@ xtern void oswinexp mk_swapc(char **,char **);
 
 /* in exponent , return result */
 xtern double oswinexp mk_ipow10(int);
-
-/* in bits-to-shift (0...63) , return 1<<bits */
-xtern mk_ulreal oswinexp mk_1sh(int);
 
 /* in exponent , return result */
 xtern double oswinexp mk_ipow2(int);

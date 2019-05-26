@@ -3,53 +3,31 @@
 #include <mkbase/mkmath.h>
 #include <ctype.h>
 
-/* big endian 
-union tp_ucpd defdnan={{127,248,0,0,0,0,0,0}};
-union tp_ucpd defdsnan={{255,248,0,0,0,0,0,0}};
-union tp_ucpd defdinf={{127,240,0,0,0,0,0,0}};
-union tp_ucpd defdsinf={{255,240,0,0,0,0,0,0}};
-little endian */
-const union tp_ucpd mk_defdnan={{0,0,0,0,0,0,248,127}}; 
-const union tp_ucpd mk_defdsnan={{0,0,0,0,0,0,248,255}};
-const union tp_ucpd mk_defdinf={{0,0,0,0,0,0,240,127}};
-const union tp_ucpd mk_defdsinf={{0,0,0,0,0,0,240,255}};
-
-#if defined (_MSC_VER)
-const mk_lreal mk_i64limit=9223372036854775807i64;
-const mk_ulreal mk_ui64limit=18446744073709551615ui64;
-const unsigned int mk_uilimit=4294967295;
-#else
-#if defined (__WATCOMC__)
-const mk_lreal mk_i64limit=9223372036854775807LL;
-const mk_ulreal mk_ui64limit=18446744073709551615ULL;
-const unsigned int mk_uilimit=4294967295U;
-#else
-#if defined (__MACH__)
-const mk_lreal mk_i64limit=9223372036854775807LL;
-const mk_ulreal mk_ui64limit=18446744073709551615ULL;
-const unsigned int mk_uilimit=4294967295U;
-#else
-const mk_lreal mk_i64limit=9223372036854775807LL;
-const mk_ulreal mk_ui64limit=18446744073709551615ULL;
-const unsigned int mk_uilimit=4294967295U;
-#endif
-#endif
-#endif
-const int mk_ilimit=2147483647;
-const unsigned short mk_uslimit=65535;
-const short mk_slimit=32767;
-const double mk_dlimit=1.7976931348623157e308;
-const double mk_derr=0.000000000000001;
-const double mk_euler=2.718281828459045235;
-const double mk_pi=3.1415926535897932385;
-const double mk_rad=0.0174532925199432957694;
-const double mk_log210=0.3010299956639812;
-const double mk_loge10=0.4342944819032518;
-const double mk_log10e=2.3025850929940457;
-const unsigned short mk_dmag=308;
-const unsigned short mk_i64mag=18;
-const unsigned short mk_ui64mag=19;
-const unsigned short mk_dprec=15;
+union mk_ncd mk_defdnan={{0,0,0,0,0,0,248,127}}; 
+union mk_ncd mk_defdsnan={{0,0,0,0,0,0,248,255}};
+union mk_ncd mk_defdinf={{0,0,0,0,0,0,240,127}};
+union mk_ncd mk_defdsinf={{0,0,0,0,0,0,240,255}};
+/* 
+big endian 
+union mk_defdnan {{127,248,0,0,0,0,0,0}};
+union mk_defdsnan {{255,248,0,0,0,0,0,0}};
+union mk_defdinf {{127,240,0,0,0,0,0,0}};
+union mk_defdsinf {{255,240,0,0,0,0,0,0}};
+float type
+union mk_ncf {
+  unsigned char cc[4];
+  double ff;
+};
+union mk_ncf mk_deffnan={{0,0,192,127}};
+union mk_ncf mk_deffsnan={{0,0,192,255}};
+union mk_ncf mk_deffinf={{0,0,128,127}};
+union mk_ncf mk_deffsinf=={{0,0,128,255}};
+big endian 
+union mk_ncf mk_deffnan={{127,192,0,0}};
+union mk_ncf mk_deffnan={{255,192,0,0}};
+union mk_ncf mk_deffnan={{127,128,0,0}};
+union mk_ncf mk_deffnan={{255,128,0,0}};
+*/
 
 /* ########## */
 int mk_dsgn(double dd) {
@@ -220,15 +198,6 @@ double mk_ipow10(int nn) {
     return powtablarge[nn>308 ? 308 : nn];
   else
     return powtabtiny[nn<-308 ? 308 : -nn];
-
-}
-
-/* ########## */
-mk_ulreal mk_1sh(int nn) {
-  
-  if (nn<0 || nn>63)
-    return (mk_ulreal)0;
-  return 1ULL<<nn;
 
 }
 

@@ -40,6 +40,7 @@ int tst_ui2a_(int cnt,...) {
 #define NARG6(...) _ARG6(__VA_ARGS__,6,5,4,3,2,1,0)
 #define tst_ui2a(...) tst_ui2a_(NARG6(__VA_ARGS__),__VA_ARGS__)
 
+/* #define tst_pundnan */
 
 int usage() {
 
@@ -53,9 +54,11 @@ int main(int argc,char **argv) {
   int ii=0,jj=0;
   double zero=.0,one=1.;
 
-  printf("%d [%f]\n",__LINE__,tst_dnan);
+  printf("%d [%f] [%f]\n",__LINE__,tst_dnann,tst_dinff);
+
+  printf("%d [%f] [%lld]\n",__LINE__,tst_dnan,*((unsigned long long int*)&tst_dnan));
   printf("%d [%f]\n",__LINE__,tst_dsnan);
-  printf("%d [%f]\n",__LINE__,tst_dinf);
+  printf("%d [%f] [%lld]\n",__LINE__,tst_dinf,*((unsigned long long int*)&tst_dinf));
   printf("%d [%f]\n",__LINE__,tst_dsinf);
 
   tst_ulreal tstnum=1234;
@@ -66,6 +69,9 @@ int main(int argc,char **argv) {
   tst_ui2a(1234,&tststr[0],33);
 
   printf ("%d [%s]\n",__LINE__,&tststr[0]);
+
+
+  
 
   return 0;
 

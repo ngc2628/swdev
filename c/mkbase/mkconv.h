@@ -13,28 +13,55 @@
 #include <mkbase/exportdefs.h>
 #include <mkbase/mkutil.h>
 
-static const unsigned char mk_basechar[]={
-  '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M',
-  'N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0'};
-static const unsigned char mk_asciispace=32;
-static const unsigned char mk_asciihash=35;
-static const unsigned char mk_asciiplus=43;
-static const unsigned char mk_asciiminus=45;
-static const unsigned char mk_asciidec=46;
-static const unsigned char mk_asciizero=48;
-static const unsigned char mk_asciione=49;
-static const unsigned char mk_asciifive=53;
-static const unsigned char mk_asciinine=57;
-static const unsigned char mk_asciiE=69;
-static const unsigned char mk_asciiF=70;
-static const unsigned char mk_asciiI=73;
-static const unsigned char mk_asciiX=88;
-static const unsigned char mk_asciib=98;
-static const unsigned char mk_asciie=101;
-static const unsigned char mk_asciif=102;
-static const unsigned char mk_asciii=105;
-static const unsigned char mk_asciix=120;
-static const unsigned char mk_asciidel=127;
+extern unsigned char mk_basechar[38];
+#define mk_asciispace 32
+#define mk_asciihash 35
+#define mk_asciiplus 43
+#define mk_asciiminus 45
+#define mk_asciidec 46
+#define mk_asciizero 48
+#define mk_asciione 49
+#define mk_asciitwo 50
+#define mk_asciithree 51
+#define mk_asciifour 52
+#define mk_asciifive 53
+#define mk_asciisix 54
+#define mk_asciiseven 55
+#define mk_asciieight 56
+#define mk_asciinine 57
+#define mk_asciiA 65
+#define mk_asciiB 66
+#define mk_asciiC 67
+#define mk_asciiD 68
+#define mk_asciiE 69
+#define mk_asciiF 70
+#define mk_asciiG 71
+#define mk_asciiH 72
+#define mk_asciiI 73
+#define mk_asciiJ 74
+#define mk_asciiK 75
+#define mk_asciiL 76
+#define mk_asciiM 77
+#define mk_asciiN 78
+#define mk_asciiO 79
+#define mk_asciiP 80
+#define mk_asciiQ 81
+#define mk_asciiR 82
+#define mk_asciiS 83
+#define mk_asciiT 84
+#define mk_asciiU 85
+#define mk_asciiV 86
+#define mk_asciiW 87
+#define mk_asciiX 88
+#define mk_asciiY 89
+#define mk_asciiZ 90
+#define mk_ascii_ 95
+#define mk_asciib 98
+#define mk_asciie 101
+#define mk_asciif 102
+#define mk_asciii 105
+#define mk_asciix 120
+#define mk_asciidel 127
 
 #ifdef __cplusplus
 /* #pragma message "cplusplus" */

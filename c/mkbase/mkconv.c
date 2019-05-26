@@ -5,19 +5,30 @@
 
 #include <ctype.h>
 
-/* const unsigned short _d0=0;  // big endian
-const unsigned short _d1=1;
-const unsigned short _d2=2;
-const unsigned short _d3=3; */
-static const unsigned short _d0=3; /* little endian */
-static const unsigned short _d1=2;
-static const unsigned short _d2=1;
-static const unsigned short _d3=0;
-static const unsigned short dbias=1022;
-static const unsigned short doff=4;
-static const unsigned short dfrac=15;
-static const unsigned short dmask11=32752;
-static const unsigned short ndig=16;
+unsigned char mk_basechar[38]={
+  mk_asciizero,mk_asciione,mk_asciitwo,mk_asciithree,mk_asciifour,mk_asciifive,mk_asciisix,
+  mk_asciiseven,mk_asciieight,mk_asciinine,mk_asciiA,mk_asciiB,mk_asciiC,mk_asciiD,mk_asciiE,
+  mk_asciiF,mk_asciiG,mk_asciiH,mk_asciiI,mk_asciiJ,mk_asciiK,mk_asciiL,mk_asciiM,mk_asciiN,
+  mk_asciiO,mk_asciiP,mk_asciiQ,mk_asciiR,mk_asciiS,mk_asciiT,mk_asciiU,mk_asciiV,mk_asciiW,
+  mk_asciiX,mk_asciiY,mk_asciiZ,mk_ascii_,mk_asciizero
+};
+
+/* big endian
+unsigned short _d0=0; 
+unsigned short _d1=1;
+unsigned short _d2=2;
+unsigned short _d3=3; 
+*/
+/* little endian */
+static unsigned short _d0=3; 
+static unsigned short _d1=2;
+static unsigned short _d2=1;
+static unsigned short _d3=0;
+static unsigned short dbias=1022;
+static unsigned short doff=4;
+static unsigned short dfrac=15;
+static unsigned short dmask11=32752;
+static unsigned short ndig=16;
 
 /* ########## */
 static int mk_strip4ascii(char *str) {
