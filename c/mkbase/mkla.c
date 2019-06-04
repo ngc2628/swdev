@@ -810,26 +810,27 @@ int mk_matrixtranspose(struct mk_matrix *trmat) {
 }
 
 /* ########## */
-int mk_matrixmult(struct mk_matrix *mmat,const struct mk_matrix *mat) {
+int mk_matrixmult(
+  const struct mk_matrix *mat1,const struct mk_matrix *mat2,struct mk_matrix *matres) {
 
-  int ii=0,jj=0,kk=0,rr=(mmat ? mmat->rows: 0),cc=(mmat ? mmat->cols : 0);
-  if (rr*cc==0 || !mat || mat->rows*mat->cols==0 || cc!=mat->rows)
+  int ii=0,jj=0,kk=0,r1=(mat1 ? mat1->rows: 0),c1=(mat1 ? mat1->cols : 0),
+      r2=(mat2 ? mat2->rows: 0),c2=(mat2 ? mat2->cols : 0);
+  if (!matres || r1*c1==0 || r2*c2==0 || c1!=r2)
     return 1;
-  double *rmat=(double*)malloc(rr*cc*sizeof(double));
-  memcpy((void*)&rmat[0],(void*)&mmat->matrix[0],rr*cc*sizeof(double));
-  mk_matrixfree(mmat);
-  mk_matrixalloc(mmat,rr,mat->cols);
-  memset((void*)mmat->matrix,0,mmat->rows*mmat->cols*sizeof(double));
-  double tmp=mk_dnan;
-  for (ii=0;ii<rr;ii++) {
-    for (jj=0;jj<mat->cols;jj++) {
-      for (kk=0;kk<cc;kk++) {
-        tmp=mk_matrixget(mmat,ii,jj)+(*(rmat+(ii*cc+kk)))*mk_matrixget(mat,kk,jj);
-        mk_matrixset(mmat,ii,jj,tmp);
+  if (matres->rows!=r1 || matres->cols!=c2) {
+    mk_matrixfree(matres);
+    mk_matrixalloc(matres,r1,c2);
+  }  
+  mk_matrixreset(matres,0);
+  double tmp=.0;
+  for (ii=0;ii<r1;ii++) {
+    for (jj=0;jj<c2;jj++) {
+      for (kk=0;kk<c1;kk++) {
+        tmp=mk_matrixget(matres,ii,jj);
+        mk_matrixset(matres,ii,jj,tmp+mk_matrixget(mat1,ii,kk)*mk_matrixget(mat2,kk,jj));
       }
     }
   }
-  free(rmat);
   return 0;
 
 }

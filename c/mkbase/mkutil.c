@@ -6,7 +6,7 @@
 #if defined (__MACH__)
 #include <libkern/OSAtomic.h>
 #endif
-#if defined (_MSC_VER) || defined (__WATCOMC__)
+#if defined (_MSC_VER) || defined (__WATCOMC__) || defined (__BORLANDC__)
 #include <sys/timeb.h>
 #else
 #include <sys/time.h>
@@ -38,7 +38,7 @@ mk_ulreal mk_nextt() {
   struct __timeb64 tsec;
   _ftime64(&tsec);
   tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
-#elif defined (__WATCOMC__)
+#elif defined (__WATCOMC__) || defined (__BORLANDC__)
   struct timeb tsec;
   ftime(&tsec);
   tt=(mk_ulreal)1000000*tsec.time+tsec.millitm;
@@ -323,8 +323,8 @@ int mk_heapsort(int typesize,int cnt,void *arr,int (*comp)(const void *,const vo
   void *tmp=(void*)malloc(typesize);
   while (mb>-1) {
     if (mb==0) {
-      memcpy(tmp,arr+ub*typesize,typesize);
-      memcpy(arr+ub*typesize,arr,typesize);
+      memcpy(tmp,(const void*)((char*)arr+ub*typesize),typesize);
+      memcpy((void*)((char*)arr+ub*typesize),arr,typesize);
       if (--ub==0) {
         memcpy(arr,tmp,typesize);
         break;
@@ -332,22 +332,23 @@ int mk_heapsort(int typesize,int cnt,void *arr,int (*comp)(const void *,const vo
     }
     else {
       mb--;
-      memcpy(tmp,arr+mb*typesize,typesize);
+      memcpy(tmp,(const void*)((char*)arr+mb*typesize),typesize);
     }
     ii=mb;
     jj=ii+ii+1;
     while(jj<=ub) {
-      if (jj<ub && comp((const void *)(arr+jj*typesize),(const void *)(arr+(jj+1)*typesize))<0)
+      if (jj<ub && 
+          comp((const void*)((char*)arr+jj*typesize),(const void*)((char*)arr+(jj+1)*typesize))<0)
         jj++;
-      if (comp((const void *)tmp,(const void *)(arr+jj*typesize))<0) {
-        memcpy(arr+ii*typesize,arr+jj*typesize,typesize);
+      if (comp((const void*)tmp,(const void*)((char*)arr+jj*typesize))<0) {
+        memcpy((void*)((char*)arr+ii*typesize),(const void*)((char*)arr+jj*typesize),typesize);
         ii=jj;
         jj+=(ii+1);
       }
       else
         break;
     }
-    memcpy(arr+ii*typesize,tmp,typesize);
+    memcpy((void*)((char*)arr+ii*typesize),tmp,typesize);
   }
   free(tmp);
   return 0;
@@ -363,7 +364,7 @@ int mk_binsearch(
   if (guess<=0 || guess>=cnt-1) {
     while ((ub-lb>1)) {
       mb=(ub+lb)/2;
-      cmp=comp((const void*)(arr+mb*typesize),(const void*)xx);
+      cmp=comp((const void*)((char*)arr+mb*typesize),(const void*)xx);
       if (cmp==0)
         return mb;
       if (cmp<0)
@@ -375,14 +376,14 @@ int mk_binsearch(
   }
   /* if a guess is given, look neighbours or narrow the interval */ 
   mb=guess;
-  cmp=comp((const void*)(arr+mb*typesize),(const void*)xx);
+  cmp=comp((const void*)((char*)arr+mb*typesize),(const void*)xx);
   if (cmp==0)
     return mb;
   if (cmp<0) {
     mb+=inc;
     while (mb<ub) {
       inc<<=1;
-      cmp=comp((const void*)(arr+mb*typesize),(const void*)xx);
+      cmp=comp((const void*)((char*)arr+mb*typesize),(const void*)xx);
       if (cmp==0)
         return mb;
       if (cmp<0) {
@@ -398,7 +399,7 @@ int mk_binsearch(
   else {
     mb-=inc;
     while (mb>lb) {
-      cmp=comp((const void*)(arr+mb*typesize),(const void*)xx);
+      cmp=comp((const void*)((char*)arr+mb*typesize),(const void*)xx);
       if (cmp==0) 
         return mb;
       if (cmp>0) {
@@ -414,7 +415,7 @@ int mk_binsearch(
   }
   while ((ub-lb>1)) {
     mb=(ub+lb)/2;
-    cmp=comp((const void*)(arr+mb*typesize),(const void*)xx);
+    cmp=comp((const void*)((char*)arr+mb*typesize),(const void*)xx);
     if (cmp==0)
       return mb;
     if (cmp<0)
@@ -435,7 +436,7 @@ int mk_binsearchinterval(
   int ii=0,ih=cnt,il=-1,cmp=0,res=0;
   while ((ih-il)>1) {
     ii=(ih+il)/2;
-    cmp=comp((const void*)(arr+ii*typesize),(const void*)xx);
+    cmp=comp((const void*)((char*)arr+ii*typesize),(const void*)xx);
     if (sortedrev>0 ? cmp<0 : cmp>0)
       ih=ii;
     else
@@ -540,7 +541,7 @@ int mk_listclear(struct mk_list *list,void *itm) {
     else {
       int ii=0;
       for (ii=0;ii<list->count;ii++)
-        memcpy(list->arr+ii*list->typesize,itm,list->typesize);
+        memcpy((void*)((char*)list->arr+ii*list->typesize),itm,list->typesize);
     }
   }
   list->count=0;
@@ -574,7 +575,7 @@ int mk_listfind(const struct mk_list *list,void *itm,int *idxl,int *idxh) {
   int ii=0,il=-1,ih=-1,cntitm=0;
   if ((list->sorted&1)==0) {
     for (ii=0;ii<list->count;ii++) {
-      if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)==0) {
+      if (list->cmp((const void*)((char*)list->arr+ii*list->typesize),(const void*)itm)==0) {
         if (il<0)
           il=ii;
         else
@@ -587,12 +588,12 @@ int mk_listfind(const struct mk_list *list,void *itm,int *idxl,int *idxh) {
     ih=il=mk_binsearch(itm,list->typesize,list->count,list->arr,list->cmp,0);
     if (ih>=0) {
       for (ii=il-1;ii>-1;ii--) {
-        if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
+        if (list->cmp((const void*)((char*)list->arr+ii*list->typesize),(const void*)itm)!=0) 
           break;
         il=ii;
       }
       for (ii=ih+1;ii<list->count;ii++) {
-        if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
+        if (list->cmp((const void*)((char*)list->arr+ii*list->typesize),(const void*)itm)!=0) 
           break;
         ih=ii;
       }
@@ -621,7 +622,7 @@ int mk_listfindnextindex(const struct mk_list *list,void *itm) {
     mb=(ub+lb)/2;
     if (mb==mblast)
       break;
-    cmpres=list->cmp((const void *)(list->arr+mb*sz),(const void *)itm);
+    cmpres=list->cmp((const void*)((char*)list->arr+mb*sz),(const void*)itm);
     if (cmpres==0) {
       if (mb>=(list->count-1))
         return list->count;
@@ -647,7 +648,7 @@ int mk_listat(const struct mk_list *list,int idx,void *itm) {
   if (!list || !list->arr || !itm)
     return 1;
   if (idx>=0 && idx<list->count)
-    memcpy(itm,list->arr+idx*list->typesize,list->typesize);
+    memcpy(itm,(const void*)((char*)list->arr+idx*list->typesize),list->typesize);
   return (idx>=0 && idx<list->count ? 0 : 1);
 
 }
@@ -661,11 +662,13 @@ int mk_listsetat(struct mk_list *list,void *itm,int idx,int insert) {
     return 1;
   int sz=list->typesize;
   if ((insert&1)>0 && idx<list->count) 
-    memmove(list->arr+(idx+1)*sz,list->arr+idx*sz,(list->count-idx)*sz);
+    memmove((void*)((char*)list->arr+(idx+1)*sz),
+            (const void*)((char*)list->arr+idx*sz),
+            (list->count-idx)*sz);
   if (itm)  
-    memcpy(list->arr+idx*sz,itm,sz);
+    memcpy((void*)((char*)list->arr+idx*sz),itm,sz);
   else
-    memset(list->arr+idx*sz,0,sz);
+    memset((void*)((char*)list->arr+idx*sz),0,sz);
   if ((insert&1)>0) {
     list->count++;
     list->sorted=0;
@@ -711,8 +714,10 @@ int mk_listremove(struct mk_list *list,int idx,void *itm) {
     return 1;
   int sz=list->typesize;
   if (idx<list->count-1)
-    memmove(list->arr+idx*sz,list->arr+(idx+1)*sz,(list->count-idx-1)*sz);
-  memset(list->arr+(list->count-1)*sz,0,sz);
+    memmove((void*)((char*)list->arr+idx*sz),
+            (const void*)((char*)list->arr+(idx+1)*sz),
+            (list->count-idx-1)*sz);
+  memset((void*)((char*)list->arr+(list->count-1)*sz),0,sz);
   list->count--;
   return 0;
 

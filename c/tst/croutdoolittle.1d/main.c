@@ -48,6 +48,8 @@ int mk_str1() {
     for (jj=0;jj<mm.cols;jj++)
       mk_matrixset(&lum,ii,jj,lum44[ii][jj]);
   }
+  struct mk_matrix matres;
+  mk_matrixalloc(&matres,0,0);
 
   int rowperm[4]={0,0,0,0};
   double parity[4]={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
@@ -99,10 +101,10 @@ int mk_str1() {
       mk_matrixset(&lum,ii,jj,mm44[ii][jj]);
   }
 
-  printf("%d %d\n",__LINE__,mk_matrixmult(&mm,&lum));
-  for (ii=0;ii<mm.rows;ii++) {
-    for (jj=0;jj<mm.cols;jj++)
-      printf("%9.5f",mk_matrixget(&mm,ii,jj));
+  printf("%d %d\n",__LINE__,mk_matrixmult(&mm,&lum,&matres));
+  for (ii=0;ii<matres.rows;ii++) {
+    for (jj=0;jj<matres.cols;jj++)
+      printf("%9.5f",mk_matrixget(&matres,ii,jj));
     printf("\n");
   }
   printf("\n");
@@ -199,6 +201,8 @@ int no_mk_str1() {
 int mk_str2() {
 
   int ii=0,jj=0;
+  struct mk_matrix matres;
+  mk_matrixalloc(&matres,0,0);
   struct mk_matrix mat1;
   mk_matrixalloc(&mat1,5,7);
   for (ii=0;ii<mat1.rows;ii++) {
@@ -249,13 +253,13 @@ int mk_str2() {
   printf("\n");
 
   double multres[3][2]={{4.,6.},{32.,32.},{60.,58.}};
-  mk_matrixmult(&mat1,&mat2);
-  for (ii=0;ii<mat1.rows;ii++) {
-    for (jj=0;jj<mat1.cols;jj++)
-      printf("%7.3f",mk_matrixget(&mat1,ii,jj));
+  mk_matrixmult(&mat1,&mat2,&matres);
+  for (ii=0;ii<matres.rows;ii++) {
+    for (jj=0;jj<matres.cols;jj++)
+      printf("%7.3f",mk_matrixget(&matres,ii,jj));
     printf("\n");
   }
-  printf("\n");
+  printf("%d\n",__LINE__);
 
   double vrr[4]={rr[0],rr[1],rr[2],rr[3]};
   double xx[4]={mk_dnan,mk_dnan,mk_dnan,mk_dnan};
@@ -332,7 +336,7 @@ int no_mk_str2() {
       printf("%7.3f",mmatget(&tmm1,ii,jj));
     printf("\n");
   }
-  printf("\n");
+  printf("%d\n",__LINE__);
 
   return 0;
 
@@ -340,9 +344,9 @@ int no_mk_str2() {
 
 int main(int argc,char **argv) {
 
-  no_mk_str1();
+  no_mk_str2();
   printf("\n");
-  mk_str1();
+  mk_str2();
 
   int ii=0,jj=0;
   double zero=.0,one=1.;

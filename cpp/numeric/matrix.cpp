@@ -93,7 +93,12 @@ int Matrix::transpose() {
 
 int Matrix::mult(Matrix *mat) {
 
-  return mk_matrixmult(&m_mat,(const struct mk_matrix*)&mat->m_mat);
+  struct mk_matrix mm;
+  mk_matrixalloc(&mm,0,0);
+  mk_matrixcopy(&mm,&m_mat);
+  int res=mk_matrixmult((const struct mk_matrix*)&mm,(const struct mk_matrix*)&mat->m_mat,&m_mat);
+  mk_matrixfree(&mm);
+  return res;
 
 }
 

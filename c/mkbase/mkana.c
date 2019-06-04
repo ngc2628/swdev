@@ -743,4 +743,89 @@ int mk_bezierinterpol(struct mk_list *ctrlL,int nint,struct mk_list *vint) {
 
 }
 
+/*
+single patch, four points z(x0,y0),z(x1,y1),z(x2,y2),z(x3,y3) lower left counterclockwise
+in : values, derivatives dz/dx, derivatives dz/dy, cross derivatives (dz/dx)*(dz/dy)
+
+using unit square without loss of information and dissection 0<t,u<1 
+t=(x-x(i))/(x(i+1)-x(i)) 
+u=(y-y(j))/(y(j+1)-y(j)) 
+
+reformulates result
+z=sum(0,3)sum(0,3) cij*(t**i)*(u**j)
+dz/dt=sum(0,3)sum(0,3) i*cij*(t**(i-1))*u
+dz/du=sum(0,3)sum(0,3) j*cij*t*(u**(j-1))
+d2z/dtdu=sum(0,3)sum(0,3) i*j*cij*(t**(i-1))*(u**(j-1))
+
+evaluate the 4 functions at the 4 grid points leads to the linear equation 
+system (let 0**0==1)  
+
+z(0,0)=c00
+z(1,0)=c00+c10+c20+c30
+z(1,1)=c00+c10+c20+c30+c01+c11+c12+c13+c02+c12+c22+c23+c03+c13+c23+c33
+z(0,1)=c00+c01+c02+c03
+dz/dt(0,0)=c10
+dz/dt(1,0)=c10+2*c20*3*c30
+dz/dt(1,1)=c10+c11+c12+c13+2*c20+2*c21+2*c22+2*c23+3*c30+3*c31+3*c32+3*c33
+dz/dt(0,1)=c10+c11+c12+c13
+dz/du(0,0)=c01
+dz/du(1,0)=c01+c11+c21+c31
+dz/du(1,1)=c01+2*c02+3*c03+c11+2*c12+3*c13+c21+2*c22+3*c23+c31+2*c32+3*c33
+dz/du(0,1)=c01+2*c02+3*c03
+d2z/dtdu(0,0)=c11
+d2z/dtdu(1,0)=c11+2*c21+3*c31
+d2z/dtdu(1,1)=c11+2*c12+3*c13+2*c21+4*c22+6*c23+3*c31+6*c32+9*c33
+d2z/dtdu(0,1)=c11+2*c12+3*c13
+
+reorganize to a matrix equation 
+static helper matrix multiplied by left hand side of equations yield cij 
+values and derivatives are provided in x,y (not t,u) 
+dz/dt=(dz/dx)*(x(i+1)-x(i))  
+dz/du=(dz/du)*(y(i+1)-y(i))  
+d2z/dtdu=(dz/dx)*(dz/dy)*(x(i+1)-x(i))*(y(i+1)-y(i))  
+
+lefthand (from input) =
+z(0,0)
+z(1,0)
+z(1,1)
+z(0,1)
+dz/dx(0,0)*(x1-x0)
+dz/dx(1,0)*(x1-x0)
+dz/dx(1,1)*(x1-x0)
+dz/dx(0,1)*(x1-x0)
+dz/dy(0,0)*(y1-y0)
+dz/dy(1,0)*(y1-y0)
+dz/dy(1,1)*(y1-y0)
+dz/dy(0,1)*(y1-y0)
+d2z/dxdy(0,0)*(x1-x0)*(y1-y0)
+d2z/dxdy(1,0)*(x1-x0)*(y1-y0)
+d2z/dxdy(1,1)*(x1-x0)*(y1-y0)
+d2z/dxdy(0,1)*(x1-x0)*(y1-y0)
+
+cij=(bicubic_helper**-1)*lefthand (helper matrix below is already inverted)
+
+with cij known a surface point and derivatives are calculated straight forward 
+from result equations and x0<x<x1, y0<y<y1 
+derivatives are then used to plug into the calculation of the next adjescent patch
+*/
+
+static double mk_bicubic_helper[16][16]={
+  {1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+  {0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+  {-3.,0. ,0. ,3. ,0. ,0. ,0. ,0. ,-2.,0. ,0. ,-1.,0. ,0. ,0. ,0. },
+  {2. ,0. ,0. ,-2.,0. ,0. ,0. ,0. ,1. ,0. ,0. ,1. ,0. ,0. ,0. ,0. },
+  {0. ,0. ,0. ,0. ,1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+  {0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,1. ,0. ,0. ,0. },
+  {0. ,0. ,0. ,0. ,-3.,0. ,0. ,3. ,0. ,0. ,0. ,0. ,-2.,0. ,0. ,-1.},
+  {0. ,0. ,0. ,0. ,2. ,0. ,0. ,-2.,0. ,0. ,0. ,0. ,1. ,0. ,0. ,1. },
+  {-3.,3. ,0. ,0. ,-2.,-1.,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+  {0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,-3.,3. ,0. ,0. ,-2.,-1.,0. ,0. },
+  {9. ,-9.,9. ,-9.,6. ,3. ,-3.,-6.,6. ,-6.,-3.,3. ,4. ,2. ,1. ,2. },
+  {-6.,6. ,-6.,6. ,-4.,-2.,2. ,4. ,-3.,3. ,3. ,-3.,-2.,-1.,-1.,-2.},
+  {2. ,-2.,0. ,0. ,1. ,1. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. },
+  {0. ,0. ,0. ,0. ,0. ,0. ,0. ,0. ,2. ,-2.,0. ,0. ,1. ,1. ,0. ,0. },
+  {-6.,6. ,-6.,6. ,-3.,-3.,3. ,3. ,-4.,4. ,2. ,-2.,-2.,-2.,-1.,-1.},
+  {4. ,-4.,4. ,-4.,2. ,2. ,-2.,-2.,2. ,-2.,-2.,2. ,1. ,1. ,1. ,1. }
+};
+
 

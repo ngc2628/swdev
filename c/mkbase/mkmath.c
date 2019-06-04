@@ -46,8 +46,8 @@ double mk_dsign(double dd) {
 /* ########## */
 int mk_isinf(double dd) {
 
-#if defined (_MSC_VER)
-  return (_fpclass(d)==_FPCLASS_NINF ? -1 : (_fpclass(d)==_FPCLASS_PINF ? 1 : 0));
+#if defined (_MSC_VER) || defined (__BORLANDC__)
+  return (_fpclass(dd)==_FPCLASS_NINF ? -1 : (_fpclass(dd)==_FPCLASS_PINF ? 1 : 0));
 #else
   return (isinf(dd)>0 ? 1 : (isinf(dd)<0 ? -1 : 0));
 #endif
@@ -57,7 +57,7 @@ int mk_isinf(double dd) {
 /* ########## */
 int mk_isnan(double dd) {
 
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined (__BORLANDC__)
   return (_isnan(dd)==0 ? 0 : mk_dsgn(dd));
 #else
   return (isnan(dd)==0 ? 0 : mk_dsgn(dd));
@@ -68,7 +68,7 @@ int mk_isnan(double dd) {
 /* ########## */
 int mk_isfinite(double dd) {
 
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined (__BORLANDC__)
   return (_finite(dd)==0 ? 0 : mk_dsgn(dd));
 #else
   return (finite(dd)==0 ? 0 : mk_dsgn(dd));
@@ -79,7 +79,7 @@ int mk_isfinite(double dd) {
 /* ########## */
 int mk_isbusted(double dd) {
 
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined (__BORLANDC__)
   return (!_isnan(dd) && _finite(dd) ? 0 : mk_dsgn(dd));
 #else
   return (!isnan(dd) && finite(dd) ? 0 : mk_dsgn(dd));

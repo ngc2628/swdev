@@ -217,9 +217,9 @@ int oswinexp mk_matrixreset(struct mk_matrix *,int);
 int oswinexp mk_matrixtranspose(struct mk_matrix *);
 
 /*
-  inout matrix* , int matrix* , return 0|1
+  in matrix* , in matrix* , out matrix* , return 0|1
 */
-int oswinexp mk_matrixmult(struct mk_matrix *,const struct mk_matrix *);
+int oswinexp mk_matrixmult(const struct mk_matrix *,const struct mk_matrix *,struct mk_matrix *);
 
 /*
   in squarematrix* , out decomposited squarematrix ,
