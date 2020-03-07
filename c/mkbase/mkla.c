@@ -790,6 +790,24 @@ int mk_matrixreset(struct mk_matrix *mat,int identity) {
 }
 
 /* ########## */
+int mk_matrixisidentity(struct mk_matrix *mat,double df) {
+
+  if (!mat || mat->rows!=mat->cols)
+    return 0;
+  int ii=0,jj=0;
+  double value=mk_dnan;
+  for (ii=0;ii<mat->rows;ii++) {
+    for (jj=0;jj<mat->cols;jj++) {
+      value=mk_matrixget(mat,ii,jj);
+      if ((ii==jj && mk_diff(value,1.,df)!=.0) || (ii!=jj && mk_diff(value,.0,df)!=0))
+        return 0;
+    }
+  }
+  return 1;
+
+}
+
+/* ########## */
 int mk_matrixtranspose(struct mk_matrix *trmat) {
 
   if (!trmat || !trmat->matrix || trmat->rows*trmat->cols==0)
@@ -1053,7 +1071,7 @@ int mk_matrixdbg(struct mk_matrix *mat,mk_string str) {
   int ii=0,jj=0;
   for (ii=0;ii<mat->rows;ii++) {
     for (jj=0;jj<mat->cols;jj++) {
-      sprintf(&buf[0],"%1.8e",mk_matrixget(mat,ii,jj));
+      sprintf(&buf[0],"%+1.8e",mk_matrixget(mat,ii,jj));
       mk_stringappend(str,&buf[0]);
       if (jj>0 && (jj%4)==0)
         mk_stringappend(str,"\n");

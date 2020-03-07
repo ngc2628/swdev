@@ -7,11 +7,11 @@
 
 
 //..begin "UTF:includes"
-#include <QString>
-#include <QObject>
-#include <QToolBar>
-#include <QToolButton>
-#include <QVector>
+#include <QtCore/QString>
+#include <QtCore/QObject>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QToolButton>
+#include <QtCore/QVector>
 //..end "UTF:includes"
 
 class QMainWindow;

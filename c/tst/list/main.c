@@ -133,7 +133,11 @@ int main(int argc,char **argv) {
   }
   tst_listfree(&vvloL);
 
+#if defined (_MSC_VER) || defined (__MINGW32__)
+  printf("%d [%I64d]\n",__LINE__,sh133);
+#else
   printf("%d [%lld]\n",__LINE__,sh133);
+#endif
 
   return 0;
 

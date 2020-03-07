@@ -1,14 +1,17 @@
 
 #include "controllerwindow.h"
-#include <QApplication>
-#include <QDesktopWidget>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QHBoxLayout>
+#include <QtCore/QString>
 
+#if defined (__linux__)
 #include <QX11Info>
+#include <xcb/xcb.h>
 #include <errno.h>
-#include <string.h>
+#endif
 #include <stdlib.h>
 #include <unistd.h>
-#include <xcb/xcb.h>
 
 bool CNativeEventFilter::nativeEventFilter(const QByteArray &type,void *msg,long *res) {
 

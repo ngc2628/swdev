@@ -1026,6 +1026,22 @@ mkcalc.Calculator.prototype.chgsgn=function() {
     this.calcunary(fn_chsgn);
     return mkuni.good;
   }
+  if (this.numfmt==10) {
+    var inp=this.input;
+    var re_f=/^([+-]?[0-9]*\.?[0-9]*)(E)([+-]?)([0-9]{1,4})?$/;
+    var matcharr=inp.match(re_f);
+    if ((typeof matcharr!='undefined') && (matcharr instanceof Array) &&
+        matcharr.length>2 && matcharr[2]==mkuni.str4code(mkuni.asciiE)) {
+      inp=matcharr[1]+matcharr[2];
+      if (matcharr[3]!=mkuni.str4code(mkuni.asciiminus))
+        inp+=mkuni.str4code(mkuni.asciiminus);
+      if (matcharr.length>4)
+        inp+=matcharr[4]
+      this.setinput(inp);
+      this.updateoutput();
+      return mkuni.good;
+    }
+  }
   fp.sgn=(fp.sgn==mkuni.asciiminus ? 0 : mkuni.asciiminus);
   this.setinput(fp.toStringF(this.scifmt,this.maxdig));
   this.updateoutput();
@@ -1219,7 +1235,7 @@ mkcalc.Calculator.prototype.setextranumber=function(numtype) {
     if (strinput.length==0)
       this.setinput('1E');
     else {
-
+      this.setinput(strinput+'E');
     }
     this.updateoutput();
   }

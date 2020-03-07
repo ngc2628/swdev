@@ -68,7 +68,11 @@ int main(int argc,char **argv) {
   }
   cc=(unsigned int)(bb+(gg<<8)+(rr<<16)+(aa<<24));
   mk_ulreal ccc=(unsigned int)(bb+(gg<<8)+(rr<<16));
+#if defined (_MSC_VER) || defined (__MINGW32__)
+  printf ("%I64d[%I64d] a,r,g,b [%u,%u,%u,%u]\n",cc,ccc,aa,rr,gg,bb);
+#else
   printf ("%lld[%lld] a,r,g,b [%u,%u,%u,%u]\n",cc,ccc,aa,rr,gg,bb);
+#endif
     
   return 0;
 

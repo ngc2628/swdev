@@ -1,12 +1,15 @@
-#include <QMainWindow>
-#include <QApplication>
-#include <QDesktopWidget>
+
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#if defined (__linux__)
 #include <QX11Info>
+#include <xcb/xcb.h>
 #include <errno.h>
-#include <string.h>
+#endif
+#include <QtCore/QString>
 #include <stdlib.h>
 #include <unistd.h>
-#include <xcb/xcb.h>
 
 #include "spantoolbar.h"
 
@@ -148,6 +151,7 @@ int CSpanToolBar::getHomeScreenNumber()
       return pSpanToolBtn->getScreenNumber();
     }
   }
+  return 0;
 }
 
 /*-----------------------------------------------------------------------------
@@ -208,9 +212,11 @@ void CSpanToolBar::slotButtonToggled( const CSpanToolButton * pSpanToolButton,
   pAppWin->resize(spanRect.size()- frame);
   pAppWin->move(spanRect.topLeft());
   qApp->processEvents();
+#if defined (__linux__)
   unsigned int values[]={XCB_STACK_MODE_ABOVE};
   xcb_configure_window(QX11Info::connection(),pAppWin->window()->winId(),XCB_CONFIG_WINDOW_STACK_MODE,values);
   xcb_flush(QX11Info::connection());
+#endif
 
   //Togglestatus angleichen
   m_bAcceptToggleSignal = false;

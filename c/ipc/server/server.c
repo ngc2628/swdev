@@ -4,10 +4,15 @@
 #include <string.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#if defined (__BORLANDC__)
+#include <windows.h>
+#include <io.h>
+#else
 #ifndef WIN32
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 #endif
 #include <ipc/ipcutl.h>
 #include <ipc/server/server.h>

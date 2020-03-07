@@ -32,29 +32,20 @@ class QtDiagramXY;
 
 class oswinexp PlotView : public QWidget {
 
-  Q_OBJECT
-
   friend class QtDiagramXY;
 
   public:
     QtDiagramXY *m_diagram;
     PlotView(QtDiagramXY *, const char *);
     virtual ~PlotView();
-    bool operator==(const PlotView &cmp) const {
-      return (m_diagram==cmp.m_diagram);
-    }
-    bool operator<(const PlotView &cmp) const {
-      return (m_diagram<cmp.m_diagram);
-    }
+    bool operator==(const PlotView &cmp) const;
+    bool operator<(const PlotView &cmp) const;
     bool event (QEvent *);
     bool eventFilter(QObject*,QEvent*);
 
   protected:
-    PlotView(const PlotView &) : QWidget() {
-    }
-    PlotView &operator=(const PlotView &) {
-      return *this;
-    }
+    PlotView(const PlotView &);
+    PlotView &operator=(const PlotView &);
 
 };
 
@@ -79,11 +70,8 @@ class oswinexp QtDiagramXY : public QFrame,public simpleplot::DiagramXY {
     QCheckBox *m_modM;
     QCheckBox *m_showcontrols;
     Controls *m_controlsDialog;
-    QtDiagramXY(const QtDiagramXY &) : QFrame(),simpleplot::DiagramXY() {
-    }
-    QtDiagramXY &operator=(const QtDiagramXY &) {
-      return *this;
-    }
+    QtDiagramXY(const QtDiagramXY &);
+    QtDiagramXY &operator=(const QtDiagramXY &);
   
   protected slots:
     void slotCheckX(int);

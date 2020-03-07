@@ -1,5 +1,7 @@
 
+#if defined (__linux__)
 #include <QtX11Extras/QX11Info>
+#endif
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QComboBox>
@@ -92,7 +94,7 @@ QtSpreadsheet::~QtSpreadsheet() {
 
 void *QtSpreadsheet::findDisplay() {
 
-#if !defined (OSWIN)
+#if defined (__linux__)
   return (void*)QX11Info::display();
 #endif
     

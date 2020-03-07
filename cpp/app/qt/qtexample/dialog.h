@@ -51,7 +51,22 @@
 #ifndef DIALOG_H
 #define DIALOG_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QErrorMessage>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QToolBox>
+#include <QtWidgets/QColorDialog>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QFontDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QStyleHints>
 
 QT_BEGIN_NAMESPACE
 class QCheckBox;

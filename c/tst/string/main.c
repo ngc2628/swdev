@@ -25,7 +25,11 @@ int tst_ui2a_(int cnt,...) {
   strcpy(&tststr[0],"jumps over the lazy dog");
 
   if (str) {
+#if defined (_MSC_VER) || defined (__MINGW32__)
+    sprintf(str,"%I64d",number);
+#else
     sprintf(str,"%lld",number);
+#endif
     strcat(str,"[");
     strcat(str,&tststr[0]);
     strcat(str,"]");
@@ -55,10 +59,17 @@ int main(int argc,char **argv) {
   double zero=.0,one=1.;
 
   printf("%d [%f] [%f]\n",__LINE__,tst_dnann,tst_dinff);
-
+#if defined (_MSC_VER) || defined (__MINGW32__)
+  printf("%d [%f] [%I64d]\n",__LINE__,tst_dnan,*((unsigned long long int*)&tst_dnan));
+#else
   printf("%d [%f] [%lld]\n",__LINE__,tst_dnan,*((unsigned long long int*)&tst_dnan));
+#endif
   printf("%d [%f]\n",__LINE__,tst_dsnan);
+#if defined (_MSC_VER) || defined (__MINGW32__)
+  printf("%d [%f] [%I64d]\n",__LINE__,tst_dinf,*((unsigned long long int*)&tst_dinf));
+#else
   printf("%d [%f] [%lld]\n",__LINE__,tst_dinf,*((unsigned long long int*)&tst_dinf));
+#endif
   printf("%d [%f]\n",__LINE__,tst_dsinf);
 
   tst_ulreal tstnum=1234;

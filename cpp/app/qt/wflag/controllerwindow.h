@@ -1,14 +1,14 @@
 #ifndef CONTROLLERWINDOW_H
 #define CONTROLLERWINDOW_H
 
-#include <QWidget>
-#include <QPushButton>
-#include <QRadioButton>
-#include <QLabel>
-#include <QGroupBox>
-#include <QCheckBox>
-#include <QLayout>
-#include <QAbstractNativeEventFilter>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QLayout>
+#include <QtCore/QAbstractNativeEventFilter>
 
 #include "previewwindow.h"
 

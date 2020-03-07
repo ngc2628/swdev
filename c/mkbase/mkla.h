@@ -212,6 +212,11 @@ int oswinexp mk_matrixcopy(struct mk_matrix *,const struct mk_matrix *);
 int oswinexp mk_matrixreset(struct mk_matrix *,int);
 
 /*
+  in matrix* , in diff-check , return 0|1
+*/
+int mk_matrixisidentity(struct mk_matrix *,double);
+
+/*
   inout matrix* , return 0|1
 */
 int oswinexp mk_matrixtranspose(struct mk_matrix *);

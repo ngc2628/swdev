@@ -48,7 +48,6 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
 
 #include "mainwindow.h"
 #include "dialog.h"

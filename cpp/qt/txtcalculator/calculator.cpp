@@ -2,7 +2,9 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QStyle>
 #include <QtGui/QKeyEvent>
+#if defined (__linux__)
 #include <QtX11Extras/QX11Info>
+#endif
 #include <QtGui/QPainter>
 
 #include <math.h>
@@ -312,7 +314,7 @@ int QtCalculator::osUpdate(void *win) {
 
 void *QtCalculator::findDisplay() {
 
-#if !defined (OSWIN)
+#if defined (__linux__)
   return (void*)QX11Info::display();
 #endif
     

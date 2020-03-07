@@ -132,11 +132,12 @@ int tst_heapsortvc(
   return 0;
 }
 
-int tst_heapsort(int cnt,int typesize,void *arr,int (*comp)(const void *,const void *)) {
+int tst_heapsort(int cnt,int typesize,void *arr_,int (*comp)(const void *,const void *)) {
 
-  if (cnt<2 || typesize<1 || !arr || !comp)
+  if (cnt<2 || typesize<1 || !arr_ || !comp)
     return 1;
   int ii=0,jj=0,ub=cnt-1,mb=cnt/2;
+  char *arr=(char*)arr_;
   void *tmp=(void*)malloc(typesize);
   while (mb>-1) {
     if (mb==0) {
@@ -173,9 +174,10 @@ int tst_heapsort(int cnt,int typesize,void *arr,int (*comp)(const void *,const v
 
 /* ########## */
 int tst_binsearch(
-  void *xx,int typesize,int cnt,void *arr,int (*comp)(const void *,const void *),int guess) {
-  if (!xx || cnt<1 || typesize<1 || !arr || !comp)
+  void *xx,int typesize,int cnt,void *arr_,int (*comp)(const void *,const void *),int guess) {
+  if (!xx || cnt<1 || typesize<1 || !arr_ || !comp)
     return -1;
+  char *arr=(char*)arr_;
   int lb=-1,mb=0,ub=cnt,cmp=0,inc=1;
   if (guess<=0 || guess>=cnt-1) {
     while ((ub-lb>1)) {
@@ -304,7 +306,7 @@ int tst_listfindnextindex(struct tst_list *list,void *itm) {
     mb=(ub+lb)/2;
     if (mb==mblast)
       break;
-    cmpres=list->cmp((const void *)(list->arr+mb*sz),(const void *)itm);
+    cmpres=list->cmp((const void *)((char*)(list->arr)+mb*sz),(const void *)itm);
     if (cmpres==0) {
       if (mb>=(list->count-1))
         return list->count;
@@ -333,7 +335,7 @@ int tst_listfind(struct tst_list *list,void *itm) {
     return -1;
   int ii=0;
   for (ii=0;ii<list->count;ii++) {
-    if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)==0)
+    if (list->cmp((const void *)((char*)(list->arr)+ii*list->typesize),(const void *)itm)==0)
       return ii;
   }
   return -1;
@@ -352,7 +354,7 @@ int tst_listfind2(const struct tst_list *list,void *itm,int *idxl,int *idxh) {
   int ii=0,il=-1,ih=-1,cntitm=0;
   if ((list->sorted&1)==0) {
     for (ii=0;ii<list->count;ii++) {
-      if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)==0) {
+      if (list->cmp((const void *)((char*)(list->arr)+ii*list->typesize),(const void *)itm)==0) {
         if (il<0)
           il=ii;
         else
@@ -365,12 +367,12 @@ int tst_listfind2(const struct tst_list *list,void *itm,int *idxl,int *idxh) {
     ih=il=tst_binsearch(itm,list->typesize,list->count,list->arr,list->cmp,0);
     if (ih>=0) {
       for (ii=il-1;ii>-1;ii--) {
-        if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
+        if (list->cmp((const void *)((char*)(list->arr)+ii*list->typesize),(const void *)itm)!=0) 
           break;
         il=ii;
       }
       for (ii=ih+1;ii<list->count;ii++) {
-        if (list->cmp((const void *)(list->arr+ii*list->typesize),(const void *)itm)!=0) 
+        if (list->cmp((const void *)((char*)(list->arr)+ii*list->typesize),(const void *)itm)!=0) 
           break;
         ih=ii;
       }
@@ -390,7 +392,7 @@ int tst_listat(struct tst_list *list,int idx,void *itm) {
 
   if (!list || !list->arr || idx<0 || idx>=list->count || !itm)
     return 1;
-  memcpy(itm,list->arr+idx*list->typesize,list->typesize);
+  memcpy(itm,(const void*)((char*)(list->arr)+idx*list->typesize),list->typesize);
   return 0;
 
 }
@@ -403,11 +405,12 @@ int tst_listsetat(struct tst_list *list,void *itm,int idx,int insert) {
     return 1;
   int sz=list->typesize;
   if ((insert&1)>0 && idx<list->count) 
-    memmove(list->arr+(idx+1)*sz,list->arr+idx*sz,(list->count-idx)*sz);
+    memmove((void*)((char*)(list->arr)+(idx+1)*sz),
+            (const void*)((char*)(list->arr)+idx*sz),(list->count-idx)*sz);
   if (itm)  
-    memcpy(list->arr+idx*sz,itm,sz);
+    memcpy((void*)((char*)(list->arr)+idx*sz),itm,sz);
   else
-    memset(list->arr+idx*sz,0,sz);
+    memset((void*)((char*)(list->arr)+idx*sz),0,sz);
   if ((insert&1)>0)
     list->count++;
   list->sorted=0;
@@ -453,8 +456,9 @@ int tst_listremove(struct tst_list *list,int idx,void *itm) {
     return 1;
   int sz=list->typesize;
   if (idx<list->count-1)
-    memmove(list->arr+idx*sz,list->arr+(idx+1)*sz,(list->count-idx-1)*sz);
-  memset(list->arr+(list->count-1)*sz,0,sz);
+    memmove((void*)((char*)(list->arr)+idx*sz),
+            (const void*)((char*)(list->arr)+(idx+1)*sz),(list->count-idx-1)*sz);
+  memset((void*)((char*)(list->arr)+(list->count-1)*sz),0,sz);
   list->count--;
   return 0;
 

@@ -6,7 +6,9 @@
 #include <QtWidgets/QWidget>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
+#if defined (__linux__)
 #include <QtX11Extras/QX11Info>
+#endif
 #include <qt/simpleplot/chart2.h>
 #include <qt/simpleplot/controls.h>
 #include <graphic/charts/simpleplot/scale.h>
@@ -48,6 +50,10 @@ QtDiagramXY::QtDiagramXY(QWidget *parent,int sz) :
           	  
 }
 
+QtDiagramXY::QtDiagramXY(const QtDiagramXY &) : QFrame(),simpleplot::DiagramXY() {
+    
+}
+
 QtDiagramXY::~QtDiagramXY() {
 
   if (m_pixplot.m_w)
@@ -57,9 +63,15 @@ QtDiagramXY::~QtDiagramXY() {
 
 }
 
+QtDiagramXY &QtDiagramXY::operator=(const QtDiagramXY &) {
+      
+  return *this;
+  
+}
+
 void *QtDiagramXY::findDisplay() {
 
-#if !defined (OSWIN)
+#if defined (__linux__)
   return (void*)QX11Info::display();
 #endif
     
@@ -179,8 +191,34 @@ PlotView::PlotView(QtDiagramXY *diagram,const char *name) :
 }
 
 // **********
+PlotView::PlotView(const PlotView &) : QWidget() {
+    
+}
+
+// **********    
+PlotView &PlotView::operator=(const PlotView &) {
+
+  return *this;
+
+}
+
+// **********
 PlotView::~PlotView() {
 
+}
+
+// **********
+bool PlotView::operator==(const PlotView &cmp) const {
+      
+  return (m_diagram==cmp.m_diagram);
+  
+}
+
+// **********
+bool PlotView::operator<(const PlotView &cmp) const {
+      
+  return (m_diagram<cmp.m_diagram);
+  
 }
 
 // **********

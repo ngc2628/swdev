@@ -1,12 +1,12 @@
 #ifndef PREVIEWWINDOW_H
 #define PREVIEWWINDOW_H
 
-#include <QMainWindow>
-#include <QPushButton>
-#include <QTextEdit>
-#include <QLayout>
-#include <QFrame>
-#include <QApplication>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QApplication>
 
 class CSpanToolBar;
 

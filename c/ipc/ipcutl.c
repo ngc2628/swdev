@@ -5,15 +5,23 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <errno.h>
-#include <unistd.h>
 #include <sys/types.h>
-#ifdef WIN32
-#include <wtypes.h>
+#if defined (WIN32)
 #include <WinSock2.h>
+#include <wtypes.h>
+#include <windows.h>
+#endif
+#if defined (__BORLANDC__) || defined (__MINGW32__)
+#include <winsock2.h>
+#include <windows.h>
+#include <io.h>
 #else
+#if !defined (__MINGW32__)
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#endif
 #endif
 
 int bufsz=4096;
