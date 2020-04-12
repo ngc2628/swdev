@@ -1,2 +1,0 @@
-$ErrorActionPreference = "SilentlyContinue" ('Continue' (default), 'SilentlyContinue', 'Inquire', and 'Stop')
-Get-ChildItem -recurse | Get-Content | Select-String -pattern "include"
