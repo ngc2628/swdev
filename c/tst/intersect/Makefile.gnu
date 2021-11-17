@@ -3,7 +3,7 @@
 
 PRJROOT       = $(SWDIR)
 PRJ           = tstintersect
-DESTDIR       = $(BINDIR)
+DESTDIR       = $(BINDIRTST)
 TARGET        = $(PRJ)
 DEFINES       =
 HEADER        =

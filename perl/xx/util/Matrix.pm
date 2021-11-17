@@ -20,11 +20,11 @@ sub new {
   my $col=0;
   my $val=.0;
   for ($row=0;$row<$rows;$row++) {
-    push $this->{"data"},[];
+    push @{$this->{"data"}},[];
     for ($col=0;$col<$cols;$col++) {
       $val=shift;
       $val=($row==$col ? 1. : 0.) if (!defined($val));
-      push $this->{"data"}->[$row],$val;
+      push @{$this->{"data"}->[$row]},$val;
     }
   }
   bless $this,$class;
@@ -36,9 +36,9 @@ sub clone {
   my $row=0;
   my $col=0;
   for ($row=0;$row<scalar(@{$this->{"data"}});$row++) {
-    push $mm->{"data"},[];
+    push @{$mm->{"data"}},[];
     for ($col=0;$col<scalar(@{$this->{"data"}->[$row]});$col++) {
-      push $mm->{"data"}->[$row],$this->{"data"}->[$row]->[$col];
+      push @{$mm->{"data"}->[$row]},$this->{"data"}->[$row]->[$col];
     }
   }
   return $mm;
@@ -220,7 +220,7 @@ sub mult {
     $row=int($ii/$mmcols);
     $col=$ii-$mmcols*$row;
     if ($this->ncols($row)<=$col) {
-      push $this->{"data"}->[$row],$data[$ii];
+      push @{$this->{"data"}->[$row]},$data[$ii];
     }
     else {
       $this->{"data"}->[$row]->[$col]=$data[$ii];
@@ -265,10 +265,10 @@ sub decomposition {
   my @rowscale=();
   $this->invalidate();
   for ($ii=0;$ii<$num;$ii++) {
-    push $this->{"lum"},[];
+    push @{$this->{"lum"}},[];
     $maxcoeff=.0;
     for ($jj=0;$jj<$num;$jj++) {
-      push $this->{"lum"}->[$ii],$this->{"data"}->[$ii]->[$jj];
+      push @{$this->{"lum"}->[$ii]},$this->{"data"}->[$ii]->[$jj];
       $tmp=$this->{"lum"}->[$ii]->[$jj];
       $tmp=-$tmp if($tmp<.0);
       $maxcoeff=$tmp if ($maxcoeff<$tmp);

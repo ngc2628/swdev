@@ -3,7 +3,7 @@
 
 PRJROOT       = $(SWDIR)
 PRJ           = tstarr
-DESTDIR       = $(BINDIR)
+DESTDIR       = $(BINDIRTSTTSTTST)
 TARGET        = $(PRJ)
 DEFINES       =
 HEADER        = 

@@ -19,8 +19,8 @@ use base 'typeid';
 );
 
 sub new {
-  my($class)  = shift;
-  my $classname=shift;
+  my($class) = shift;
+  my $classname = shift;
   my($this)=typeid->new($classname);
   for($ii=0;$ii<scalar(@_)-1;$ii+=2) {
     $this->{$_[$ii]}=$_[$ii+1] if (exists $simplechartprops{$_[$ii]});

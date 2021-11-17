@@ -1,4 +1,4 @@
-#!/usr/bin/Perl
+#!/usr/bin/perl
 
 BEGIN {
   $perlxx=$ENV{"PERLMK"} . "/xx";
@@ -21,7 +21,7 @@ sub new {
     if (!defined($val)) {
       $val=($ii<3 ? .0  : 1.);
     }
-    push $this->{"xyzw"},$val;
+    push @{$this->{"xyzw"}},$val;
   }
   bless $this,$class;
 }
