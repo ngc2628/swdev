@@ -170,7 +170,7 @@ int fromQAlign(int aa) {
 int toQString(mk_string str,QString *qstr) {
 
   if (mk_stringlength(str)==0)
-    *qstr=QString::null;
+    *qstr=QString();
   else
     *qstr=QLatin1String(&str[0]);
   return 0;
@@ -183,7 +183,7 @@ int toQString(const mk::Ucsstr *str,QString *qstr) {
   if (ll>0)
     qstr->setUtf16(str->data(),ll);
   else
-    *qstr=QString::null;
+    *qstr=QString();
   return 0;
 
 }

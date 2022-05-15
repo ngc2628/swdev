@@ -1,55 +1,57 @@
 ####### definitions #######
 
-PRJROOT       = $(SWDIR)
-PRJ           = gltst11
-DESTDIR       = $(BINDIR)
-TARGET        = $(PRJ)
 DEFINES       =
+DESTDIR       = $(BINDIR)
 HEADER        = statics.h objects.h desktop.h edit.h menus.h glw.h lights.h form.h dialogs.h
-SOURCES       = statics.c objects.c desktop.c dialogs.c edit.c menus.c glw.c lights.c form.c runloop.c main.c
 LIBS          = -lmkbase -lGLU -lGL -lXm -lXext -lXt -lX11 -lz -lm
+PRJ           = gltst11
+PRJROOT       = $(SWDIR)
 SOLN					= 
+SOURCES       = statics.c objects.c desktop.c dialogs.c edit.c menus.c glw.c lights.c form.c runloop.c main.c
+TARGET        = $(PRJ)
 
 ####### names and locations #######
 
+NAMEM         = $(notdir $(MAKEFILE_LIST))
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
 vpath					%.c $(SWDIR)/c/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
+PATHP         = $(dir $(realpath $(MAKEFILE_LIST)))
 
 ####### compiler flags #######
 
+CFLAGS        = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
+IFLAGS				= -I$(SWDIR)/c
+LFLAGS				= -L$(LIBDIR) 
 WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type
 WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
 WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable 
 WFLAGS4				= -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
-CFLAGS        = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(SWDIR)/c
-LFLAGS				= -L$(LIBDIR) 
-LEXFLAGS      = 
-YACCFLAGS     = -d
 
 ####### commands #######
 
-CC            = gcc
-CXX           = gcc
-LEX           = flex
-YACC          = yacc
-LINK          = gcc $(SOLN)
-AR            = ar cq
-RANLIB        = ranlib -s
-TAR           = tar -cf
-COMPRESS      = gzip -9f
-RM            = rm -f
-RMDIR         = rm -rf
-SYMLINK       = ln -sf
-MKDIR					= mkdir -p
+AR            = /usr/bin/ar cq
+CC            = /usr/bin/gcc
+CXX           = /usr/bin/gcc
+COMPRESS      = /usr/bin/gzip -9
+LINK          = /usr/bin/gcc $(SOLN)
+MAKEP					= /usr/bin/make -C
+MKDIR					= /usr/bin/mkdir -p
+RANLIB        = /usr/bin/ranlib -s
+RM            = /usr/bin/rm -f
+RMDIR         = /usr/bin/rm -rf
+SYMLINK       = /usr/bin/ln -sf
+TAR           = /usr/bin/tar -cf
 
 ####### targets #######
 
-all: $(OBJPRJ) $(TARGET)
+all: 
+	$(MAKEP) $(PATHP) -f $(NAMEM) allp
+
+allp: $(OBJPRJ) $(TARGET)
 	
 $(OBJPRJ):
 	-$(MKDIR) $(OBJPRJ)
@@ -70,4 +72,4 @@ $(TARGET):  $(OBJECTS)
 clean: 
 	$(RMDIR) $(OBJPRJ)
 	$(RM) $(DESTDIR)/$(TARGET)
-	$(RM) *~ core *.core
+

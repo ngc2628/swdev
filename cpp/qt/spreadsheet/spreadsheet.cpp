@@ -1,6 +1,7 @@
 
 #if defined (__linux__)
-#include <QtX11Extras/QX11Info>
+/* #include <QtX11Extras/QX11Info> */
+#include <QtGui/6.4.0/QtGui/qpa/qplatformnativeinterface.h>
 #endif
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QLineEdit>
@@ -62,10 +63,10 @@ QtSpreadsheet::QtSpreadsheet(QFrame *parent,const char *name) :
 
   setObjectName(name);
   connect(&m_scrollTimer,SIGNAL(expired(qtutil::QtTimer*)),this,SLOT(scrollTimeout(qtutil::QtTimer*)));
-  qtutil::fromQBrush(&(palette().brush(QPalette::Background)),&m_bgStyle);
+  qtutil::fromQBrush(&(palette().brush(QPalette::Base)),&m_bgStyle);
   m_layout=new QGridLayout(this);
   m_layout->setSpacing(0);
-  m_layout->setMargin(0);
+  m_layout->setContentsMargins(0,0,0,0);
   m_pixscr.m_t=osix::xx_pixmap;
   m_pixscr.m_w=(void*)(new QPixmap(10,10));
   m_view=new SpreadsheetView(this,"spreadsheetview");
@@ -95,7 +96,8 @@ QtSpreadsheet::~QtSpreadsheet() {
 void *QtSpreadsheet::findDisplay() {
 
 #if defined (__linux__)
-  return (void*)QX11Info::display();
+  /* return (void*)QX11Info::display(); */
+  return QGuiApplication::platformNativeInterface()->nativeResourceForIntegration(QByteArray("display"));
 #endif
     
   return 0;
@@ -369,7 +371,7 @@ bool SpreadsheetView::eventFilter(QObject *obj,QEvent *ev) {
     if (kev->key()==Qt::Key_Tab || kev->key()==Qt::Key_Backtab) {
       QApplication::postEvent(
         this,new QKeyEvent(ev->type(),(int)(kev->key()==Qt::Key_Tab ? Qt::Key_Right : Qt::Key_Left),
-                           kev->modifiers(),QString::null,kev->isAutoRepeat(),(unsigned short)kev->count()));
+                           kev->modifiers(),QString(),kev->isAutoRepeat(),(unsigned short)kev->count()));
       return true;
     }
     if (m_spreadsheet && m_spreadsheet->m_editor.m_editwidget) {

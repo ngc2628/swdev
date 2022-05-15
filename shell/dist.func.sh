@@ -482,6 +482,10 @@ function expect_login {
   local vm="${1}"
   shift
   [ -z "${vm}" ] && return 0
+
+  vmuser=$(/usr/bin/echo ${vm} | /usr/bin/awk -F"@" '{print $1;}')
+  [ ! "${vmuser}" == "${vm}" ] && vm=$(/usr/bin/echo ${vm} | /usr/bin/awk -F"@" '{print $2;}')
+
   local ans=0
 
   /usr/bin/nc -z "${vm}" 22
@@ -489,15 +493,16 @@ function expect_login {
     /usr/bin/echo "${vm} ist nicht per ssh erreichbar"
     return 2 
   fi
-  /usr/bin/ssh -o "BatchMode yes" "${vm}" /usr/bin/kill -0 \$\$ 2>/dev/null
+  [ -n "${vmuser}" ] && vmstr="${vmuser}@${vm}" || vmstr="${vm}"
+  /usr/bin/ssh -o "BatchMode yes" "${vmstr}" /usr/bin/kill -0 \$\$ 2>/dev/null
   if [ $? -gt 0 ]; then
-    read -p "${vm} : Login per ssh-key nicht möglich, mit Passwort Eingabe versuchen ? (j/${xbx}n${xnx}) " ans
+    read -p "${vmstr} : Login per ssh-key nicht möglich, mit Passwort Eingabe versuchen ? (j/${xbx}n${xnx}) " ans
     [ ! "${ans}" == "j" ] && return 1
     read -s -p "Passwort: " secret
     /usr/bin/echo
     ans=$(/usr/bin/expect 2>/dev/null <(/usr/bin/cat <<EOM
 log_user 0;
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${vm} "/bin/bash --norc -c '/usr/bin/date --iso-8601 2>/dev/null'";
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${vmstr} "/bin/bash --norc -c '/usr/bin/date --iso-8601 2>/dev/null'";
 expect "Password: " { send "${secret}\r" };
 expect -re {\r\n(\d\d\d\d\-\d\d\-\d\d)\r\n};
 puts "Success\n";

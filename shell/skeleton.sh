@@ -17,9 +17,13 @@ function usage() {
 
 function inthandler() {
 
+  declare -i bailout=$1
   trap 0 1
-  [ $1 -gt 1 ] && /usr/bin/echo "Programmende durch Signal <$(/usr/bin/kill -l $1)>"
-  exit 0
+  if [ $bailout -gt 1 ]; then
+    /usr/bin/echo "Programmende durch Signal <$(/usr/bin/kill -l $bailout)>"
+    bailout=1
+  fi  
+  exit $bailout
 
 }
 
@@ -75,10 +79,10 @@ fpath="${fname}.sh"
 /usr/bin/echo '  trap 0 1' >>${fpath}
 /usr/bin/echo '  [ $# -gt 0 ] && /usr/bin/echo -e "$1"' >>${fpath}   
 /usr/bin/echo '  /usr/bin/echo -e "' >>${fpath}  
-/usr/bin/echo '  usage \"$0\"\n\' >>${fpath} 
+/usr/bin/echo '    usage \"$0\"\n\' >>${fpath} 
 
 for pkey in ${!parL[@]}; do
-  /usr/bin/echo -n '  \"--' >>${fpath}
+  /usr/bin/echo -n '    \"--' >>${fpath}
   /usr/bin/echo -n "${pkey}" >>${fpath}
   pvalL=( ${parL[$pkey]} )
   if [ ${#pvalL[@]} -gt 1 ]; then
@@ -90,7 +94,7 @@ for pkey in ${!parL[@]}; do
   /usr/bin/echo '\"\n\' >>${fpath}
 done
 
-/usr/bin/echo '  \"[--help|-h|/?]\""' >>${fpath}
+/usr/bin/echo '    \"[--help|-h|/?]\""' >>${fpath}
 /usr/bin/echo "  /usr/bin/echo" >>${fpath}
 /usr/bin/echo "  exit 1" >>${fpath}
 /usr/bin/echo >>${fpath}
@@ -98,9 +102,13 @@ done
 /usr/bin/echo >>${fpath}
 /usr/bin/echo "function inthandler() {" >>${fpath}
 /usr/bin/echo >>${fpath}
+/usr/bin/echo '  declare -i bailout=$1' >>${fpath}
 /usr/bin/echo "  trap 0 1" >>${fpath}
-/usr/bin/echo '  [ $1 -gt 1 ] && /usr/bin/echo "Programmende durch Signal <$(/usr/bin/kill -l $1)>"' >>${fpath}
-/usr/bin/echo "  exit 0" >>${fpath}
+/usr/bin/echo '  if [ $bailout -gt 1 ]; then' >>${fpath}
+/usr/bin/echo '    /usr/bin/echo "Programmende durch Signal <$(/usr/bin/kill -l $bailout)>"' >>${fpath}
+/usr/bin/echo "    bailout=1" >>${fpath}
+/usr/bin/echo "  fi" >>${fpath}
+/usr/bin/echo '  exit $bailout' >>${fpath}
 /usr/bin/echo >>${fpath}
 /usr/bin/echo "}" >>${fpath}
 /usr/bin/echo >>${fpath}
@@ -181,5 +189,3 @@ done
 /usr/bin/echo
 
 exit 0
-
-

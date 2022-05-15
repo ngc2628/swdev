@@ -28,7 +28,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   
   m_layout=new QGridLayout(this);
   m_layout->setSpacing(0); 
-  m_layout->setMargin(5);
+  m_layout->setContentsMargins(5,5,5,5);
   m_selector=new QComboBox(this);
   connect(m_selector,SIGNAL(currentIndexChanged(int)),this,SLOT(slotSelected(int)));
   m_layout->addWidget(m_selector,0,0,1,3);
@@ -39,7 +39,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   grouplinestyle->setFlat(true);
   QGridLayout *grouplinestylelayout=new QGridLayout(grouplinestyle);
   grouplinestylelayout->setSpacing(5); 
-  grouplinestylelayout->setMargin(0);
+  grouplinestylelayout->setContentsMargins(0,0,0,0);
   m_combolinestyle=new QComboBox(grouplinestyle);
   grouplinestylelayout->addWidget(m_combolinestyle,0,0);
   m_buttoncolorline=new qtutil::ColorButton(grouplinestyle,m_combolinestyle);
@@ -54,12 +54,12 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   groupfill->setFlat(true);
   QGridLayout *groupfilllayout=new QGridLayout(groupfill);
   groupfilllayout->setSpacing(5); 
-  groupfilllayout->setMargin(0);
+  groupfilllayout->setContentsMargins(0,0,0,0);
   QGroupBox *groupfillref=new QGroupBox("ref",groupfill);
   groupfillref->setFlat(true);
   QGridLayout *groupfillreflayout=new QGridLayout(groupfillref);
   groupfillreflayout->setSpacing(5); 
-  groupfillreflayout->setMargin(0);
+  groupfillreflayout->setContentsMargins(0,0,0,0);
   m_combofillref=new QComboBox(groupfillref);
   groupfillreflayout->addWidget(m_combofillref,0,0);
   groupfilllayout->addWidget(groupfillref,0,0,2,1);
@@ -67,7 +67,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   groupfillstyle->setFlat(true);
   QGridLayout *groupfillstylelayout=new QGridLayout(groupfillstyle);
   groupfillstylelayout->setSpacing(5); 
-  groupfillstylelayout->setMargin(0);
+  groupfillstylelayout->setContentsMargins(0,0,0,0);
   m_combofillstyle=new QComboBox(groupfillstyle);
   groupfillstylelayout->addWidget(m_combofillstyle,0,0);
   m_buttoncolorfill=new qtutil::ColorButton(groupfillstyle,m_combofillstyle);
@@ -81,7 +81,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   groupaxes->setFlat(true);
   QGridLayout *groupaxeslayout=new QGridLayout(groupaxes);
   groupaxeslayout->setSpacing(5); 
-  groupaxeslayout->setMargin(0);
+  groupaxeslayout->setContentsMargins(0,0,0,0);
   m_comboxax=new QComboBox(groupaxes);
   m_comboyax=new QComboBox(groupaxes);
   groupaxeslayout->addWidget(m_comboxax,0,0);
@@ -94,12 +94,12 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   groupmarkstyle->setFlat(true);
   QGridLayout *groupmarkstylelayout=new QGridLayout(groupmarkstyle);
   groupmarkstylelayout->setSpacing(5); 
-  groupmarkstylelayout->setMargin(0);
+  groupmarkstylelayout->setContentsMargins(0,0,0,0);
   QGroupBox *groupmarkstyleshape=new QGroupBox("shape",groupmarkstyle);
   groupmarkstyleshape->setFlat(true);
   QGridLayout *groupmarkstyleshapelayout=new QGridLayout(groupmarkstyleshape);
   groupmarkstyleshapelayout->setSpacing(5); 
-  groupmarkstyleshapelayout->setMargin(0);
+  groupmarkstyleshapelayout->setContentsMargins(0,0,0,0);
   m_combomarkstyle=new QComboBox(groupmarkstyleshape);
   groupmarkstyleshapelayout->addWidget(m_combomarkstyle,0,0);
   m_editmarkwidth=new QLineEdit(groupmarkstyleshape);
@@ -109,7 +109,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   groupmarkstyleF->setFlat(true);
   QGridLayout *groupmarkstylelayoutF=new QGridLayout(groupmarkstyleF);
   groupmarkstylelayoutF->setSpacing(5); 
-  groupmarkstylelayoutF->setMargin(0);
+  groupmarkstylelayoutF->setContentsMargins(0,0,0,0);
   m_combomarkstyleF=new QComboBox(groupmarkstyleF);
   groupmarkstylelayoutF->addWidget(m_combomarkstyleF,0,0);
   m_buttoncolormarkF=new qtutil::ColorButton(groupmarkstyleF,m_combomarkstyle);
@@ -122,7 +122,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   groupmarkstyleO->setFlat(true);
   QGridLayout *groupmarkstylelayoutO=new QGridLayout(groupmarkstyleO);
   groupmarkstylelayoutO->setSpacing(5); 
-  groupmarkstylelayoutO->setMargin(0);
+  groupmarkstylelayoutO->setContentsMargins(0,0,0,0);
   m_combomarkstyleO=new QComboBox(groupmarkstyleO);
   groupmarkstylelayoutO->addWidget(m_combomarkstyleO,0,0);
   m_buttoncolormarkO=new qtutil::ColorButton(groupmarkstyleO,m_combomarkstyle);
@@ -136,7 +136,7 @@ GraphProps::GraphProps(QWidget *parent,QtDiagramXY *chart) :
   groupinterpolation->setFlat(true);
   QGridLayout *groupinterpolationlayout=new QGridLayout(groupinterpolation);
   groupinterpolationlayout->setSpacing(5); 
-  groupinterpolationlayout->setMargin(0);
+  groupinterpolationlayout->setContentsMargins(0,0,0,0);
   m_combointerpolation=new QComboBox(groupinterpolation);
   groupinterpolationlayout->addWidget(m_combointerpolation,0,0);
   m_checkinterpolationoption=new QCheckBox("options",groupinterpolation);
@@ -541,7 +541,7 @@ GraphInterpolationOptions::GraphInterpolationOptions(QWidget *parent) :
   setAttribute(Qt::WA_DeleteOnClose);
   m_layout=new QGridLayout(this);
   m_layout->setSpacing(0); 
-  m_layout->setMargin(5);
+  m_layout->setContentsMargins(5,5,5,5);
   m_checkoption=new qtutil::CustomCheckBox *[num::numinerpolationoptions];
   int ii=0,cols=3,row=0,col=0;
   mk_string stropt;
@@ -608,7 +608,7 @@ AxisProps::AxisProps(QWidget *parent,QtDiagramXY *chart) :
 
   m_layout=new QGridLayout(this);
   m_layout->setSpacing(0); 
-  m_layout->setMargin(5);
+  m_layout->setContentsMargins(5,5,5,5);
   m_selector=new QComboBox(this);
   connect(m_selector,SIGNAL(currentIndexChanged(int)),this,SLOT(slotSelected(int)));
   m_layout->addWidget(m_selector,0,0,1,5);
@@ -619,7 +619,7 @@ AxisProps::AxisProps(QWidget *parent,QtDiagramXY *chart) :
   grouppos->setFlat(true);
   QGridLayout *groupposlayout=new QGridLayout(grouppos);
   groupposlayout->setSpacing(0); 
-  groupposlayout->setMargin(0);
+  groupposlayout->setContentsMargins(0,0,0,0);
   m_combopos=new QComboBox(grouppos);
   groupposlayout->addWidget(m_combopos,0,0);
   m_layout->addWidget(grouppos,2,0);
@@ -627,7 +627,7 @@ AxisProps::AxisProps(QWidget *parent,QtDiagramXY *chart) :
   groupfont->setFlat(true);
   QGridLayout *groupfontlayout=new QGridLayout(groupfont);
   groupfontlayout->setSpacing(5); 
-  groupfontlayout->setMargin(0);
+  groupfontlayout->setContentsMargins(0,0,0,0);
   m_buttonFontS=new QPushButton("font (S)",groupfont);
   m_buttonFontS->setAutoDefault(false);
   m_buttonFontS->setDefault(false);
@@ -643,7 +643,7 @@ AxisProps::AxisProps(QWidget *parent,QtDiagramXY *chart) :
   groupstyle->setFlat(true);
   QGridLayout *groupstylelayout=new QGridLayout(groupstyle);
   groupstylelayout->setSpacing(5); 
-  groupstylelayout->setMargin(0);
+  groupstylelayout->setContentsMargins(0,0,0,0);
   m_combostyle=new QComboBox(groupstyle);
   groupstylelayout->addWidget(m_combostyle,0,0);
   m_buttoncolor=new qtutil::ColorButton(groupstyle,m_combopos);
@@ -661,7 +661,7 @@ AxisProps::AxisProps(QWidget *parent,QtDiagramXY *chart) :
   groupautoscale->setFlat(true);
   QGridLayout *groupautoscalelayout=new QGridLayout(groupautoscale);
   groupautoscalelayout->setSpacing(0); 
-  groupautoscalelayout->setMargin(0);
+  groupautoscalelayout->setContentsMargins(0,0,0,0);
   QButtonGroup *buttongroupautoscale=new QButtonGroup(groupautoscale);
   m_buttonAutoscaleOn=new QRadioButton("on",groupautoscale);
   connect(m_buttonAutoscaleOn,SIGNAL(toggled(bool)),this,SLOT(slotAutoscale(bool)));
@@ -684,7 +684,7 @@ AxisProps::AxisProps(QWidget *parent,QtDiagramXY *chart) :
   groupscaletype->setFlat(true);
   QGridLayout *groupscaletypelayout=new QGridLayout(groupscaletype);
   groupscaletypelayout->setSpacing(0); 
-  groupscaletypelayout->setMargin(0);
+  groupscaletypelayout->setContentsMargins(0,0,0,0);
   m_comboscaletype=new QComboBox(groupscaletype);
   groupscaletypelayout->addWidget(m_comboscaletype,0,0);
   m_layout->addWidget(groupscaletype,4,2,1,3);
@@ -868,7 +868,7 @@ void AxisProps::slotSetFontS() {
   if (qfnt.italic()) 
     m_fntS.m_style|=1;
   QFontMetrics metrics(qfnt);
-  m_fntS.m_metric=osix::xxRectSize(metrics.width("0"),metrics.height());
+  m_fntS.m_metric=osix::xxRectSize(metrics.horizontalAdvance("0"),metrics.height());
   slotFontDismiss();
 
 }
@@ -886,7 +886,7 @@ void AxisProps::slotSetFontL() {
   if (qfnt.italic()) 
     m_fntL.m_style|=1;
   QFontMetrics metrics(qfnt);
-  m_fntL.m_metric=osix::xxRectSize(metrics.width("0"),metrics.height());
+  m_fntL.m_metric=osix::xxRectSize(metrics.horizontalAdvance("0"),metrics.height());
   slotFontDismiss();
 
 }
@@ -961,7 +961,7 @@ Controls::Controls(QWidget *parent,QtDiagramXY *chart) :
   
   m_layout=new QVBoxLayout(this);
   m_layout->setSpacing(0); 
-  m_layout->setMargin(5);
+  m_layout->setContentsMargins(5,5,5,5);
   m_tabwidget=new QTabWidget(this);
   m_tabGraph=new GraphProps(0,chart);
   m_tabwidget->addTab(m_tabGraph,"graph");

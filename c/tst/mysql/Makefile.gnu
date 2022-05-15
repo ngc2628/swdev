@@ -1,57 +1,59 @@
 
 ####### definitions #######
 
-PRJROOT       = $(SWDIR)
-PRJ           = tstmysql
-DESTDIR       = $(BINDIRTST)
-TARGET        = $(PRJ)
 DEFINES       =
 HEADER        = 
-SOURCES       = main.c
 LIBS          = -lmkbase -lmysqlclient -lz -lm
+PRJ           = tstmysql
+PRJROOT       = $(SWDIR)
+DESTDIR       = $(BINDIRTST)
 SOLN					=
+SOURCES       = main.c
+TARGET        = $(PRJ)
 
 ####### names and locations #######
 
+NAMEM					= $(notdir $(MAKEFILE_LIST))
 OBJPRJ				= $(OBJDIR)/$(PRJ)
 vpath					%.o $(OBJDIR)/$(PRJ)
 vpath					%.c $(SWDIR)/c/$(PRJ)
 OBJECTS       = $(patsubst %,$(OBJPRJ)/%,$(SOURCES:.c=.o))
+PATHP		      = $(dir $(realpath $(MAKEFILE_LIST)))
 
 ####### compiler flags #######
 
+CFLAGS        = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
+IFLAGS				= -I$(SWDIR)/c -I/usr/include/mysql
+LFLAGS				= -L$(LIBDIR)
 WFLAGS1				= -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type
 WFLAGS2				= -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
 WFLAGS3				= -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
 WFLAGS4				= -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
 WFLAGS				= $(WFLAGS1) $(WFLAGS2)
-CFLAGS        = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -g -fno-strict-aliasing $(WFLAGS) -W -fPIC  $(DEFINES)
-IFLAGS				= -I$(SWDIR)/c -I/usr/include/mysql
-LFLAGS				= -L$(LIBDIR)
-LEXFLAGS      =
-YACCFLAGS     = -d
 
 ####### commands #######
 
-CC            = gcc
-CXX           = gcc
-LEX           = flex
-YACC          = yacc
-DEFINES       =
-LINK          = gcc $(SOLN)
-AR            = ar cq
-RANLIB        = ranlib -s
-TAR           = tar -cf
-COMPRESS      = gzip -9f
-RMDIR         = rm -rf
-RM            = rm -f
-SYMLINK       = ln -sf
-MKDIR					= mkdir -p
+AR            = /usr/bin/ar cq
+CC            = /usr/bin/gcc
+COMPRESS      = /usr/bin/gzip -9f
+COPY				  = /usr/bin/cp -p -u
+CXX           = /usr/bin/gcc
+LINK          = /usr/bin/gcc $(SOLN)
+MKDIR					= /usr/bin/mkdir -p
+MAKEP					= /usr/bin/make -C
+RANLIB        = /usr/bin/ranlib -s
+RM            = /usr/bin/rm -f
+RMDIR         = /usr/bin/rm -rf
+SYMLINK       = /usr/bin/ln -sf
+TAR           = /usr/bin/tar -cf
 
 ####### targets #######
 
-all: $(OBJPRJ) $(TARGET)
+all: 
+	$(MAKEP) $(PATHP) -f $(NAMEM) allp
+
+allp: $(OBJPRJ) $(TARGET)
 
 $(OBJPRJ):
 	-$(MKDIR) $(OBJPRJ)
@@ -72,5 +74,5 @@ $(TARGET):  $(OBJECTS)
 clean:
 	$(RMDIR) $(OBJPRJ)
 	$(RM) $(DESTDIR)/$(TARGET)
-	$(RM) *~ core *.core
+
 

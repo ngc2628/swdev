@@ -1,7 +1,6 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QMessageBox>
-#include <QtCore/QTextCodec>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPainter>
 //#include <QtGui/QWindowsStyle>
@@ -85,7 +84,7 @@ AppFrame :: AppFrame (QWidget *parent,const char *datafile) : QFrame(parent,Qt::
     m_tab[i]=new QWidget;
     m_tablayout[i]=new QGridLayout(m_tab[i]);
     m_tablayout[i]->setSpacing(0); 
-    m_tablayout[i]->setMargin(20);
+    m_tablayout[i]->setContentsMargins(20,20,20,20);
     m_tabwidget->addTab(m_tab[i],i==0 ? "plot" : (i==1 ? "draw" : "tab"+QString::number(i)));
     m_chart2[i]=0;
   }
@@ -216,7 +215,7 @@ void AppFrame::slotQuitAction()
 // *****
 void AppFrame::slotHelpAction()
 {
-  QMessageBox::information(this,"About","plot",(int)QMessageBox::Ok);
+  QMessageBox::information(this,"About","plot",QMessageBox::Ok);
 
 }
 

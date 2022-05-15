@@ -30,7 +30,7 @@ QSize CustomPushButton::sizeHint() const {
 
   QSize sz=QPushButton::sizeHint();
   QFontMetrics metrics(font());
-  sz.setWidth(2*metrics.width(text()));
+  sz.setWidth(2*metrics.horizontalAdvance(text()));
 //printf ("sz w=%d h=%d\n",sz.width(),sz.height());
   return sz;
 
@@ -41,7 +41,7 @@ QSize CustomPushButton::minimumSizeHint() const {
 
   QSize sz=QPushButton::sizeHint();
   QFontMetrics metrics(font());
-  sz.setWidth(2*metrics.width(text()));
+  sz.setWidth(2*metrics.horizontalAdvance(text()));
 //printf ("minsz w=%d h=%d\n",sz.width(),sz.height());
   return sz;
 
@@ -149,11 +149,11 @@ ColorChooser::ColorChooser(QWidget *parent,unsigned int color) :
   setAttribute(Qt::WA_DeleteOnClose);
   
   QFontMetrics metrics(font());
-  int ww=metrics.width("0");
+  int ww=metrics.horizontalAdvance("0");
 
   m_layout=new QGridLayout(this);
   m_layout->setSpacing(0); 
-  m_layout->setMargin(0);
+  m_layout->setContentsMargins(QMargins(0,0,0,0));
   
   //m_colortriangle=new QtColorTriangle(this);
   //m_colortriangle->setColor(QColor((QRgb)color));

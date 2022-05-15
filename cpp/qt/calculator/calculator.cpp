@@ -3,7 +3,8 @@
 #include <QtWidgets/QStyle>
 #include <QtGui/QKeyEvent>
 #if defined (__linux__)
-#include <QtX11Extras/QX11Info>
+/* #include <QtX11Extras/QX11Info> */
+#include <QtGui/6.4.0/QtGui/qpa/qplatformnativeinterface.h>
 #endif
 #include <QtGui/QPainter>
 
@@ -147,7 +148,7 @@ qtutil::CustomPushButton *QtCalculator::findCustomPushButton(calculator::Asciist
   int lb=-1,mb=0,ub=numpushbuttons;
   while ((ub-lb>1)) {
     mb=(ub+lb)/2;
-    if (m_pushbuttons[mb]->m_info==info)
+    if (calculator::Asciistr(m_pushbuttons[mb]->m_info)==info)
       return m_pushbuttons[mb];
     if (m_pushbuttons[mb]->m_info<info)
       lb=mb;
@@ -164,7 +165,7 @@ qtutil::CustomRadioButton *QtCalculator::findCustomRadioButton(calculator::Ascii
   int lb=-1,mb=0,ub=numradiobuttons;
   while ((ub-lb>1)) {
     mb=(ub+lb)/2;
-    if (m_radiobuttons[mb]->m_info==info)
+    if (calculator::Asciistr(m_radiobuttons[mb]->m_info)==info)
       return m_radiobuttons[mb];
     if (m_radiobuttons[mb]->m_info<info)
       lb=mb;
@@ -297,7 +298,7 @@ void QtCalculator::slotTimeout(qtutil::QtTimer *qttimer) {
 
 void QtCalculator::showHelp() {
 
-  QMessageBox::information(this,"About","calculator",(int)QMessageBox::Ok);
+  QMessageBox::information(this,"About","calculator",QMessageBox::Ok);
   
 }
 
@@ -315,7 +316,8 @@ int QtCalculator::osUpdate(void *win) {
 void *QtCalculator::findDisplay() {
 
 #if defined (__linux__)
-  return (void*)QX11Info::display();
+  /* return (void*)QX11Info::display(); */
+  return QGuiApplication::platformNativeInterface()->nativeResourceForIntegration(QByteArray("display"));
 #endif
     
   return 0;
@@ -344,7 +346,7 @@ void QtCalculator::doFont(float fntsz,int how) { // how - 0:as is 1:incr 2: decr
   QFont qfnt=QApplication::font();
   qtutil::toQFont(&m_outputfnt,&qfnt);  
   QFontMetrics metrics(qfnt);
-  int ii=0,fntw=metrics.width("0"),fnth=metrics.height();
+  int ii=0,fntw=metrics.horizontalAdvance("0"),fnth=metrics.height();
   m_infofnt.m_size=m_outputfnt.m_size-1.;
   qfnt.setPointSize((int)m_infofnt.m_size);
   QApplication::setFont(qfnt);

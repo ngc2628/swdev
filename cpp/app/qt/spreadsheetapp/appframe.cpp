@@ -26,7 +26,7 @@ QSize CustomButton::sizeHint() const {
 
   QSize sz=QPushButton::sizeHint();
   QFontMetrics metrics(font());
-  sz.setWidth(2*metrics.width(text()));
+  sz.setWidth(2*metrics.horizontalAdvance(text()));
 //printf ("sz w=%d h=%d\n",sz.width(),sz.height());
   return sz;
 
@@ -37,7 +37,7 @@ QSize CustomButton::minimumSizeHint() const {
 
   QSize sz=QPushButton::sizeHint();
   QFontMetrics metrics(font());
-  sz.setWidth(2*metrics.width(text()));
+  sz.setWidth(2*metrics.horizontalAdvance(text()));
 //printf ("minsz w=%d h=%d\n",sz.width(),sz.height());
   return sz;
 
@@ -67,7 +67,7 @@ AppFrame :: AppFrame (QWidget *parent) : QMainWindow(parent) {
     tab[ii]=new QWidget;
     tablayout[ii]=new QGridLayout(tab[ii]);
     tablayout[ii]->setSpacing(0);
-    tablayout[ii]->setMargin(0);
+    tablayout[ii]->setContentsMargins(0,0,0,0);
     canvas[ii]=new Canvas(tab[ii]);
     tablayout[ii]->addWidget(canvas[ii],0,0);
     central->addTab(tab[ii],ii==0 ? "spreadsheet" : "tab"+QString::number(ii));
@@ -213,7 +213,7 @@ void AppFrame::slotQuitAction()
 // *****
 void AppFrame::slotHelpAction()
 {
-    QMessageBox::information(this,"About","spreadsheet",(int)QMessageBox::Ok);
+    QMessageBox::information(this,"About","spreadsheet",QMessageBox::Ok);
 
 }
 
@@ -288,7 +288,7 @@ void AppFrame::slotSpreadsheetDataResizeAction() {
   QDialog resizedialog(spreadsheets[0]);
   QGridLayout rdlayout(&resizedialog);
   rdlayout.setSpacing(0);
-  rdlayout.setMargin(0);
+  rdlayout.setContentsMargins(0,0,0,0);
   QLabel labrows("rows",&resizedialog);
   rdlayout.addWidget(&labrows,0,0);
   QLineEdit lerows(&resizedialog);
@@ -424,7 +424,7 @@ void AppFrame::slotSetPosAction() {
   QDialog setposdialog(spreadsheets[0]);
   QGridLayout rdlayout(&setposdialog);
   rdlayout.setSpacing(0);
-  rdlayout.setMargin(0);
+  rdlayout.setContentsMargins(0,0,0,0);
   QLabel labrow("row",&setposdialog);
   rdlayout.addWidget(&labrow,0,0);
   QLineEdit lerow(&setposdialog);

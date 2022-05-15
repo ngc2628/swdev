@@ -7,7 +7,8 @@
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
 #if defined (__linux__)
-#include <QtX11Extras/QX11Info>
+/* #include <QtX11Extras/QX11Info> */
+#include <QtGui/6.4.0/QtGui/qpa/qplatformnativeinterface.h>
 #endif
 #include <qt/simpleplot/chart2.h>
 #include <qt/simpleplot/controls.h>
@@ -25,7 +26,7 @@ QtDiagramXY::QtDiagramXY(QWidget *parent,int sz) :
   m_bg=osix::xxStyle(osix::xx_somecolors[osix::grey224],1,1);
   m_layout=new QGridLayout(this);
   m_layout->setSpacing(5);
-  m_layout->setMargin(0);
+  m_layout->setContentsMargins(0,0,0,0);
   m_pixscr.m_t=osix::xx_pixmap;
   m_pixscr.m_w=(void*)(new QPixmap(10,10));
   m_pixplot.m_t=osix::xx_pixmap;
@@ -72,7 +73,8 @@ QtDiagramXY &QtDiagramXY::operator=(const QtDiagramXY &) {
 void *QtDiagramXY::findDisplay() {
 
 #if defined (__linux__)
-  return (void*)QX11Info::display();
+  /* return (void*)QX11Info::display(); */
+  return QGuiApplication::platformNativeInterface()->nativeResourceForIntegration(QByteArray("display"));
 #endif
     
   return 0;
@@ -106,7 +108,7 @@ mk::TypeId QtDiagramXY::setAxis(simpleplot::Axis *axis) {
     axis->m_fnt[1]=osix::xxFnt(str,fnt.pointSizeF());
     axis->m_fnt[1].m_style=(fnt.weight()<<1);
     axis->m_fnt[1].m_style|=(int)(fnt.italic());
-    axis->m_fnt[1].m_metric=osix::xxRectSize(metrics.width("0"),metrics.height());
+    axis->m_fnt[1].m_metric=osix::xxRectSize(metrics.horizontalAdvance("0"),metrics.height());
   }
   if (axis->m_fnt[0].m_metric.empty()) {
     fnt.setPointSizeF(fnt.pointSizeF()-2.);
@@ -114,7 +116,7 @@ mk::TypeId QtDiagramXY::setAxis(simpleplot::Axis *axis) {
     axis->m_fnt[0].m_style=(fnt.weight()<<1);
     axis->m_fnt[0].m_style|=(int)(fnt.italic());
     metrics=QFontMetrics(fnt);
-    axis->m_fnt[0].m_metric=osix::xxRectSize(metrics.width("0"),metrics.height());
+    axis->m_fnt[0].m_metric=osix::xxRectSize(metrics.horizontalAdvance("0"),metrics.height());
   }
   return axid;
   

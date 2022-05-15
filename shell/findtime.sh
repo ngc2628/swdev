@@ -29,7 +29,7 @@ done
 
 # /usr/bin/find ${where} -name "${what}" -printf "%TY%Tm%Td%TH%TM\t%p\n" 2>/dev/null | /usr/bin/sort
 /usr/bin/find ${where} -name "${what}" -printf "%TY%Tm%Td%TH%TM%TS\t%TY-%Tm-%TdT%TH:%TM:\t%TS\t%p\n" 2>/dev/null | \
-  /usr/bin/sort -k1 | /usr/bin/awk '{ printf "%s%04.2f %s\n",$2,$3,$4; }'
+  /usr/bin/sort -k1 | /usr/bin/awk '{ printf "%s%05.2f %s\n",$2,$3,$4; }'
 
 res=$?
 

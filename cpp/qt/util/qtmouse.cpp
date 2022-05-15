@@ -8,13 +8,13 @@ namespace qtutil {
 int translateQmouse(QMouseEvent *qm,osix::xxEvent *xm) {
 
   mk_vertex xmpos={(double)qm->pos().x(),(double)qm->pos().y(),.0,1.};
-  mk_vertex xmglpos={(double)qm->globalX(),(double)qm->globalY(),.0,1.};
+  mk_vertex xmglpos={qm->globalPosition().x(),qm->globalPosition().y(),.0,1.};
   mk_vertexcopy(xm->m_pos,xmpos);
   mk_vertexcopy(xm->m_globalpos,xmglpos);
   
   if (((int)qm->buttons()&(int)Qt::LeftButton)>0)
     xm->m_buttons|=osix::xxm_leftButton;
-  if (((int)qm->buttons()&(int)Qt::MidButton)>0)
+  if (((int)qm->buttons()&(int)Qt::MiddleButton)>0)
     xm->m_buttons|=osix::xxm_midButton;
   if (((int)qm->buttons()&(int)Qt::RightButton)>0)
     xm->m_buttons|=osix::xxm_rightButton;
@@ -24,7 +24,7 @@ int translateQmouse(QMouseEvent *qm,osix::xxEvent *xm) {
   else if (xm->m_type==osix::xx_mouseReleased) {
     if (qm->button()==Qt::LeftButton)
       xm->m_buttons|=osix::xxm_leftButton;
-    else if (qm->button()==Qt::MidButton)
+    else if (qm->button()==Qt::MiddleButton)
       xm->m_buttons|=osix::xxm_midButton;
     else if (qm->button()==Qt::RightButton)
       xm->m_buttons|=osix::xxm_rightButton;
