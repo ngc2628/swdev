@@ -2,7 +2,7 @@
 ####### definitions #######
 
 DEFINES       =
-DESTDIR       = $(BINDIRTSTTSTTST)
+DESTDIR       = $(BINDIRTST)
 HEADER        = 
 LIBS          = -lmkbase -lz -lm
 PRJ           = tstarr

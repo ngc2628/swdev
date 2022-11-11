@@ -75,8 +75,7 @@ $(TARGET):  $(OBJECTS)
 	$(LINK) $(LFLAGS) -o $(DESTDIR)/$(TARGET) $(OBJECTS) $(LIBS)
 
 clean:
-	$(RM) $(OBJPRJ) $(DESTDIR)/$(TARGET)
-	$(RM) *~ core *.core
+	$(RMDIR) $(OBJPRJ) $(DESTDIR)/$(TARGET)
 	cd $(SWDIR)/c/ipc/server; make -f Makefile.gnu clean
 	cd $(SWDIR)/c/ipc/client; make -f Makefile.gnu clean
 	cd $(SWDIR)/c/ipc

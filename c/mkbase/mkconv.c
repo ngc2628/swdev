@@ -327,7 +327,8 @@ mk_ulreal mk_parseint(char *estr,int *base,int *sgn,char *group) {
   if (mybase<2 || mybase>mk_maxintbase)
     mybase=10;
   mk_string numstr;
-  mk_stringset(numstr,estr);
+  for (ii=0;ii<len;ii++)
+    mk_stringsetat(numstr,ii,toupper(estr[ii]));
   mk_strip4ascii(&numstr[0]);
   mk_removeseparators(&numstr[0],0,group);
   mk_exp2simple(&numstr[0]);
