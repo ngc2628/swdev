@@ -1,0 +1,15 @@
+
+all:
+	cd $(SWDIR)\c\mkbase & make -f Makefile.mingw
+	cd $(SWDIR)\c\txtcalc & make -f Makefile.mingw
+	cd $(SWDIR)\c\misc & make -f Makefile.mingw
+	cd $(SWDIR)\c\ipc & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst & make -f Makefile.mingw
+	cd $(SWDIR)\c
+clean:
+	cd $(SWDIR)\c\tst & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\ipc & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\misc & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\txtcalc & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\mkbase & make -f Makefile.mingw clean
+	cd $(SWDIR)\c

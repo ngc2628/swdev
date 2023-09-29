@@ -1,0 +1,17 @@
+all:
+	cd $(SWDIR)\cpp\app\tst & make -f Makefile.mingw
+ifdef QTDIR
+	cd $(SWDIR)\cpp\app\qt & make -f Makefile.mingw
+endif
+	dir /N /OD /X $(BINDIR)
+	cd $(SWDIR)\cpp\app
+clean:
+ifdef QTDIR
+	cd $(SWDIR)\cpp\app\qt & make -f Makefile.mingw clean
+endif
+	cd $(SWDIR)\cpp\app\tst & make -f Makefile.mingw clean
+	dir /N /OD /X $(BINDIR)
+	cd $(SWDIR)\cpp\app
+
+
+

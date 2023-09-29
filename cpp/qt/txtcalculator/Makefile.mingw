@@ -1,0 +1,58 @@
+
+PRJ           = qtxtcalculator
+DESTDIR       = $(LIBDIR)
+TARGET        = lib$(PRJ)
+HEADER        = calculator.h
+SOURCES       = calculator.cpp
+OBJECTS       = calculator.o
+HEADER_MOC	  = calculator.h
+SOURCES_MOC	  = calculator_moc.cpp
+OBJECTS_MOC	  = calculator_moc.o
+LIBS          = -lQt5Widgets -lQt5Gui -lQt5Core -lqtutil -ltxtcalculator -lshapes -losix -lnumeric -ltools -lmkbase -lz -lm
+SOLN		  = -shared
+
+DEFINES       = -DOSWINDLL -DUNICODE -DQT_THREAD_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_DLL -DQT_NO_TRANSLATION
+WFLAGS1		  = -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type -Wpointer-arith
+WFLAGS2		  = -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
+WFLAGS3		  = -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
+WFLAGS4		  = -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
+WFLAGS		  = $(WFLAGS1) $(WFLAGS2) $(WFLAGS3) $(WFLAGS4)
+LFLAGS        = -L$(QTDIR)\lib -L$(LIBDIR)
+IFLAGS        = -I$(QTDIR)\include -I$(SWDIR)\cpp -I$(SWDIR)\c
+CFLAGS        =  -c
+CXXFLAGS      =  $(DEFINES) $(WFLAGS) $(CFLAGS)
+
+
+CC            = gcc.exe
+CXX           = g++.exe
+LINK          = g++.exe $(SOLN)
+LIBLINK		  = dlltool.exe
+RM            = del /F /Q
+RMDIR         = rmdir /S /Q
+MKDIR		  = mkdir
+COPY		  = cp /N /Y
+MOC			  = $(QTDIR)\bin\moc.exe $(DEFINES)
+
+all: $(SOURCES_MOC) $(OBJECTS_MOC) $(TARGET)
+
+$(OBJECTS): %.o: %.cpp
+	$(CXX) $(IFLAGS) $(CFLAGS) $< -o $@
+
+$(SOURCES_MOC):	%_moc.cpp: %.h
+	$(MOC) $< -o $@
+
+$(OBJECTS_MOC): %_moc.o: %_moc.cpp
+	$(CXX) $(IFLAGS) $(CFLAGS) $< -o $@
+
+$(TARGET): $(OBJECTS)
+	$(RM) $(DESTDIR)\$(TARGET) 
+	$(LINK) $(LFLAGS) -o $(DESTDIR)\$(TARGET).dll $(OBJECTS) $(OBJECTS_MOC) $(LIBS) 
+	$(LIBLINK) -l $(DESTDIR)\$(TARGET).lib -D $(TARGET).dll
+
+clean:
+	$(RM) $(DESTDIR)\$(TARGET).dll
+	$(RM) $(DESTDIR)\$(TARGET).lib
+	$(RM) $(OBJECTS)
+	$(RM) $(OBJECTS_MOC)
+	$(RM) $(SOURCES_MOC)
+

@@ -1,0 +1,4 @@
+
+      * cobc -v -x sub1.cob chk11.cob
+
+

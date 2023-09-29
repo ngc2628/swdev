@@ -1,0 +1,47 @@
+
+PRJ           = txtcalculator
+DESTDIR       = $(LIBDIR)
+TARGET        = lib$(PRJ)
+HEADER        = calculator.h
+SOURCES       = calculator.cpp 
+OBJECTS       = calculator.o 
+LIBS          = -lnumeric -losix -ltools -ltxtcalc -lmkbase -lz -lm
+SOLN		  = -shared
+
+DEFINES       = 
+WFLAGS1		  = -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type -Wpointer-arith
+WFLAGS2		  = -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
+WFLAGS3		  = -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
+WFLAGS4		  = -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
+WFLAGS		  = $(WFLAGS1) $(WFLAGS2) $(WFLAGS3) $(WFLAGS4)
+LFLAGS        = -L$(LIBDIR)
+IFLAGS        = -I$(SWDIR)\cpp -I$(SWDIR)\c
+CFLAGS        =  $(DEFINES) -c
+CXXFLAGS      =  $(WFLAGS) $(CFLAGS)
+
+CC            = gcc.exe
+CXX           = g++.exe
+LINK          = g++.exe $(SOLN)
+LIBLINK		  = dlltool.exe
+RM            = del /F /Q
+RMDIR         = rmdir /S /Q
+MKDIR		  = mkdir
+COPY		  = cp /N /Y
+
+all: $(TARGET)
+
+.c.o:
+	$(CC) $(IFLAGS) $(CFLAGS) $<
+
+.cpp.o:
+	$(CXX) $(IFLAGS) $(CFLAGS) $<
+
+$(TARGET):  $(OBJECTS)
+	$(RM) $(DESTDIR)\$(TARGET)
+	$(LINK) $(LFLAGS) $(WFLAGS) -o $(DESTDIR)\$(TARGET).dll $(OBJECTS) $(LIBS)
+	$(LIBLINK) -l $(DESTDIR)\$(TARGET).lib -D $(TARGET).dll
+
+clean:
+	$(RM) $(DESTDIR)\$(TARGET).dll
+	$(RM) $(DESTDIR)\$(TARGET).lib
+	$(RM) $(OBJECTS)

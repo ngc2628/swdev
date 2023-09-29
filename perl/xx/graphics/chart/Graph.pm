@@ -61,7 +61,7 @@ sub new {
 }
 
 sub draw {
-  my($this)  = shift;
+  my($this)=shift;
   $this->PARENT::draw();
 }
 

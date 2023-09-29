@@ -1,0 +1,15 @@
+all:
+	cd $(SWDIR)\cpp\qt\util & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\qt\calculator & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\qt\txtcalculator & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\qt\spreadsheet & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\qt\simpleplot & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\qt
+clean:
+	cd $(SWDIR)\cpp\qt\simpleplot & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\qt\spreadsheet & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\qt\txtcalculator & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\qt\calculator & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\qt\util & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\qt
+

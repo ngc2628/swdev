@@ -1,0 +1,42 @@
+
+PRJ           = tstarr
+DESTDIR       = $(BINDIRTST)
+TARGET        = $(PRJ).exe
+HEADER        = 
+SOURCES       = main.c
+OBJECTS       = main.o
+LIBS          = -lmkbase -lz -lm
+SOLN		  = 
+
+DEFINES       = 
+WFLAGS1		  = -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain  -Wmissing-braces -Wparentheses -Wreturn-type -Wpointer-arith
+WFLAGS2		  = -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wvolatile-register-var -Wextra
+WFLAGS3		  = -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
+WFLAGS4		  = -Wmaybe-uninitialized -Wimplicit-int -Wimplicit-function-declaration -Wnonnull -Wpointer-sign
+WFLAGS		  = $(WFLAGS1) $(WFLAGS2)
+LFLAGS        = -L$(LIBDIR)
+IFLAGS        = -I$(SWDIR)\c
+CFLAGS        =  $(DEFINES) $(WFLAGS) -c
+CXXFLAGS      =  $(CFLAGS)
+
+CC            = gcc.exe
+CXX           = gcc.exe
+LINK          = gcc.exe $(SOLN)
+LIBLINK		  = dlltool.exe
+RM            = del /F /Q
+RMDIR         = rmdir /S /Q
+MKDIR		  = mkdir
+COPY		  = cp /N /Y
+
+all: $(TARGET)
+
+.c.o:
+	$(CC) $(IFLAGS) $(CFLAGS) $<
+
+$(TARGET):  $(OBJECTS)
+	$(RM) $(DESTDIR)\$(TARGET)
+	$(LINK) $(LFLAGS) $(WFLAGS) -o $(DESTDIR)\$(TARGET) $(OBJECTS) $(LIBS)
+
+clean:
+	$(RM) $(DESTDIR)\$(TARGET)
+	$(RM) $(OBJECTS)

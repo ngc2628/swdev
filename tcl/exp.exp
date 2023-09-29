@@ -1,0 +1,12 @@
+#!/usr/bin/expect
+
+log_user 0
+spawn ssh hal9008 /bin/bash --norc -c 'stat --format="%h" /data/scm/swdev'
+expect "password: "
+send "xxxxxxx\r"
+#expect "\n"
+#send "stat --format=%h /data/scm/swdev\r"
+#expect "\n"
+#send "exit\n"
+interact
+

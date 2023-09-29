@@ -20,7 +20,7 @@ function inthandler() {
   declare -i bailout=$1
   trap 0 1
   if [ $bailout -gt 1 ]; then
-    /usr/bin/echo "Programmende durch Signal <$(/usr/bin/kill -l $bailout)>"
+    /usr/bin/echo "caught signal <$(/usr/bin/kill -l $bailout)>"
     bailout=1
   fi  
   exit $bailout
@@ -55,7 +55,7 @@ while [ $# -gt 0 ]; do
   elif [ "${arg}" == "--help" -o "${arg}" == "-h" -o "${arg}" == "/?" ]; then
     usage
   else
-    [ -z "${fout}" ] && fout="${arg}" || /usr/bin/echo "Warnung : unbekannter Parameter \"${arg}\""
+    [ -z "${fout}" ] && fout="${arg}" || /usr/bin/echo "warning : unknown parameter \"${arg}\""
   fi
 done
 
@@ -77,8 +77,8 @@ fpath="${fname}.sh"
 /usr/bin/echo 'function usage() {' >>${fpath}
 /usr/bin/echo >>${fpath}
 /usr/bin/echo '  trap 0 1' >>${fpath}
-/usr/bin/echo '  [ $# -gt 0 ] && /usr/bin/echo -e "$1"' >>${fpath}   
-/usr/bin/echo '  /usr/bin/echo -e "' >>${fpath}  
+/usr/bin/echo '  [ $# -gt 0 ] && /usr/bin/echo -e "\n$1"' >>${fpath}   
+/usr/bin/echo '  /usr/bin/echo -e "\n\' >>${fpath}  
 /usr/bin/echo '    usage \"$0\"\n\' >>${fpath} 
 
 for pkey in ${!parL[@]}; do
@@ -105,7 +105,7 @@ done
 /usr/bin/echo '  declare -i bailout=$1' >>${fpath}
 /usr/bin/echo "  trap 0 1" >>${fpath}
 /usr/bin/echo '  if [ $bailout -gt 1 ]; then' >>${fpath}
-/usr/bin/echo '    /usr/bin/echo "Programmende durch Signal <$(/usr/bin/kill -l $bailout)>"' >>${fpath}
+/usr/bin/echo '    /usr/bin/echo "caught signal <$(/usr/bin/kill -l $bailout)>"' >>${fpath}
 /usr/bin/echo "    bailout=1" >>${fpath}
 /usr/bin/echo "  fi" >>${fpath}
 /usr/bin/echo '  exit $bailout' >>${fpath}
@@ -167,7 +167,7 @@ done
 /usr/bin/echo '[ "${arg}" == "--help" -o "${arg}" == "-h" -o "${arg}" == "/?" ]; then' >>${fpath}
 /usr/bin/echo "    usage" >>${fpath}
 /usr/bin/echo "  else" >>${fpath} 
-/usr/bin/echo '    /usr/bin/echo "Warnung : unbekannter Parameter \"${arg}\""' >>${fpath} 
+/usr/bin/echo '    /usr/bin/echo "warning : unknown parameter \"${arg}\""' >>${fpath} 
 /usr/bin/echo "  fi" >>${fpath} 
 /usr/bin/echo "done" >>${fpath}
 /usr/bin/echo >>${fpath}  

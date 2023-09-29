@@ -91,7 +91,7 @@ package xaxis;
 @ISA=(axis);
 
 sub new {
-  my($class)= shift;
+  my($class)=shift;
   my($this)=axis->new($class,@_);
   return(bless($this,$class));
 }

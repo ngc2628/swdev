@@ -1,0 +1,14 @@
+all:
+	cd $(SWDIR)\cpp\app\tst\list & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\app\tst\bcucof & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\app\tst\mat & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\app\tst\polyinter & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\app\tst
+clean:
+	cd $(SWDIR)\cpp\app\tst\polyinter & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\app\tst\mat & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\app\tst\bcucof & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\app\tst\list & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\app\tst
+
+

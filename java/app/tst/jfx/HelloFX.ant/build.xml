@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="iso8859-1"?>
+<project name="HelloFX" basedir="/data/scm/darcsmkl/swdev/java/app/tst/jfx/HelloFX">
+  <property environment="env"/>
+  <property name="launcher" value="HelloFX"/>
+  <property name="rootdir" value="/data/scm/darcsmkl/swdev/java/app/tst/jfx/HelloFX"/>
+	<description>
+	</description>
+	<!-- Erstellen der Ordner-Struktur -->
+	<target name="prepare" description="prepare">
+	</target>
+	<!-- Sourcen kompilieren mit Hilfe des Java Compilers -->
+	<target name="compile" depends="prepare" description="compile"> 
+    <javac srcdir="${rootdir}" 
+           destdir="${rootdir}"
+           includeAntRuntime="false">
+      <compilerarg line="--module-path ${env.JFX_MODULE_PATH} --add-modules=${env.JFX_MODULES}">
+      </compilerarg> 
+    </javac> 
+	</target>
+	<!-- Programm ausführen  -->
+	<target name="run" depends="compile" description="run"> 
+    <java classname="${launcher}" fork="true">
+      <classpath path="."/>
+      <classpath path="${env.CLASSPATH}"/>
+      <modulepath>
+        <pathelement location="${env.JFX_MODULE_PATH}"/>
+      </modulepath>
+      <jvmarg line="--add-modules ${env.JFX_MODULES}"/>
+    </java>
+	</target>
+	<!-- Generierte Dateien entfernen -->
+	<target name="clean" description="clean">
+    
+	</target>
+</project>

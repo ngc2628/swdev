@@ -1,0 +1,30 @@
+
+all:
+	cd $(SWDIR)\cpp\tools & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\numeric & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\osix & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\graphic\shapes & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\graphic\charts\simpleplot & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\spreadsheet & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\calculator & make -f Makefile.mingw
+	cd $(SWDIR)\cpp\txtcalculator & make -f Makefile.mingw
+ifdef QTDIR
+	cd $(SWDIR)\cpp\qt & make -f Makefile.mingw
+endif
+	cd $(SWDIR)\cpp\app & make -f Makefile.mingw
+	cd $(SWDIR)\cpp
+clean:
+	cd $(SWDIR)\cpp\app & make -f Makefile.mingw clean
+ifdef QTDIR
+	cd $(SWDIR)\cpp\qt & make -f Makefile.mingw clean
+endif
+	cd $(SWDIR)\cpp\txtcalculator & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\calculator & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\spreadsheet & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\graphic\charts\simpleplot & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\graphic\shapes & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\osix & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\numeric & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp\tools & make -f Makefile.mingw clean
+	cd $(SWDIR)\cpp
+  

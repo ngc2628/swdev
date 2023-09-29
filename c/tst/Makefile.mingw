@@ -1,0 +1,21 @@
+
+all:
+	cd $(SWDIR)\c\tst\polyinter & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst\cr2d & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst\cr1d & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst\intersect & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst\vertices & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst\list & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst\arr & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst\string & make -f Makefile.mingw
+	cd $(SWDIR)\c\tst
+clean:
+	cd $(SWDIR)\c\tst\string & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst\arr & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst\list & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst\vertices & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst\intersect & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst\cr1d & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst\cr2d & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst\polyinter & make -f Makefile.mingw clean
+	cd $(SWDIR)\c\tst
